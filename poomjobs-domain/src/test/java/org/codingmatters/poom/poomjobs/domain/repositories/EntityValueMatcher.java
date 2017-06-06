@@ -11,7 +11,7 @@ import java.util.function.Predicate;
  */
 public class EntityValueMatcher<V> extends TypeSafeMatcher<Entity<V>> {
 
-    static <V> EntityValueMatcher<V> valueMatches(Predicate<V> predicate) {
+    static public <V> EntityValueMatcher<V> valueMatches(Predicate<V> predicate) {
         return new EntityValueMatcher<>(predicate);
     }
 

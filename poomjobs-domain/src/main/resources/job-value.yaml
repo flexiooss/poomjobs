@@ -1,6 +1,6 @@
 JobValue:
   category: string
-  type: string
+  name: string
 
   arguments:
     $list: string

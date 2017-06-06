@@ -3,5 +3,6 @@ JobQuery:
     $list: $JobCriteria
 
 JobCriteria:
-  type: string
-  category: String
+  name: string
+  category: string
+  runStatus: string
