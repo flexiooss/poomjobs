@@ -1,0 +1,3 @@
+JobValue:
+  category: string
+  type: string

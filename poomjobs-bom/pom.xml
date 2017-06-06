@@ -6,20 +6,26 @@
 
     <parent>
         <groupId>org.codingmatters.poom</groupId>
-        <artifactId>poom-services-parent</artifactId>
+        <artifactId>poomjobs</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../../poom-services-parent</relativePath>
+        <relativePath>../</relativePath>
     </parent>
 
     <artifactId>poomjobs-bom</artifactId>
-    <name>${project.groupId}:${project.artifactId}</name>
     <packaging>pom</packaging>
+
+    <name>${project.groupId}:${project.artifactId}</name>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>${project.groupId}</groupId>
-                <artifactId>poomjobs-spec</artifactId>
+                <artifactId>poomjobs-domain</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>poomjobs-api-spec</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

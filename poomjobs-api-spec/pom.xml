@@ -6,13 +6,12 @@
 
     <parent>
         <groupId>org.codingmatters.poom</groupId>
-        <artifactId>poom-services-parent</artifactId>
+        <artifactId>poomjobs</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../../poom-services-parent</relativePath>
+        <relativePath>../</relativePath>
     </parent>
 
-    <artifactId>poomjobs-spec</artifactId>
-    <name>${project.groupId}:${project.artifactId}</name>
+    <artifactId>poomjobs-api-spec</artifactId>
 
     
 </project>
