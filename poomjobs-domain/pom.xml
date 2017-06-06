@@ -24,7 +24,6 @@
             <groupId>org.codingmatters.poom</groupId>
             <artifactId>poom-services-repository-in-memory</artifactId>
             <version>0.0.1-SNAPSHOT</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

@@ -1,2 +1,7 @@
 JobQuery:
+  criteria:
+    $list: $JobCriteria
 
+JobCriteria:
+  type: string
+  category: String

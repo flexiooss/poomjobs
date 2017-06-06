@@ -1,3 +1,19 @@
 JobValue:
   category: string
   type: string
+
+  arguments:
+    $list: string
+  result: string
+
+  status:
+    run: string
+    exit: string
+
+  processing:
+    submitted: date-time
+    started: date-time
+    finished: date-time
+
+  accounting:
+    accountId: string
