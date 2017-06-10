@@ -50,7 +50,7 @@ public class JobRepositoryTest {
     @Test
     public void runStatusFilter() throws Exception {
         for (int i = 0; i < 10; i++) {
-            String status = new String[]{"PENDIND", "RUNNING", "DONE"}[i % 3];
+            Status.Run status = Status.Run.values()[i % Status.Run.values().length];
             this.repository.create(JobValue.Builder.builder().status(Status.Builder.builder().run(status).build()).build());
         }
 
@@ -59,6 +59,21 @@ public class JobRepositoryTest {
         ).build(), 0, 100);
 
         assertThat(list, hasSize(3));
-        assertThat(list, everyItem(valueMatches(o -> o.status() != null && o.status().run().equals("RUNNING"))));
+        assertThat(list, everyItem(valueMatches(o -> o.status() != null && o.status().run().equals(Status.Run.RUNNING))));
+    }
+
+    @Test
+    public void exitStatusFilter() throws Exception {
+        for (int i = 0; i < 10; i++) {
+            Status.Exit status = Status.Exit.values()[i % Status.Exit.values().length];
+            this.repository.create(JobValue.Builder.builder().status(Status.Builder.builder().exit(status).build()).build());
+        }
+
+        PagedEntityList<JobValue> list = this.repository.search(JobQuery.Builder.builder().criteria(
+                JobCriteria.Builder.builder().exitStatus(Status.Exit.SUCCESS.name()).build()
+        ).build(), 0, 100);
+
+        assertThat(list, hasSize(5));
+        assertThat(list, everyItem(valueMatches(o -> o.status() != null && o.status().exit().equals(Status.Exit.SUCCESS))));
     }
 }

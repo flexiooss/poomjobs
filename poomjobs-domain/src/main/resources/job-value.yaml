@@ -7,8 +7,10 @@ JobValue:
   result: string
 
   status:
-    run: string
-    exit: string
+    run:
+      $enum: PENDIND, RUNNING, DONE
+    exit:
+      $enum: SUCCESS, FAILURE
 
   processing:
     submitted: date-time

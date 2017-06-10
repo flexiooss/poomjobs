@@ -6,3 +6,4 @@ JobCriteria:
   name: string
   category: string
   runStatus: string
+  exitStatus: string

@@ -38,7 +38,14 @@ public class InMemoryJobRepository extends InMemoryRepository<JobValue, JobQuery
             filtered = filtered.filter(jobValueEntity ->
                     jobValueEntity.value().status() != null
                             && jobValueEntity.value().status().run() != null
-                            && jobValueEntity.value().status().run().matches(jobCriteria.runStatus())
+                            && jobValueEntity.value().status().run().name().matches(jobCriteria.runStatus())
+            );
+        }
+        if (jobCriteria.exitStatus() != null) {
+            filtered = filtered.filter(jobValueEntity ->
+                    jobValueEntity.value().status() != null
+                            && jobValueEntity.value().status().exit() != null
+                            && jobValueEntity.value().status().exit().name().matches(jobCriteria.exitStatus())
             );
         }
         return filtered;
