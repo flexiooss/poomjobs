@@ -46,6 +46,7 @@ public class PoomjobsAPITest {
         Job job = response.status200().payload();
 
         assertThat(job.name(), is(jobEntity.value().name()));
+        assertThat(job.version(), is(jobEntity.version().toString()));
         assertThat(job.category(), is(jobEntity.value().category()));
         assertThat(job.arguments().toArray(), is(jobEntity.value().arguments().toArray()));
         assertThat(job.status().run().name(), is(jobEntity.value().status().run().name()));

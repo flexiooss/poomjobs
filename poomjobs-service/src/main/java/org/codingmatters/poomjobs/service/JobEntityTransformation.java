@@ -25,6 +25,7 @@ public class JobEntityTransformation {
     public Job asJob() {
         return Job.Builder.builder()
                 .name(this.entity.value().name())
+                .version(this.entity.version().toString())
                 .category(this.entity.value().category())
                 .arguments(this.entity.value().arguments().toArray(new String[0]))
                 .status(this.jobStatusFrom(this.entity.value().status()))

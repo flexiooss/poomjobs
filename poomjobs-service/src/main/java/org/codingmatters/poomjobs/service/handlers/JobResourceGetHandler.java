@@ -9,6 +9,7 @@ import org.codingmatters.poomjobs.api.JobResourceGetRequest;
 import org.codingmatters.poomjobs.api.JobResourceGetResponse;
 import org.codingmatters.poomjobs.api.jobresourcegetresponse.Status200;
 import org.codingmatters.poomjobs.api.jobresourcegetresponse.Status404;
+import org.codingmatters.poomjobs.api.jobresourcegetresponse.Status500;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.service.JobEntityTransformation;
 import org.slf4j.Logger;
@@ -34,23 +35,38 @@ public class JobResourceGetHandler implements Function<JobResourceGetRequest, Jo
         try {
             Entity<JobValue> jobEntity = this.repository.retrieve(jobResourceGetRequest.jobId());
             if(jobEntity == null) {
+                String errorToken = UUID.randomUUID().toString();
+                log.info("[token={}] job not found : {}", errorToken, jobResourceGetRequest.jobId());
+
                 return JobResourceGetResponse.Builder.builder()
                         .status404(Status404.Builder.builder()
                                 .payload(Error.Builder.builder()
                                         .code(Error.Code.JOB_NOT_FOUND)
                                         .description("no job found with the given jobId")
-                                        .token(UUID.randomUUID().toString())
+                                        .token(errorToken)
                                         .build())
                                 .build())
                         .build();
             }
+            log.info("request for job {} returns version {}", jobEntity.id(), jobEntity.version());
             return JobResourceGetResponse.Builder.builder()
                     .status200(Status200.Builder.builder()
                             .payload(JobEntityTransformation.transform(jobEntity).asJob())
                             .build())
                     .build();
         } catch (RepositoryException e) {
-            return null;
+            String errorToken = UUID.randomUUID().toString();
+            log.error(String.format("[token={}] unexpected error while looking up job : {}", errorToken, jobResourceGetRequest.jobId()), e);
+
+            return JobResourceGetResponse.Builder.builder()
+                    .status500(Status500.Builder.builder()
+                            .payload(Error.Builder.builder()
+                                    .code(Error.Code.UNEXPECTED_ERROR)
+                                    .description("unexpected error, see logs")
+                                    .token(errorToken)
+                                    .build())
+                            .build())
+                    .build();
         }
     }
 }
