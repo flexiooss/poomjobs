@@ -4,33 +4,26 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.codingmatters.poom</groupId>
-        <artifactId>poom-services-parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../poom-services-parent</relativePath>
-    </parent>
-
+    <!--<parent>-->
+        <!--<groupId>org.codingmatters.poom</groupId>-->
+        <!--<artifactId>poom-services-parent</artifactId>-->
+        <!--<version>0.0.1-SNAPSHOT</version>-->
+        <!--<relativePath>../poom-services-parent</relativePath>-->
+    <!--</parent>-->
+    <groupId>org.codingmatters.poom</groupId>
     <artifactId>poomjobs</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
     <name>${project.groupId}:${project.artifactId}</name>
 
     <packaging>pom</packaging>
 
     <modules>
         <module>poomjobs-bom</module>
+        <module>poomjobs-parent</module>
         <module>poomjobs-domain</module>
         <module>poomjobs-api-spec</module>
+        <module>poomjobs-api</module>
+        <module>poomjobs-service</module>
     </modules>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.codingmatters.poom</groupId>
-                <artifactId>poom-services-bom</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 </project>

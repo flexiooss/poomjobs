@@ -11,17 +11,13 @@
         <relativePath>../poomjobs-parent</relativePath>
     </parent>
 
-    <artifactId>poomjobs-domain</artifactId>
+    <artifactId>poomjobs-api</artifactId>
     <name>${project.groupId}:${project.artifactId}</name>
 
     <dependencies>
         <dependency>
             <groupId>org.codingmatters.poom</groupId>
-            <artifactId>poom-services-domain</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.codingmatters.poom</groupId>
-            <artifactId>poom-services-repository-in-memory</artifactId>
+            <artifactId>poomjobs-api-spec</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -32,31 +28,25 @@
     <build>
         <plugins>
             <plugin>
-            <groupId>org.codingmatters.value.objects</groupId>
-            <artifactId>cdm-value-objects-maven-plugin</artifactId>
+                <groupId>org.codingmatters.rest</groupId>
+                <artifactId>cdm-rest-maven-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codingmatters.poom</groupId>
+                        <artifactId>poomjobs-api-spec</artifactId>
+                        <version>0.0.1-SNAPSHOT</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
-                        <id>job-value-objects</id>
+                        <id>api-gen</id>
                         <phase>generate-sources</phase>
                         <goals>
-                            <goal>generate</goal>
-                            <goal>json</goal>
+                            <goal>generate-api-types</goal>
                         </goals>
                         <configuration>
-                            <destination-package>org.codingmatters.poom.poomjobs.domain.values</destination-package>
-                            <input-spec>src/main/resources/job-value.yaml</input-spec>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>job-quries-objects</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>generate</goal>
-                            <goal>json</goal>
-                        </goals>
-                        <configuration>
-                            <destination-package>org.codingmatters.poom.poomjobs.domain.values</destination-package>
-                            <input-spec>src/main/resources/job-queries.yaml</input-spec>
+                            <destination-package>org.codingmatters.poomjobs.api</destination-package>
+                            <api-spec-resource>poomjobs-api.raml</api-spec-resource>
                         </configuration>
                     </execution>
                 </executions>
@@ -80,4 +70,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>

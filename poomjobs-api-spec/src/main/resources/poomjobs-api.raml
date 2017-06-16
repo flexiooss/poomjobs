@@ -1,0 +1,111 @@
+#%RAML 1.0
+title: Poomjobs API
+version: v1
+baseUri: https://api.codingmatters.org/poomjobs
+mediaType: application/json
+
+/jobs:
+    displayName: JobCollection
+    post:
+        body: JobData
+        responses:
+            201:
+                description: new job created
+                headers:
+                    Location: string
+            500:
+                description: UNEXPECTED_ERROR.
+                body: Error
+    /{jobId}:
+        displayName: JobResource
+        uriParameters:
+            jobId:
+                type: string
+                required: true
+        get:
+            responses:
+                200:
+                    description: a job with the given jobId is found and returned
+                    body: Job
+                404:
+                    description: no job found with the given jobId. Code JOB_NOT_FOUND.
+                    body: Error
+                500:
+                    description: UNEXPECTED_ERROR.
+                    body: Error
+        put:
+            body: JobData
+            headers:
+                account-id: string
+            responses:
+                200:
+                    description: the job update was successful
+                    body: Job
+                404:
+                    description: no job found with the given jobId. Code JOB_NOT_FOUND.
+                    body: Error
+                500:
+                    description: UNEXPECTED_ERROR.
+                    body: Error
+
+types:
+    Job:
+        type: object
+        properties:
+            version: string
+
+            category: string
+            name: string
+
+            arguments:
+                type: array
+                items: string
+            result: string
+
+            accounting:
+                type: object
+                properties:
+                    accountId: string
+
+            status:
+                type: object
+                properties:
+                    run:
+                        enum: [PENDIND, RUNNING, DONE]
+                    exit:
+                        enum: [SUCCESS, FAILURE]
+
+            processing:
+                type: object
+                properties:
+                    submitted: datetime-only
+                    started: datetime-only
+                    finished: datetime-only
+
+    JobData:
+        type: object
+        properties:
+            version: string
+
+            category: string
+            name: string
+
+            arguments:
+                type: array
+                items: string
+            result: string
+
+            status:
+                type: object
+                properties:
+                    run:
+                        enum: [PENDIND, RUNNING, DONE]
+                    exit:
+                        enum: [SUCCESS, FAILURE]
+    Error:
+        type: object
+        properties:
+            token: string
+            code:
+                enum: [JOB_NOT_FOUND, UNEXPECTED_ERROR]
+            description: string
