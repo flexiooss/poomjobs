@@ -4,6 +4,7 @@ import org.codingmatters.poom.poomjobs.domain.values.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.repositories.Repository;
+import org.codingmatters.poom.services.support.LoggingContext;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobResourceGetRequest;
 import org.codingmatters.poomjobs.api.JobResourceGetResponse;
@@ -11,12 +12,14 @@ import org.codingmatters.poomjobs.api.jobresourcegetresponse.Status200;
 import org.codingmatters.poomjobs.api.jobresourcegetresponse.Status404;
 import org.codingmatters.poomjobs.api.jobresourcegetresponse.Status500;
 import org.codingmatters.poomjobs.api.types.Error;
-import org.codingmatters.poomjobs.service.JobEntityTransformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.util.UUID;
 import java.util.function.Function;
+
+import static org.codingmatters.poomjobs.service.JobEntityTransformation.transform;
 
 /**
  * Created by nelt on 6/15/17.
@@ -32,42 +35,62 @@ public class JobResourceGetHandler implements Function<JobResourceGetRequest, Jo
 
     @Override
     public JobResourceGetResponse apply(JobResourceGetRequest jobResourceGetRequest) {
-        try {
-            Entity<JobValue> jobEntity = this.repository.retrieve(jobResourceGetRequest.jobId());
-            if(jobEntity == null) {
-                String errorToken = UUID.randomUUID().toString();
-                log.info("[token={}] job not found : {}", errorToken, jobResourceGetRequest.jobId());
-
-                return JobResourceGetResponse.Builder.builder()
-                        .status404(Status404.Builder.builder()
-                                .payload(Error.Builder.builder()
-                                        .code(Error.Code.JOB_NOT_FOUND)
-                                        .description("no job found with the given jobId")
-                                        .token(errorToken)
-                                        .build())
-                                .build())
-                        .build();
+        try(LoggingContext ctx = LoggingContext.start()) {
+            MDC.put("request-id", UUID.randomUUID().toString());
+            try {
+                Entity<JobValue> jobEntity = this.repository.retrieve(jobResourceGetRequest.jobId());
+                if (jobEntity != null) {
+                    return this.job(jobEntity);
+                } else {
+                    return this.jobNotFound(jobResourceGetRequest);
+                }
+            } catch (RepositoryException e) {
+                return this.unexpectedError(jobResourceGetRequest, e);
             }
-            log.info("request for job {} returns version {}", jobEntity.id(), jobEntity.version());
-            return JobResourceGetResponse.Builder.builder()
-                    .status200(Status200.Builder.builder()
-                            .payload(JobEntityTransformation.transform(jobEntity).asJob())
-                            .build())
-                    .build();
-        } catch (RepositoryException e) {
-            String errorToken = UUID.randomUUID().toString();
-            log.error("[token={}] unexpected error while looking up job : {}", errorToken, jobResourceGetRequest.jobId());
-            log.trace("[token=" + errorToken +"] unexpected exception", e);
-
-            return JobResourceGetResponse.Builder.builder()
-                    .status500(Status500.Builder.builder()
-                            .payload(Error.Builder.builder()
-                                    .code(Error.Code.UNEXPECTED_ERROR)
-                                    .description("unexpected error, see logs")
-                                    .token(errorToken)
-                                    .build())
-                            .build())
-                    .build();
         }
+    }
+
+    private JobResourceGetResponse job(Entity<JobValue> jobEntity) {
+        log.info("request for job {} returns version {}", jobEntity.id(), jobEntity.version());
+        return JobResourceGetResponse.Builder.builder()
+                .status200(Status200.Builder.builder()
+                        .payload(transform(jobEntity).asJob())
+                        .build())
+                .build();
+    }
+
+
+    private JobResourceGetResponse jobNotFound(JobResourceGetRequest jobResourceGetRequest) {
+        String errorToken = UUID.randomUUID().toString();
+        MDC.put("error-token", errorToken);
+        log.info("no job found with id: {}", jobResourceGetRequest.jobId());
+
+        return JobResourceGetResponse.Builder.builder()
+                .status404(Status404.Builder.builder()
+                        .payload(Error.Builder.builder()
+                                .code(Error.Code.JOB_NOT_FOUND)
+                                .description("no job found with the given jobId")
+                                .token(errorToken)
+                                .build())
+                        .build())
+                .build();
+    }
+
+    private JobResourceGetResponse unexpectedError(JobResourceGetRequest jobResourceGetRequest, RepositoryException e) {
+        String errorToken = UUID.randomUUID().toString();
+        MDC.put("error-token", errorToken);
+
+        log.error("unexpected error while looking up job : {}", jobResourceGetRequest.jobId());
+        log.trace("unexpected exception", e);
+
+        return JobResourceGetResponse.Builder.builder()
+                .status500(Status500.Builder.builder()
+                        .payload(Error.Builder.builder()
+                                .code(Error.Code.UNEXPECTED_ERROR)
+                                .description("unexpected error, see logs")
+                                .token(errorToken)
+                                .build())
+                        .build())
+                .build();
     }
 }

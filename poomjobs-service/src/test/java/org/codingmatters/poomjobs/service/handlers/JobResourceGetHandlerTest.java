@@ -1,4 +1,4 @@
-package org.codingmatters.poomjobs.service;
+package org.codingmatters.poomjobs.service.handlers;
 
 import org.codingmatters.poom.poomjobs.domain.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.values.JobQuery;
@@ -12,6 +12,7 @@ import org.codingmatters.poomjobs.api.JobResourceGetRequest;
 import org.codingmatters.poomjobs.api.JobResourceGetResponse;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.Job;
+import org.codingmatters.poomjobs.service.PoomjobsAPI;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
@@ -21,9 +22,9 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 /**
- * Created by nelt on 6/15/17.
+ * Created by nelt on 6/19/17.
  */
-public class PoomjobsAPITest {
+public class JobResourceGetHandlerTest {
 
     private Repository<JobValue, JobQuery> repository = JobRepository.createInMemory();
     private PoomjobsAPI api = new PoomjobsAPI(this.repository);
