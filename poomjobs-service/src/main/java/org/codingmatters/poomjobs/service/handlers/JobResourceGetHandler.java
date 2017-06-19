@@ -56,7 +56,8 @@ public class JobResourceGetHandler implements Function<JobResourceGetRequest, Jo
                     .build();
         } catch (RepositoryException e) {
             String errorToken = UUID.randomUUID().toString();
-            log.error(String.format("[token={}] unexpected error while looking up job : {}", errorToken, jobResourceGetRequest.jobId()), e);
+            log.error("[token={}] unexpected error while looking up job : {}", errorToken, jobResourceGetRequest.jobId());
+            log.trace("[token=" + errorToken +"] unexpected exception", e);
 
             return JobResourceGetResponse.Builder.builder()
                     .status500(Status500.Builder.builder()
