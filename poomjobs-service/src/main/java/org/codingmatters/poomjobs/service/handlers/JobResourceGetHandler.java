@@ -81,7 +81,7 @@ public class JobResourceGetHandler implements Function<JobResourceGetRequest, Jo
         MDC.put("error-token", errorToken);
 
         log.error("unexpected error while looking up job : {}", jobResourceGetRequest.jobId());
-        log.trace("unexpected exception", e);
+        log.debug("unexpected exception", e);
 
         return JobResourceGetResponse.Builder.builder()
                 .status500(Status500.Builder.builder()

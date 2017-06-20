@@ -37,6 +37,7 @@ mediaType: application/json
             body: JobData
             headers:
                 account-id: string
+                current-version: string
             responses:
                 200:
                     description: the job update was successful
@@ -85,7 +86,6 @@ types:
     JobData:
         type: object
         properties:
-            version: string
 
             category: string
             name: string

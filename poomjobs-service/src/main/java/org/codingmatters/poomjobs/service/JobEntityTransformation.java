@@ -18,19 +18,20 @@ public class JobEntityTransformation {
 
     private final Entity<JobValue> entity;
 
-    public JobEntityTransformation(Entity<JobValue> entity) {
+    private JobEntityTransformation(Entity<JobValue> entity) {
         this.entity = entity;
     }
 
     public Job asJob() {
+        JobValue value = this.entity.value();
         return Job.Builder.builder()
-                .name(this.entity.value().name())
+                .name(value.name())
                 .version(this.entity.version().toString())
-                .category(this.entity.value().category())
-                .arguments(this.entity.value().arguments().toArray(new String[0]))
-                .status(this.jobStatusFrom(this.entity.value().status()))
-                .accounting(this.jobAccountingFrom(this.entity.value().accounting()))
-                .processing(this.jobProcessingFrom(this.entity.value().processing()))
+                .category(value.category())
+                .arguments(value.arguments() != null ? value.arguments().toArray(new String[0]) : null)
+                .status(this.jobStatusFrom(value.status()))
+                .accounting(this.jobAccountingFrom(value.accounting()))
+                .processing(this.jobProcessingFrom(value.processing()))
                 .build();
     }
 

@@ -13,6 +13,7 @@ import org.codingmatters.poomjobs.api.JobResourceGetResponse;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.service.PoomjobsAPI;
+import org.codingmatters.poomjobs.service.handlers.mocks.MockedJobRepository;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
@@ -30,7 +31,7 @@ public class JobResourceGetHandlerTest {
     private PoomjobsAPI api = new PoomjobsAPI(this.repository);
 
     @Test
-    public void getJob_whenInRepository__willReturnAStatus200() throws Exception {
+    public void whenJobInRepository__willReturnAStatus200() throws Exception {
         Entity<JobValue> jobEntity = this.repository.create(JobValue.Builder.builder()
                 .category("jobs/for/test")
                 .name("test-job")
@@ -44,6 +45,10 @@ public class JobResourceGetHandlerTest {
                 .jobId(jobEntity.id())
                 .build());
 
+
+        assertThat(response.status404(), is(nullValue()));
+        assertThat(response.status500(), is(nullValue()));
+
         Job job = response.status200().payload();
 
         assertThat(job.name(), is(jobEntity.value().name()));
@@ -56,15 +61,31 @@ public class JobResourceGetHandlerTest {
     }
 
     @Test
-    public void getJob_whenNotInRepository__willReturnAStatus404() throws Exception {
+    public void whenJobNotInRepository__willReturnAStatus404() throws Exception {
         JobResourceGetResponse response = this.api.handlers().jobResourceGetHandler().apply(JobResourceGetRequest.Builder.builder()
                 .jobId("not in repo")
                 .build());
 
         assertThat(response.status200(), is(nullValue()));
+        assertThat(response.status500(), is(nullValue()));
 
         assertThat(response.status404().payload().code(), is(Error.Code.JOB_NOT_FOUND));
         assertThat(response.status404().payload().description(), is("no job found with the given jobId"));
         assertThat(response.status404().payload().token(), is(notNullValue()));
     }
+
+    @Test
+    public void whenUnexpectedRepositoryException__willReturnAStatus500() throws Exception {
+        JobResourceGetResponse response = new PoomjobsAPI(new MockedJobRepository()).handlers().jobResourceGetHandler().apply(JobResourceGetRequest.Builder.builder()
+                .jobId("id")
+                .build());
+
+        assertThat(response.status200(), is(nullValue()));
+        assertThat(response.status404(), is(nullValue()));
+
+        assertThat(response.status500().payload().code(), is(Error.Code.UNEXPECTED_ERROR));
+        assertThat(response.status500().payload().description(), is("unexpected error, see logs"));
+        assertThat(response.status500().payload().token(), is(notNullValue()));
+    }
+
 }
