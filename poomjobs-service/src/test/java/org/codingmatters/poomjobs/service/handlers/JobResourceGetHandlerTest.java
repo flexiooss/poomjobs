@@ -36,7 +36,7 @@ public class JobResourceGetHandlerTest {
                 .category("jobs/for/test")
                 .name("test-job")
                 .arguments("a", "b", "c")
-                .status(Status.Builder.builder().run(Status.Run.PENDIND).build())
+                .status(Status.Builder.builder().run(Status.Run.PENDING).build())
                 .accounting(Accounting.Builder.builder().accountId("121212").build())
                 .processing(Processing.Builder.builder().submitted(LocalDateTime.now().minus(10, ChronoUnit.MINUTES)).build())
                 .build());

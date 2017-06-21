@@ -9,11 +9,13 @@ import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobResourcePutRequest;
 import org.codingmatters.poomjobs.api.JobResourcePutResponse;
 import org.codingmatters.poomjobs.api.jobresourceputresponse.Status200;
+import org.codingmatters.poomjobs.api.jobresourceputresponse.Status400;
 import org.codingmatters.poomjobs.api.jobresourceputresponse.Status404;
 import org.codingmatters.poomjobs.api.jobresourceputresponse.Status500;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.service.JobEntityTransformation;
 import org.codingmatters.poomjobs.service.JobValueChangeRuleApplier;
+import org.codingmatters.poomjobs.service.JobValueChangeValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -55,17 +57,34 @@ public class JobResourcePutHandler implements Function<JobResourcePutRequest, Jo
     private JobResourcePutResponse updateJob(JobResourcePutRequest request, Entity<JobValue> entity) throws RepositoryException {
         JobValue currentValue = entity.value();
         JobValue newValue = merge(currentValue).with(request.payload());
+        MDC.put("job-id", entity.id());
 
-        newValue = JobValueChangeRuleApplier.from(currentValue).to(newValue).apply();
+        JobValueChangeValidation validation = JobValueChangeValidation.from(currentValue).to(newValue);
+        if(validation.isValid()) {
+            newValue = JobValueChangeRuleApplier.from(currentValue).to(newValue).apply();
 
-        entity = this.repository.update(entity, newValue);
+            entity = this.repository.update(entity, newValue);
 
-        log.info("updated job {}", request.jobId());
-        return JobResourcePutResponse.Builder.builder()
-                .status200(Status200.Builder.builder()
-                        .payload(JobEntityTransformation.transform(entity).asJob())
-                        .build())
-                .build();
+            log.info("updated job");
+            return JobResourcePutResponse.Builder.builder()
+                    .status200(Status200.Builder.builder()
+                            .payload(JobEntityTransformation.transform(entity).asJob())
+                            .build())
+                    .build();
+        } else {
+            String errorToken = UUID.randomUUID().toString();
+            MDC.put("error-token", errorToken);
+            log.info("illegal job change: {}", validation.message());
+            return JobResourcePutResponse.Builder.builder()
+                    .status400(Status400.Builder.builder()
+                            .payload(Error.Builder.builder()
+                                    .code(Error.Code.ILLEGAL_JOB_CHANGE)
+                                    .description(validation.message())
+                                    .token(errorToken)
+                                    .build())
+                            .build())
+                    .build();
+        }
     }
 
     private JobResourcePutResponse jobNotFound(JobResourcePutRequest request) {

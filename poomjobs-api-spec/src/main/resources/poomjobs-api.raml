@@ -42,6 +42,9 @@ mediaType: application/json
                 200:
                     description: the job update was successful
                     body: Job
+                400:
+                    description: request is not acceptable
+                    body: Error
                 404:
                     description: no job found with the given jobId. Code JOB_NOT_FOUND.
                     body: Error
@@ -99,7 +102,7 @@ types:
                 type: object
                 properties:
                     run:
-                        enum: [PENDIND, RUNNING, DONE]
+                        enum: [PENDING, RUNNING, DONE]
                     exit:
                         enum: [SUCCESS, FAILURE]
     Error:
@@ -107,5 +110,5 @@ types:
         properties:
             token: string
             code:
-                enum: [JOB_NOT_FOUND, UNEXPECTED_ERROR]
+                enum: [JOB_NOT_FOUND, UNEXPECTED_ERROR, ILLEGAL_JOB_CHANGE]
             description: string

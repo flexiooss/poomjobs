@@ -1,6 +1,7 @@
 package org.codingmatters.poomjobs.service;
 
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
+import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status;
 
 /**
  * Created by nelt on 6/20/17.
@@ -19,25 +20,26 @@ public class JobValueChangeValidation {
         }
 
         public JobValueChangeValidation to(JobValue newValue) {
-            JobValueChangeValidation result = new JobValueChangeValidation(this.currentValue, newValue);
-            result.process();
-            return result;
+            return process(this.currentValue, newValue);
         }
     }
 
-    private final JobValue currentValue;
-    private final JobValue newValue;
-
-    private boolean valid;
-    private String message;
-
-    private JobValueChangeValidation(JobValue currentValue, JobValue newValue) {
-        this.currentValue = currentValue;
-        this.newValue = newValue;
+    static private JobValueChangeValidation process(JobValue currentValue, JobValue newValue) {
+        if(currentValue.status().run().equals(Status.Run.DONE)) {
+            return new JobValueChangeValidation(
+                    false,
+                    String.format("cannot change run status from %s to %s", currentValue.status().run(), newValue.status().run())
+            );
+        }
+        return new JobValueChangeValidation(true, "");
     }
 
-    private void process() {
+    private final boolean valid;
+    private final String message;
 
+    private JobValueChangeValidation(boolean valid, String message) {
+        this.valid = valid;
+        this.message = message;
     }
 
     public boolean isValid() {

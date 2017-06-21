@@ -34,7 +34,7 @@ public class JobValueMergerTest {
                                 .category("category")
                                 .result("result")
                                 .status(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Builder.builder()
-                                        .run(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Run.PENDIND)
+                                        .run(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Run.PENDING)
                                         .exit(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Exit.FAILURE)
                                         .build())
                                 .build())

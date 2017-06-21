@@ -37,7 +37,7 @@ public class JobValueChangeRuleApplier {
     public JobValue apply() {
         JobValue result = newValue;
 
-        if(this.currentValue.status() != null && Status.Run.PENDIND == this.currentValue.status().run()) {
+        if(this.currentValue.status() != null && Status.Run.PENDING == this.currentValue.status().run()) {
             if(result.status() != null && Status.Run.RUNNING == result.status().run()) {
                 result = result.withProcessing(result.processing().changed(builder -> builder.started(LocalDateTime.now())));
             }

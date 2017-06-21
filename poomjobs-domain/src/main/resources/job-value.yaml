@@ -8,7 +8,7 @@ JobValue:
 
   status:
     run:
-      $enum: PENDIND, RUNNING, DONE
+      $enum: PENDING, RUNNING, DONE
     exit:
       $enum: SUCCESS, FAILURE
 
