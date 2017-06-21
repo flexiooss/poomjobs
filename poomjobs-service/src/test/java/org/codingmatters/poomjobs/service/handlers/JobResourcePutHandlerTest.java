@@ -160,7 +160,7 @@ public class JobResourcePutHandlerTest {
     }
 
     @Test
-    public void whenRunStatusChangesFromDONEToRUNNING__returnsStatus400_withILLEGAL_JOB_CHANGEErrorCode() throws Exception {
+    public void whenRunStatusIsDONE__returnsStatus400_withILLEGAL_JOB_CHANGEErrorCode() throws Exception {
         Entity<JobValue> job = this.repository.create(JobValue.Builder.builder()
                 .name("test")
                 .status(Status.Builder.builder()
@@ -180,32 +180,8 @@ public class JobResourcePutHandlerTest {
                 .build());
 
         assertThat(response.status400().payload().code(), is(Error.Code.ILLEGAL_JOB_CHANGE));
-        assertThat(response.status400().payload().description(), is("cannot change run status from DONE to RUNNING"));
+        assertThat(response.status400().payload().description(), is("cannot change a job when run status is DONE"));
         assertThat(response.status400().payload().token(), is(notNullValue()));
     }
 
-    @Test
-    public void whenRunStatusChangesFromDONEToPENDING__returnsStatus400_withILLEGAL_JOB_CHANGEErrorCode() throws Exception {
-        Entity<JobValue> job = this.repository.create(JobValue.Builder.builder()
-                .name("test")
-                .status(Status.Builder.builder()
-                        .run(Status.Run.DONE)
-                        .build())
-                .build());
-
-        JobResourcePutResponse response = this.api.handlers().jobResourcePutHandler().apply(JobResourcePutRequest.Builder.builder()
-                .accountId("121212")
-                .currentVersion(job.version().toString())
-                .jobId(job.id())
-                .payload(JobData.Builder.builder()
-                        .status(org.codingmatters.poomjobs.api.types.jobdata.Status.Builder.builder()
-                                .run(org.codingmatters.poomjobs.api.types.jobdata.Status.Run.PENDING)
-                                .build())
-                        .build())
-                .build());
-
-        assertThat(response.status400().payload().code(), is(Error.Code.ILLEGAL_JOB_CHANGE));
-        assertThat(response.status400().payload().description(), is("cannot change run status from DONE to PENDING"));
-        assertThat(response.status400().payload().token(), is(notNullValue()));
-    }
 }

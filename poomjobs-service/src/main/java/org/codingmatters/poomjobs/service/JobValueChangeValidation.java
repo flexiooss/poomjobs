@@ -3,6 +3,8 @@ package org.codingmatters.poomjobs.service;
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status;
 
+import java.util.Objects;
+
 /**
  * Created by nelt on 6/20/17.
  */
@@ -28,7 +30,7 @@ public class JobValueChangeValidation {
         if(currentValue.status().run().equals(Status.Run.DONE)) {
             return new JobValueChangeValidation(
                     false,
-                    String.format("cannot change run status from %s to %s", currentValue.status().run(), newValue.status().run())
+                    String.format("cannot change a job when run status is DONE")
             );
         }
         return new JobValueChangeValidation(true, "");
@@ -37,7 +39,7 @@ public class JobValueChangeValidation {
     private final boolean valid;
     private final String message;
 
-    private JobValueChangeValidation(boolean valid, String message) {
+    public JobValueChangeValidation(boolean valid, String message) {
         this.valid = valid;
         this.message = message;
     }
@@ -48,5 +50,27 @@ public class JobValueChangeValidation {
 
     public String message() {
         return message;
+    }
+
+    @Override
+    public String toString() {
+        return "JobValueChangeValidation{" +
+                "valid=" + valid +
+                ", message='" + message + '\'' +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JobValueChangeValidation that = (JobValueChangeValidation) o;
+        return valid == that.valid &&
+                Objects.equals(message, that.message);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(valid, message);
     }
 }
