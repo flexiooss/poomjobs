@@ -45,7 +45,6 @@ public class JobResourcePutHandlerTest {
                 .currentVersion(entity.version().toString())
                 .jobId(entity.id())
                 .payload(JobUpdateData.Builder.builder()
-                        .name("changed")
                         .build())
                 .build());
 
@@ -67,7 +66,6 @@ public class JobResourcePutHandlerTest {
                 .currentVersion("2")
                 .jobId("123456789")
                 .payload(JobUpdateData.Builder.builder()
-                        .name("changed")
                         .build())
                 .build());
 
@@ -86,7 +84,6 @@ public class JobResourcePutHandlerTest {
                 .currentVersion("2")
                 .jobId("123456789")
                 .payload(JobUpdateData.Builder.builder()
-                        .name("changed")
                         .build())
                 .build());
 

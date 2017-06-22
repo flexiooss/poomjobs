@@ -96,26 +96,10 @@ types:
             arguments:
                 type: array
                 items: string
-            result: string
-
-            status:
-                type: object
-                properties:
-                    run:
-                        enum: [PENDING, RUNNING, DONE]
-                    exit:
-                        enum: [SUCCESS, FAILURE]
 
     JobUpdateData:
         type: object
         properties:
-
-            category: string
-            name: string
-
-            arguments:
-                type: array
-                items: string
             result: string
 
             status:

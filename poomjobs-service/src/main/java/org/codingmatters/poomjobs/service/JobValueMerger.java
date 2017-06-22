@@ -21,9 +21,6 @@ public class JobValueMerger {
 
     public JobValue with(JobUpdateData jobData) {
         return this.currentValue.changed(builder -> builder
-                .category(jobData.category())
-                .name(jobData.name())
-                .arguments(jobData.arguments() != null ? jobData.arguments().toArray(new String[0]) : null)
                 .result(jobData.result())
                 .status(this.fromJobDataStatus(jobData.status()))
         );
