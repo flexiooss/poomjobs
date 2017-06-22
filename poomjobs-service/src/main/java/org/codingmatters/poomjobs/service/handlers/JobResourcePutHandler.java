@@ -55,9 +55,10 @@ public class JobResourcePutHandler implements Function<JobResourcePutRequest, Jo
     }
 
     private JobResourcePutResponse updateJob(JobResourcePutRequest request, Entity<JobValue> entity) throws RepositoryException {
+        MDC.put("job-id", entity.id());
+
         JobValue currentValue = entity.value();
         JobValue newValue = merge(currentValue).with(request.payload());
-        MDC.put("job-id", entity.id());
 
         JobValueChangeValidation validation = JobValueChangeValidation.from(currentValue).to(newValue);
         if(validation.isValid()) {

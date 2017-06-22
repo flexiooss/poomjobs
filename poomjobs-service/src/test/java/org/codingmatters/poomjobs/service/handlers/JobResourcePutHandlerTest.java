@@ -11,7 +11,7 @@ import org.codingmatters.poomjobs.api.JobResourcePutRequest;
 import org.codingmatters.poomjobs.api.JobResourcePutResponse;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.Job;
-import org.codingmatters.poomjobs.api.types.JobData;
+import org.codingmatters.poomjobs.api.types.JobUpdateData;
 import org.codingmatters.poomjobs.service.PoomjobsAPI;
 import org.codingmatters.poomjobs.service.handlers.mocks.MockedJobRepository;
 import org.junit.Test;
@@ -44,7 +44,7 @@ public class JobResourcePutHandlerTest {
                 .accountId("121212")
                 .currentVersion(entity.version().toString())
                 .jobId(entity.id())
-                .payload(JobData.Builder.builder()
+                .payload(JobUpdateData.Builder.builder()
                         .name("changed")
                         .build())
                 .build());
@@ -66,7 +66,7 @@ public class JobResourcePutHandlerTest {
                 .accountId("121212")
                 .currentVersion("2")
                 .jobId("123456789")
-                .payload(JobData.Builder.builder()
+                .payload(JobUpdateData.Builder.builder()
                         .name("changed")
                         .build())
                 .build());
@@ -85,7 +85,7 @@ public class JobResourcePutHandlerTest {
                 .accountId("121212")
                 .currentVersion("2")
                 .jobId("123456789")
-                .payload(JobData.Builder.builder()
+                .payload(JobUpdateData.Builder.builder()
                         .name("changed")
                         .build())
                 .build());
@@ -115,9 +115,9 @@ public class JobResourcePutHandlerTest {
                 .accountId("121212")
                 .currentVersion(entity.version().toString())
                 .jobId(entity.id())
-                .payload(JobData.Builder.builder()
-                        .status(org.codingmatters.poomjobs.api.types.jobdata.Status.Builder.builder()
-                                .run(org.codingmatters.poomjobs.api.types.jobdata.Status.Run.RUNNING)
+                .payload(JobUpdateData.Builder.builder()
+                        .status(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Builder.builder()
+                                .run(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Run.RUNNING)
                                 .build())
                         .build())
                 .build());
@@ -146,9 +146,10 @@ public class JobResourcePutHandlerTest {
                 .accountId("121212")
                 .currentVersion(entity.version().toString())
                 .jobId(entity.id())
-                .payload(JobData.Builder.builder()
-                        .status(org.codingmatters.poomjobs.api.types.jobdata.Status.Builder.builder()
-                                .run(org.codingmatters.poomjobs.api.types.jobdata.Status.Run.DONE)
+                .payload(JobUpdateData.Builder.builder()
+                        .status(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Builder.builder()
+                                .run(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Run.DONE)
+                                .exit(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Exit.SUCCESS)
                                 .build())
                         .build())
                 .build());
@@ -156,6 +157,8 @@ public class JobResourcePutHandlerTest {
         entity = this.repository.retrieve(entity.id());
 
         assertThat(entity.value().status().run(), is(Status.Run.DONE));
+        assertThat(entity.value().status().exit(), is(Status.Exit.SUCCESS));
+
         assertThat(entity.value().processing().finished(), is(notNullValue()));
     }
 
@@ -172,9 +175,9 @@ public class JobResourcePutHandlerTest {
                 .accountId("121212")
                 .currentVersion(job.version().toString())
                 .jobId(job.id())
-                .payload(JobData.Builder.builder()
-                        .status(org.codingmatters.poomjobs.api.types.jobdata.Status.Builder.builder()
-                                .run(org.codingmatters.poomjobs.api.types.jobdata.Status.Run.RUNNING)
+                .payload(JobUpdateData.Builder.builder()
+                        .status(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Builder.builder()
+                                .run(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Run.RUNNING)
                                 .build())
                         .build())
                 .build());

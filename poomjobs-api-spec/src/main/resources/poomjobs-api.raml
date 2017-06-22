@@ -7,7 +7,7 @@ mediaType: application/json
 /jobs:
     displayName: JobCollection
     post:
-        body: JobData
+        body: JobCreationData
         responses:
             201:
                 description: new job created
@@ -34,7 +34,7 @@ mediaType: application/json
                     description: UNEXPECTED_ERROR.
                     body: Error
         put:
-            body: JobData
+            body: JobUpdateData
             headers:
                 account-id: string
                 current-version: string
@@ -86,7 +86,7 @@ types:
                     started: datetime-only
                     finished: datetime-only
 
-    JobData:
+    JobCreationData:
         type: object
         properties:
 
@@ -105,6 +105,27 @@ types:
                         enum: [PENDING, RUNNING, DONE]
                     exit:
                         enum: [SUCCESS, FAILURE]
+
+    JobUpdateData:
+        type: object
+        properties:
+
+            category: string
+            name: string
+
+            arguments:
+                type: array
+                items: string
+            result: string
+
+            status:
+                type: object
+                properties:
+                    run:
+                        enum: [PENDING, RUNNING, DONE]
+                    exit:
+                        enum: [SUCCESS, FAILURE]
+
     Error:
         type: object
         properties:

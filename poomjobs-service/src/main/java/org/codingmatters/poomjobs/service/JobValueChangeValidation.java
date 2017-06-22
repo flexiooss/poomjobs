@@ -33,6 +33,14 @@ public class JobValueChangeValidation {
                     String.format("cannot change a job when run status is DONE")
             );
         }
+        if(currentValue.status().run().equals(Status.Run.RUNNING)
+                && newValue.status().run().equals(Status.Run.DONE)
+                && newValue.status().exit() == null) {
+            return new JobValueChangeValidation(
+                    false,
+                    String.format("when job run status changes to DONE, an exit status must be setted")
+            );
+        }
         return new JobValueChangeValidation(true, "");
     }
 

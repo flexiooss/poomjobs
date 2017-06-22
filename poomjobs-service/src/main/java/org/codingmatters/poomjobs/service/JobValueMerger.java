@@ -2,7 +2,7 @@ package org.codingmatters.poomjobs.service;
 
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status;
-import org.codingmatters.poomjobs.api.types.JobData;
+import org.codingmatters.poomjobs.api.types.JobUpdateData;
 
 /**
  * Created by nelt on 6/20/17.
@@ -19,7 +19,7 @@ public class JobValueMerger {
         this.currentValue = currentValue;
     }
 
-    public JobValue with(JobData jobData) {
+    public JobValue with(JobUpdateData jobData) {
         return this.currentValue.changed(builder -> builder
                 .category(jobData.category())
                 .name(jobData.name())
@@ -29,7 +29,7 @@ public class JobValueMerger {
         );
     }
 
-    private Status fromJobDataStatus(org.codingmatters.poomjobs.api.types.jobdata.Status status) {
+    private Status fromJobDataStatus(org.codingmatters.poomjobs.api.types.jobupdatedata.Status status) {
         if(status == null) return null;
         Status.Builder result = Status.Builder.builder();
         if(status.run() != null) {

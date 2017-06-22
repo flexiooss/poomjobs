@@ -1,8 +1,8 @@
 package org.codingmatters.poomjobs.service;
 
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
-import org.codingmatters.poomjobs.api.types.JobData;
-import org.codingmatters.poomjobs.api.types.jobdata.Status;
+import org.codingmatters.poomjobs.api.types.JobUpdateData;
+import org.codingmatters.poomjobs.api.types.jobupdatedata.Status;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -17,7 +17,7 @@ public class JobValueMergerTest {
     public void mergeEmptyFields_withEmptyFields__returnEmptyFields() throws Exception {
         assertThat(
                 JobValueMerger.merge(JobValue.Builder.builder().build())
-                        .with(JobData.Builder.builder().build()),
+                        .with(JobUpdateData.Builder.builder().build()),
                 is(
                         JobValue.Builder.builder().build()
                 )
@@ -38,7 +38,7 @@ public class JobValueMergerTest {
                                         .exit(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Exit.FAILURE)
                                         .build())
                                 .build())
-                        .with(JobData.Builder.builder()
+                        .with(JobUpdateData.Builder.builder()
                                 .name("changed name")
                                 .arguments("changed", "arguments")
                                 .category("changed category")
