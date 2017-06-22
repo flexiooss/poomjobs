@@ -160,7 +160,7 @@ public class JobResourcePutHandlerTest {
     }
 
     @Test
-    public void whenRunStatusIsDONE__returnsStatus400_withILLEGAL_JOB_CHANGEErrorCode() throws Exception {
+    public void whenChangeIsNotValidated__returnsStatus400_withILLEGAL_JOB_CHANGEErrorCode() throws Exception {
         Entity<JobValue> job = this.repository.create(JobValue.Builder.builder()
                 .name("test")
                 .status(Status.Builder.builder()
