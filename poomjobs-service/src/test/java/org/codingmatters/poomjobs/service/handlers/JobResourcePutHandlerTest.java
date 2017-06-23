@@ -94,7 +94,7 @@ public class JobResourcePutHandlerTest {
     }
 
     @Test
-    public void whenRunStatusChangesToRUNNING__jobProcessingStartedDateIsUpdated() throws Exception {
+    public void whenChangeIsValidated__returnStatus200_andChangeRulesAreApplied() throws Exception {
         Entity<JobValue> entity = this.repository.create(JobValue.Builder.builder()
                 .name("test")
                 .status(Status.Builder.builder()
@@ -106,7 +106,7 @@ public class JobResourcePutHandlerTest {
                 .build());
         assertThat(entity.value().processing().started(), is(nullValue()));
 
-        this.api.handlers().jobResourcePutHandler().apply(JobResourcePutRequest.Builder.builder()
+        JobResourcePutResponse response = this.api.handlers().jobResourcePutHandler().apply(JobResourcePutRequest.Builder.builder()
                 .accountId("121212")
                 .currentVersion(entity.version().toString())
                 .jobId(entity.id())
@@ -119,42 +119,9 @@ public class JobResourcePutHandlerTest {
 
         entity = this.repository.retrieve(entity.id());
 
+        assertThat(response.status200(), is(notNullValue()));
         assertThat(entity.value().status().run(), is(Status.Run.RUNNING));
         assertThat(entity.value().processing().started(), is(notNullValue()));
-    }
-
-    @Test
-    public void whenRunStatusChangesToDONE__jobProcessingFinishedDateIsUpdated() throws Exception {
-        Entity<JobValue> entity = this.repository.create(JobValue.Builder.builder()
-                .name("test")
-                .status(Status.Builder.builder()
-                        .run(Status.Run.RUNNING)
-                        .build())
-                .processing(Processing.Builder.builder()
-                        .submitted(LocalDateTime.now().minus(1, ChronoUnit.MINUTES))
-                        .started(LocalDateTime.now().minus(30, ChronoUnit.SECONDS))
-                        .build())
-                .build());
-        assertThat(entity.value().processing().finished(), is(nullValue()));
-
-        this.api.handlers().jobResourcePutHandler().apply(JobResourcePutRequest.Builder.builder()
-                .accountId("121212")
-                .currentVersion(entity.version().toString())
-                .jobId(entity.id())
-                .payload(JobUpdateData.Builder.builder()
-                        .status(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Builder.builder()
-                                .run(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Run.DONE)
-                                .exit(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Exit.SUCCESS)
-                                .build())
-                        .build())
-                .build());
-
-        entity = this.repository.retrieve(entity.id());
-
-        assertThat(entity.value().status().run(), is(Status.Run.DONE));
-        assertThat(entity.value().status().exit(), is(Status.Exit.SUCCESS));
-
-        assertThat(entity.value().processing().finished(), is(notNullValue()));
     }
 
     @Test
