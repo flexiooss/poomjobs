@@ -2,12 +2,17 @@ package org.codingmatters.poomjobs.service;
 
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status;
+import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 
 /**
  * Created by nelt on 6/20/17.
  */
 public class JobValueMerger {
+
+    static public JobValueMerger create() {
+        return new JobValueMerger(JobValue.Builder.builder().build());
+    }
 
     static public JobValueMerger merge(JobValue jobValue) {
         return new JobValueMerger(jobValue);
@@ -24,6 +29,18 @@ public class JobValueMerger {
                 .result(jobData.result())
                 .status(this.fromJobDataStatus(jobData.status()))
         );
+    }
+
+    public JobValue with(JobCreationData creationData) {
+        return this.currentValue
+                .changed(builder -> builder
+                        .category(creationData.category())
+                        .name(creationData.name())
+                        .arguments(creationData.arguments() != null ?
+                                 creationData.arguments().toArray(new String[creationData.arguments().size()]) :
+                                (String[]) null)
+                )
+                ;
     }
 
     private Status fromJobDataStatus(org.codingmatters.poomjobs.api.types.jobupdatedata.Status status) {

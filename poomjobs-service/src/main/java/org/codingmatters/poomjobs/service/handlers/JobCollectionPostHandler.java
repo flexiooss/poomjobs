@@ -8,6 +8,7 @@ import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
 import org.codingmatters.poomjobs.api.jobcollectionpostresponse.Status201;
+import org.codingmatters.poomjobs.service.JobValueMerger;
 
 import java.util.function.Function;
 
@@ -23,11 +24,7 @@ public class JobCollectionPostHandler implements Function<JobCollectionPostReque
 
     @Override
     public JobCollectionPostResponse apply(JobCollectionPostRequest request) {
-        JobValue jobValue = JobValue.Builder.builder()
-                .category(request.payload().category())
-                .name(request.payload().name())
-                .arguments(request.payload().arguments() != null ? request.payload().arguments().toArray(new String[request.payload().arguments().size()]) : null)
-                .build();
+        JobValue jobValue = JobValueMerger.create().with(request.payload());
         try {
             Entity<JobValue> entity = this.repository.create(jobValue);
             return JobCollectionPostResponse.Builder.builder()
