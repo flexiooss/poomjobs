@@ -1,5 +1,6 @@
 package org.codingmatters.poomjobs.service.handlers;
 
+import org.codingmatters.poom.poomjobs.domain.JobValueChange;
 import org.codingmatters.poom.poomjobs.domain.values.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
@@ -14,8 +15,6 @@ import org.codingmatters.poomjobs.api.jobresourceputresponse.Status404;
 import org.codingmatters.poomjobs.api.jobresourceputresponse.Status500;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.service.JobEntityTransformation;
-import org.codingmatters.poomjobs.service.JobValueChangeRuleApplier;
-import org.codingmatters.poomjobs.service.JobValueChangeValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -59,10 +58,10 @@ public class JobResourcePutHandler implements Function<JobResourcePutRequest, Jo
 
         JobValue currentValue = entity.value();
         JobValue newValue = merge(currentValue).with(request.payload());
+        JobValueChange change = JobValueChange.from(currentValue).to(newValue);
 
-        JobValueChangeValidation validation = JobValueChangeValidation.from(currentValue).to(newValue);
-        if(validation.isValid()) {
-            newValue = JobValueChangeRuleApplier.from(currentValue).to(newValue).apply();
+        if(change.validation().isValid()) {
+            newValue = change.applied();
 
             entity = this.repository.update(entity, newValue);
 
@@ -75,12 +74,12 @@ public class JobResourcePutHandler implements Function<JobResourcePutRequest, Jo
         } else {
             String errorToken = UUID.randomUUID().toString();
             MDC.put("error-token", errorToken);
-            log.info("illegal job change: {}", validation.message());
+            log.info("illegal job change: {}", change.validation().message());
             return JobResourcePutResponse.Builder.builder()
                     .status400(Status400.Builder.builder()
                             .payload(Error.Builder.builder()
                                     .code(Error.Code.ILLEGAL_JOB_CHANGE)
-                                    .description(validation.message())
+                                    .description(change.validation().message())
                                     .token(errorToken)
                                     .build())
                             .build())

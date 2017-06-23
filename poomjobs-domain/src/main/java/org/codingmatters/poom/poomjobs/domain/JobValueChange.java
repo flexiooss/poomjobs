@@ -1,4 +1,4 @@
-package org.codingmatters.poomjobs.service;
+package org.codingmatters.poom.poomjobs.domain;
 
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status;
@@ -6,9 +6,9 @@ import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status;
 import java.time.LocalDateTime;
 
 /**
- * Created by nelt on 6/20/17.
+ * Created by nelt on 6/23/17.
  */
-public class JobValueChangeRuleApplier {
+public class JobValueChange {
 
     static public Builder from(JobValue currentValue) {
         return new Builder(currentValue);
@@ -21,20 +21,44 @@ public class JobValueChangeRuleApplier {
             this.currentValue = currentValue;
         }
 
-        public JobValueChangeRuleApplier to(JobValue newValue) {
-            return new JobValueChangeRuleApplier(this.currentValue, newValue);
+        public JobValueChange to(JobValue newValue) {
+            return new JobValueChange(this.currentValue, newValue);
         }
     }
 
     private final JobValue currentValue;
     private final JobValue newValue;
+    private final Validation validation;
 
-    public JobValueChangeRuleApplier(JobValue currentValue, JobValue newValue) {
+    private JobValueChange(JobValue currentValue, JobValue newValue) {
         this.currentValue = currentValue;
         this.newValue = newValue;
+        this.validation = this.validate();
     }
 
-    public JobValue apply() {
+    public Validation validation() {
+        return this.validation;
+    }
+
+    private Validation validate() {
+        if(currentValue.status().run().equals(Status.Run.DONE)) {
+            return new Validation(
+                    false,
+                    String.format("cannot change a job when run status is DONE")
+            );
+        }
+        if(currentValue.status().run().equals(Status.Run.RUNNING)
+                && newValue.status().run().equals(Status.Run.DONE)
+                && newValue.status().exit() == null) {
+            return new Validation(
+                    false,
+                    String.format("when job run status changes to DONE, an exit status must be setted")
+            );
+        }
+        return new Validation(true, "");
+    }
+
+    public JobValue applied() {
         JobValue result = newValue;
 
         if(this.runStatusChanges(Status.Run.PENDING, Status.Run.RUNNING)) {

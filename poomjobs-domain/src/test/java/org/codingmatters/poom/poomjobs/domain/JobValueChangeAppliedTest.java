@@ -1,4 +1,4 @@
-package org.codingmatters.poomjobs.service;
+package org.codingmatters.poom.poomjobs.domain;
 
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Processing;
@@ -13,9 +13,9 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 /**
- * Created by nelt on 6/22/17.
+ * Created by nelt on 6/23/17.
  */
-public class JobValueChangeRuleApplierTest {
+public class JobValueChangeAppliedTest {
 
     @Test
     public void runStatusIsPENDING__whenRunStatusChangedToRUNNING__willSetProcessingStartedDate() throws Exception {
@@ -30,15 +30,16 @@ public class JobValueChangeRuleApplierTest {
                         .build())
                 .build();
 
-        JobValue processed = JobValueChangeRuleApplier.from(currentValue)
+        JobValue processed = JobValueChange.from(currentValue)
                 .to(currentValue.withStatus(currentValue.status().withRun(Status.Run.RUNNING)))
-                .apply();
+                .applied();
 
         assertThat(
                 processed.processing().started(),
                 is(notNullValue())
         );
     }
+
     @Test
     public void runStatusIsRUNNING__whenRunStatusChangedToDONE__willSetProcessingStartedDate() throws Exception {
         JobValue currentValue = JobValue.Builder.builder()
@@ -53,9 +54,9 @@ public class JobValueChangeRuleApplierTest {
                         .build())
                 .build();
 
-        JobValue processed = JobValueChangeRuleApplier.from(currentValue)
+        JobValue processed = JobValueChange.from(currentValue)
                 .to(currentValue.withStatus(currentValue.status().withRun(Status.Run.DONE)))
-                .apply();
+                .applied();
 
         assertThat(
                 processed.processing().finished(),
