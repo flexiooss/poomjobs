@@ -7,12 +7,17 @@ mediaType: application/json
 /jobs:
     displayName: JobCollection
     post:
+        headers:
+            account-id: string
         body: JobCreationData
         responses:
             201:
                 description: new job created
                 headers:
                     Location: string
+            400:
+                description: request is not acceptable
+                body: Error
             500:
                 description: UNEXPECTED_ERROR.
                 body: Error
