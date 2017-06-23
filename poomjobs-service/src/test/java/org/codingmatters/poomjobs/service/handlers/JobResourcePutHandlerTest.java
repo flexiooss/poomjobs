@@ -53,10 +53,8 @@ public class JobResourcePutHandlerTest {
 
         Job job = response.status200().payload();
         assertThat(job.version(), is(entity.version().add(BigInteger.ONE).toString()));
-        assertThat(job.name(), is("changed"));
 
         assertThat(this.repository.retrieve(entity.id()).version(), is(BigInteger.valueOf(2)));
-        assertThat(this.repository.retrieve(entity.id()).value().name(), is("changed"));
     }
 
     @Test

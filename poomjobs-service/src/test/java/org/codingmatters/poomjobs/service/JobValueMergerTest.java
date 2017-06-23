@@ -26,18 +26,19 @@ public class JobValueMergerTest {
 
     @Test
     public void mergeAllFields_withNewValues__returnNewValues() throws Exception {
+        JobValue value = JobValue.Builder.builder()
+                .name("name")
+                .arguments("argument", "list")
+                .category("category")
+                .result("result")
+                .status(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Builder.builder()
+                        .run(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Run.PENDING)
+                        .exit(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Exit.FAILURE)
+                        .build())
+                .build();
         assertThat(
                 JobValueMerger
-                        .merge(JobValue.Builder.builder()
-                                .name("name")
-                                .arguments("argument", "list")
-                                .category("category")
-                                .result("result")
-                                .status(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Builder.builder()
-                                        .run(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Run.PENDING)
-                                        .exit(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Exit.FAILURE)
-                                        .build())
-                                .build())
+                        .merge(value)
                         .with(JobUpdateData.Builder.builder()
                                 .result("changed result")
                                 .status(Status.Builder.builder()
@@ -46,16 +47,11 @@ public class JobValueMergerTest {
                                         .build())
                                 .build()),
                 is(
-                        JobValue.Builder.builder()
-                                .name("changed name")
-                                .arguments("changed", "arguments")
-                                .category("changed category")
-                                .result("changed result")
-                                .status(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Builder.builder()
+                        value.withResult("changed result")
+                            .withStatus(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Builder.builder()
                                         .run(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Run.DONE)
                                         .exit(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Exit.SUCCESS)
                                         .build())
-                                .build()
                 )
                 );
     }
