@@ -3,6 +3,7 @@ package org.codingmatters.poom.poomjobs.domain;
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Processing;
 import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status;
+import org.codingmatters.poom.services.domain.change.Validation;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
