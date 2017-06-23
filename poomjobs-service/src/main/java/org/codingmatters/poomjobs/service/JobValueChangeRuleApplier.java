@@ -37,17 +37,23 @@ public class JobValueChangeRuleApplier {
     public JobValue apply() {
         JobValue result = newValue;
 
-        if(this.currentValue.status() != null && Status.Run.PENDING == this.currentValue.status().run()) {
-            if(result.status() != null && Status.Run.RUNNING == result.status().run()) {
-                result = result.withProcessing(result.processing().changed(builder -> builder.started(LocalDateTime.now())));
-            }
+        if(this.runStatusChanges(Status.Run.PENDING, Status.Run.RUNNING)) {
+            result = result.withProcessing(result.processing().withStarted(LocalDateTime.now()));
         }
-        if(this.currentValue.status() != null && Status.Run.RUNNING == this.currentValue.status().run()) {
-            if(result.status() != null && Status.Run.DONE == result.status().run()) {
-                result = result.withProcessing(result.processing().changed(builder -> builder.finished(LocalDateTime.now())));
-            }
+        if(this.runStatusChanges(Status.Run.RUNNING, Status.Run.DONE)) {
+            result = result.withProcessing(result.processing().withFinished(LocalDateTime.now()));
         }
 
         return result;
     }
+
+    private boolean runStatusChanges(Status.Run from, Status.Run to) {
+        if(this.currentValue.status() != null && from == this.currentValue.status().run()) {
+            if(this.newValue.status() != null && to == this.newValue.status().run()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
