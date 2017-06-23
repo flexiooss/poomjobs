@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class JobValueChange extends Change<JobValue> {
 
     static public ChangeBuilder<JobValue, JobValueChange> from(JobValue current) {
-        return new ChangeBuilder<>(current, (currentValue, newValue) -> new JobValueChange(currentValue, newValue));
+        return new ChangeBuilder<>(current, JobValueChange::new);
     }
 
     private JobValueChange(JobValue currentValue, JobValue newValue) {
