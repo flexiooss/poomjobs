@@ -2,6 +2,8 @@ package org.codingmatters.poom.poomjobs.domain;
 
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status;
+import org.codingmatters.poom.services.domain.change.Change;
+import org.codingmatters.poom.services.domain.change.ChangeBuilder;
 import org.codingmatters.poom.services.domain.change.Validation;
 
 import java.time.LocalDateTime;
@@ -9,48 +11,27 @@ import java.time.LocalDateTime;
 /**
  * Created by nelt on 6/23/17.
  */
-public class JobValueChange {
+public class JobValueChange extends Change<JobValue> {
 
-    static public Builder from(JobValue currentValue) {
-        return new Builder(currentValue);
+    static public ChangeBuilder<JobValue, JobValueChange> from(JobValue current) {
+        return new ChangeBuilder<>(current, (currentValue, newValue) -> new JobValueChange(currentValue, newValue));
     }
-
-    static public class Builder {
-        private final JobValue currentValue;
-
-        private Builder(JobValue currentValue) {
-            this.currentValue = currentValue;
-        }
-
-        public JobValueChange to(JobValue newValue) {
-            return new JobValueChange(this.currentValue, newValue);
-        }
-    }
-
-    private final JobValue currentValue;
-    private final JobValue newValue;
-    private final Validation validation;
 
     private JobValueChange(JobValue currentValue, JobValue newValue) {
-        this.currentValue = currentValue;
-        this.newValue = newValue;
-        this.validation = this.validate();
+        super(currentValue, newValue);
     }
 
-    public Validation validation() {
-        return this.validation;
-    }
-
-    private Validation validate() {
-        if(currentValue.status().run().equals(Status.Run.DONE)) {
+    @Override
+    protected Validation validate() {
+        if(this.currentValue().status().run().equals(Status.Run.DONE)) {
             return new Validation(
                     false,
                     String.format("cannot change a job when run status is DONE")
             );
         }
-        if(currentValue.status().run().equals(Status.Run.RUNNING)
-                && newValue.status().run().equals(Status.Run.DONE)
-                && newValue.status().exit() == null) {
+        if(this.currentValue().status().run().equals(Status.Run.RUNNING)
+                && this.newValue().status().run().equals(Status.Run.DONE)
+                && this.newValue().status().exit() == null) {
             return new Validation(
                     false,
                     String.format("when job run status changes to DONE, an exit status must be setted")
@@ -59,8 +40,9 @@ public class JobValueChange {
         return new Validation(true, "");
     }
 
+    @Override
     public JobValue applied() {
-        JobValue result = newValue;
+        JobValue result = this.newValue();
 
         if(this.runStatusChanges(Status.Run.PENDING, Status.Run.RUNNING)) {
             result = result.withProcessing(result.processing().withStarted(LocalDateTime.now()));
@@ -73,8 +55,8 @@ public class JobValueChange {
     }
 
     private boolean runStatusChanges(Status.Run from, Status.Run to) {
-        if(this.currentValue.status() != null && from == this.currentValue.status().run()) {
-            if(this.newValue.status() != null && to == this.newValue.status().run()) {
+        if(this.currentValue().status() != null && from == this.currentValue().status().run()) {
+            if(this.newValue().status() != null && to == this.newValue().status().run()) {
                 return true;
             }
         }
