@@ -7,6 +7,7 @@ import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
+import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.service.PoomjobsAPI;
 import org.junit.Test;
@@ -42,5 +43,22 @@ public class JobCollectionPostHandlerTest {
         assertThat(entity.value().category(), is("category"));
         assertThat(entity.value().name(), is("name"));
         assertThat(entity.value().arguments(), contains("one", "two"));
+    }
+
+    @Test
+    public void whenJobCreationDataIsInvalid__thenReturnsStatus400_andJobNotCreated() throws Exception {
+        JobCollectionPostResponse response = this.api.handlers().jobCollectionPostHandler().apply(JobCollectionPostRequest.Builder.builder()
+                .accountId("1212")
+                .payload(JobCreationData.Builder.builder()
+                        .category("category")
+                        .build())
+                .build());
+
+        assertThat(response.status400(), is(notNullValue()));
+        assertThat(this.repository.all(0, 1), is(empty()));
+
+        assertThat(response.status400().payload().token(), is(notNullValue()));
+        assertThat(response.status400().payload().code(), is(Error.Code.ILLEGAL_JOB_SPEC));
+        assertThat(response.status400().payload().description(), is("cannot create a job with no name"));
     }
 }

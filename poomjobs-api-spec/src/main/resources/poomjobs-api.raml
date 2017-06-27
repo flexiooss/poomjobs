@@ -16,7 +16,7 @@ mediaType: application/json
                 headers:
                     Location: string
             400:
-                description: request is not acceptable
+                description: request is not acceptable. Code ILLEGAL_JOB_SPEC.
                 body: Error
             500:
                 description: UNEXPECTED_ERROR.
@@ -120,5 +120,5 @@ types:
         properties:
             token: string
             code:
-                enum: [JOB_NOT_FOUND, UNEXPECTED_ERROR, ILLEGAL_JOB_CHANGE]
+                enum: [JOB_NOT_FOUND, UNEXPECTED_ERROR, ILLEGAL_JOB_CHANGE, ILLEGAL_JOB_SPEC]
             description: string

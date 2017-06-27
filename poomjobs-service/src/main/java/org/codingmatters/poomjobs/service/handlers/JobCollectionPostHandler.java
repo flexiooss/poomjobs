@@ -1,5 +1,6 @@
 package org.codingmatters.poomjobs.service.handlers;
 
+import org.codingmatters.poom.poomjobs.domain.JobValueCreation;
 import org.codingmatters.poom.poomjobs.domain.values.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
@@ -8,8 +9,11 @@ import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
 import org.codingmatters.poomjobs.api.jobcollectionpostresponse.Status201;
+import org.codingmatters.poomjobs.api.jobcollectionpostresponse.Status400;
+import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.service.JobValueMerger;
 
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -25,16 +29,31 @@ public class JobCollectionPostHandler implements Function<JobCollectionPostReque
     @Override
     public JobCollectionPostResponse apply(JobCollectionPostRequest request) {
         JobValue jobValue = JobValueMerger.create().with(request.payload());
-        try {
-            Entity<JobValue> entity = this.repository.create(jobValue);
+
+        JobValueCreation creation = JobValueCreation.with(jobValue);
+        if(creation.validation().isValid()) {
+            try {
+                Entity<JobValue> entity = this.repository.create(creation.applied());
+                return JobCollectionPostResponse.Builder.builder()
+                        .status201(Status201.Builder.builder()
+                                .location("%API_PATH%/jobs/" + entity.id())
+                                .build())
+                        .build();
+            } catch (RepositoryException e) {
+                e.printStackTrace();
+            }
+        } else {
             return JobCollectionPostResponse.Builder.builder()
-                    .status201(Status201.Builder.builder()
-                            .location("%API_PATH%/jobs/" + entity.id())
+                    .status400(Status400.Builder.builder()
+                            .payload(Error.Builder.builder()
+                                    .token(UUID.randomUUID().toString())
+                                    .code(Error.Code.ILLEGAL_JOB_SPEC)
+                                    .description(creation.validation().message())
+                                    .build())
                             .build())
                     .build();
-        } catch (RepositoryException e) {
-            e.printStackTrace();
         }
+
         return null;
     }
 }
