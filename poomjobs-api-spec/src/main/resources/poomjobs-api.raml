@@ -10,6 +10,12 @@ mediaType: application/json
         headers:
             account-id: string
         body: JobCreationData
+        description: |
+          A job is created from the minimal information provided with
+          the payload JobCreationData.
+          The created job will have it's submission date setted.
+          The job accounting information will be initialized given the
+          account-id header.
         responses:
             201:
                 description: new job created

@@ -3,6 +3,7 @@ package org.codingmatters.poomjobs.service.handlers;
 import org.codingmatters.poom.poomjobs.domain.JobValueCreation;
 import org.codingmatters.poom.poomjobs.domain.values.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
+import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Accounting;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.servives.domain.entities.Entity;
@@ -28,7 +29,11 @@ public class JobCollectionPostHandler implements Function<JobCollectionPostReque
 
     @Override
     public JobCollectionPostResponse apply(JobCollectionPostRequest request) {
-        JobValue jobValue = JobValueMerger.create().with(request.payload());
+        JobValue jobValue = JobValueMerger.create()
+                .with(request.payload())
+                .withAccounting(Accounting.Builder.builder()
+                        .accountId(request.accountId())
+                        .build());
 
         JobValueCreation creation = JobValueCreation.with(jobValue);
         if(creation.validation().isValid()) {

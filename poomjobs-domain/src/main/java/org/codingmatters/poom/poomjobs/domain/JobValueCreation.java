@@ -28,6 +28,9 @@ public class JobValueCreation extends Change<JobValue> {
         if(this.newValue().category() == null) {
             return new Validation(false, "cannot create a job with no category");
         }
+        if(this.newValue().accounting() == null || this.newValue().accounting().accountId() == null) {
+            return new Validation(false, "cannot create a job with no account id");
+        }
         return new Validation(true, "");
     }
 
