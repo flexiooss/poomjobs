@@ -31,7 +31,7 @@ public class JobCollectionPostHandler implements Function<JobCollectionPostReque
     public JobCollectionPostResponse apply(JobCollectionPostRequest request) {
         JobValue jobValue = JobValueMerger.create()
                 .with(request.payload())
-                .withAccounting(Accounting.Builder.builder()
+                .withAccounting(Accounting.builder()
                         .accountId(request.accountId())
                         .build());
 
@@ -39,8 +39,8 @@ public class JobCollectionPostHandler implements Function<JobCollectionPostReque
         if(creation.validation().isValid()) {
             try {
                 Entity<JobValue> entity = this.repository.create(creation.applied());
-                return JobCollectionPostResponse.Builder.builder()
-                        .status201(Status201.Builder.builder()
+                return JobCollectionPostResponse.builder()
+                        .status201(Status201.builder()
                                 .location("%API_PATH%/jobs/" + entity.id())
                                 .build())
                         .build();
@@ -48,9 +48,9 @@ public class JobCollectionPostHandler implements Function<JobCollectionPostReque
                 e.printStackTrace();
             }
         } else {
-            return JobCollectionPostResponse.Builder.builder()
-                    .status400(Status400.Builder.builder()
-                            .payload(Error.Builder.builder()
+            return JobCollectionPostResponse.builder()
+                    .status400(Status400.builder()
+                            .payload(Error.builder()
                                     .token(UUID.randomUUID().toString())
                                     .code(Error.Code.ILLEGAL_JOB_SPEC)
                                     .description(creation.validation().message())

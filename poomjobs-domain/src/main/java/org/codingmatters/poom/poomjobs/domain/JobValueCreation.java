@@ -38,10 +38,10 @@ public class JobValueCreation extends Change<JobValue> {
     @Override
     public JobValue applied() {
         Processing.Builder processing = this.newValue().processing() != null ?
-                Processing.Builder.from(this.newValue().processing()) :
-                Processing.Builder.builder();
+                Processing.from(this.newValue().processing()) :
+                Processing.builder();
         return this.newValue()
                 .withProcessing(processing.submitted(LocalDateTime.now()).build())
-                .withStatus(Status.Builder.builder().run(Status.Run.PENDING).build());
+                .withStatus(Status.builder().run(Status.Run.PENDING).build());
     }
 }

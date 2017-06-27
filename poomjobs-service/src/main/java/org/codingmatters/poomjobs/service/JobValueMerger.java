@@ -11,7 +11,7 @@ import org.codingmatters.poomjobs.api.types.JobUpdateData;
 public class JobValueMerger {
 
     static public JobValueMerger create() {
-        return new JobValueMerger(JobValue.Builder.builder().build());
+        return new JobValueMerger(JobValue.builder().build());
     }
 
     static public JobValueMerger merge(JobValue jobValue) {
@@ -45,7 +45,7 @@ public class JobValueMerger {
 
     private Status fromJobDataStatus(org.codingmatters.poomjobs.api.types.jobupdatedata.Status status) {
         if(status == null) return null;
-        Status.Builder result = Status.Builder.builder();
+        Status.Builder result = Status.builder();
         if(status.run() != null) {
             result.run(Status.Run.valueOf(status.run().name()));
         }

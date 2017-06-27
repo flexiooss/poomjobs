@@ -46,7 +46,7 @@ public class JobValueCreationValidationTest {
 
         assertThat(
                 JobValueCreation.with(this.valid()
-                        .accounting(Accounting.Builder.builder().build())
+                        .accounting(Accounting.builder().build())
                         .build())
                         .validation(),
                 is(new Validation(false, "cannot create a job with no account id"))
@@ -54,10 +54,10 @@ public class JobValueCreationValidationTest {
     }
 
     private JobValue.Builder valid() {
-        return JobValue.Builder.builder()
+        return JobValue.builder()
                 .name("name")
                 .category("category")
-                .accounting(Accounting.Builder.builder()
+                .accounting(Accounting.builder()
                         .accountId("121212")
                         .build())
                 ;

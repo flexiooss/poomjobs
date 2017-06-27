@@ -32,16 +32,16 @@ public class JobResourceGetHandlerTest {
 
     @Test
     public void whenJobInRepository__willReturnAStatus200() throws Exception {
-        Entity<JobValue> jobEntity = this.repository.create(JobValue.Builder.builder()
+        Entity<JobValue> jobEntity = this.repository.create(JobValue.builder()
                 .category("jobs/for/test")
                 .name("test-job")
                 .arguments("a", "b", "c")
-                .status(Status.Builder.builder().run(Status.Run.PENDING).build())
-                .accounting(Accounting.Builder.builder().accountId("121212").build())
-                .processing(Processing.Builder.builder().submitted(LocalDateTime.now().minus(10, ChronoUnit.MINUTES)).build())
+                .status(Status.builder().run(Status.Run.PENDING).build())
+                .accounting(Accounting.builder().accountId("121212").build())
+                .processing(Processing.builder().submitted(LocalDateTime.now().minus(10, ChronoUnit.MINUTES)).build())
                 .build());
 
-        JobResourceGetResponse response = this.api.handlers().jobResourceGetHandler().apply(JobResourceGetRequest.Builder.builder()
+        JobResourceGetResponse response = this.api.handlers().jobResourceGetHandler().apply(JobResourceGetRequest.builder()
                 .jobId(jobEntity.id())
                 .build());
 
@@ -62,7 +62,7 @@ public class JobResourceGetHandlerTest {
 
     @Test
     public void whenJobNotInRepository__willReturnAStatus404() throws Exception {
-        JobResourceGetResponse response = this.api.handlers().jobResourceGetHandler().apply(JobResourceGetRequest.Builder.builder()
+        JobResourceGetResponse response = this.api.handlers().jobResourceGetHandler().apply(JobResourceGetRequest.builder()
                 .jobId("not in repo")
                 .build());
 
@@ -76,7 +76,7 @@ public class JobResourceGetHandlerTest {
 
     @Test
     public void whenUnexpectedRepositoryException__willReturnAStatus500() throws Exception {
-        JobResourceGetResponse response = new PoomjobsAPI(new MockedJobRepository()).handlers().jobResourceGetHandler().apply(JobResourceGetRequest.Builder.builder()
+        JobResourceGetResponse response = new PoomjobsAPI(new MockedJobRepository()).handlers().jobResourceGetHandler().apply(JobResourceGetRequest.builder()
                 .jobId("id")
                 .build());
 

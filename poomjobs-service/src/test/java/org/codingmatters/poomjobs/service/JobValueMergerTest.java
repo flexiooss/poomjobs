@@ -16,22 +16,22 @@ public class JobValueMergerTest {
     @Test
     public void mergeEmptyFields_withEmptyFields__returnEmptyFields() throws Exception {
         assertThat(
-                JobValueMerger.merge(JobValue.Builder.builder().build())
-                        .with(JobUpdateData.Builder.builder().build()),
+                JobValueMerger.merge(JobValue.builder().build())
+                        .with(JobUpdateData.builder().build()),
                 is(
-                        JobValue.Builder.builder().build()
+                        JobValue.builder().build()
                 )
                 );
     }
 
     @Test
     public void mergeAllFields_withNewValues__returnNewValues() throws Exception {
-        JobValue value = JobValue.Builder.builder()
+        JobValue value = JobValue.builder()
                 .name("name")
                 .arguments("argument", "list")
                 .category("category")
                 .result("result")
-                .status(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Builder.builder()
+                .status(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.builder()
                         .run(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Run.PENDING)
                         .exit(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Exit.FAILURE)
                         .build())
@@ -39,16 +39,16 @@ public class JobValueMergerTest {
         assertThat(
                 JobValueMerger
                         .merge(value)
-                        .with(JobUpdateData.Builder.builder()
+                        .with(JobUpdateData.builder()
                                 .result("changed result")
-                                .status(Status.Builder.builder()
+                                .status(Status.builder()
                                         .run(Status.Run.DONE)
                                         .exit(Status.Exit.SUCCESS)
                                         .build())
                                 .build()),
                 is(
                         value.withResult("changed result")
-                            .withStatus(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Builder.builder()
+                            .withStatus(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.builder()
                                         .run(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Run.DONE)
                                         .exit(org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status.Exit.SUCCESS)
                                         .build())

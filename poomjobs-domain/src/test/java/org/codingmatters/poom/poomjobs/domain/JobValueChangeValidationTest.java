@@ -19,21 +19,21 @@ public class JobValueChangeValidationTest {
 
     @Test
     public void runStatusIsDONE__whenAnyChangeOccurs__thenInvalid() throws Exception {
-        JobValue jobValue = JobValue.Builder.builder()
-                .status(Status.Builder.builder()
+        JobValue jobValue = JobValue.builder()
+                .status(Status.builder()
                         .run(Status.Run.DONE)
                         .build())
                 .build();
 
         assertThat(JobValueChange.from(jobValue)
-                        .to(jobValue.withStatus(Status.Builder.builder()
+                        .to(jobValue.withStatus(Status.builder()
                                 .run(Status.Run.RUNNING)
                                 .build()))
                         .validation(),
                 is(new Validation(false, "cannot change a job when run status is DONE"))
         );
         assertThat(JobValueChange.from(jobValue)
-                        .to(jobValue.withStatus(Status.Builder.builder()
+                        .to(jobValue.withStatus(Status.builder()
                                 .run(Status.Run.PENDING)
                                 .build()))
                         .validation(),
@@ -61,7 +61,7 @@ public class JobValueChangeValidationTest {
                 is(new Validation(false, "cannot change a job when run status is DONE"))
         );
         assertThat(JobValueChange.from(jobValue)
-                        .to(jobValue.withProcessing(Processing.Builder.builder().finished(LocalDateTime.now()).build()))
+                        .to(jobValue.withProcessing(Processing.builder().finished(LocalDateTime.now()).build()))
                         .validation(),
                 is(new Validation(false, "cannot change a job when run status is DONE"))
         );
@@ -69,8 +69,8 @@ public class JobValueChangeValidationTest {
 
     @Test
     public void runStatusIsRUNNING__whenRunStatusChangesToDONE_andExitStatusIsNotSetted__thenInvalid() throws Exception {
-        JobValue jobValue = JobValue.Builder.builder()
-                .status(Status.Builder.builder()
+        JobValue jobValue = JobValue.builder()
+                .status(Status.builder()
                         .run(Status.Run.RUNNING)
                         .exit(null)
                         .build())

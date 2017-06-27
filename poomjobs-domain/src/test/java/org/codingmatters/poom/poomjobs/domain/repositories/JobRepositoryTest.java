@@ -22,11 +22,11 @@ public class JobRepositoryTest {
     @Test
     public void categoryFilter() throws Exception {
         for (int i = 0; i < 10; i++) {
-            this.repository.create(JobValue.Builder.builder().category("CATEG-" + (i % 3)).build());
+            this.repository.create(JobValue.builder().category("CATEG-" + (i % 3)).build());
         }
 
-        PagedEntityList<JobValue> list = this.repository.search(JobQuery.Builder.builder().criteria(
-                JobCriteria.Builder.builder().category("CATEG-2").build()
+        PagedEntityList<JobValue> list = this.repository.search(JobQuery.builder().criteria(
+                JobCriteria.builder().category("CATEG-2").build()
         ).build(), 0, 100);
 
         assertThat(list, hasSize(3));
@@ -36,11 +36,11 @@ public class JobRepositoryTest {
     @Test
     public void nameFilter() throws Exception {
         for (int i = 0; i < 10; i++) {
-            this.repository.create(JobValue.Builder.builder().name("NAME-" + (i % 3)).build());
+            this.repository.create(JobValue.builder().name("NAME-" + (i % 3)).build());
         }
 
-        PagedEntityList<JobValue> list = this.repository.search(JobQuery.Builder.builder().criteria(
-                JobCriteria.Builder.builder().name("NAME-2").build()
+        PagedEntityList<JobValue> list = this.repository.search(JobQuery.builder().criteria(
+                JobCriteria.builder().name("NAME-2").build()
         ).build(), 0, 100);
 
         assertThat(list, hasSize(3));
@@ -51,11 +51,11 @@ public class JobRepositoryTest {
     public void runStatusFilter() throws Exception {
         for (int i = 0; i < 10; i++) {
             Status.Run status = Status.Run.values()[i % Status.Run.values().length];
-            this.repository.create(JobValue.Builder.builder().status(Status.Builder.builder().run(status).build()).build());
+            this.repository.create(JobValue.builder().status(Status.builder().run(status).build()).build());
         }
 
-        PagedEntityList<JobValue> list = this.repository.search(JobQuery.Builder.builder().criteria(
-                JobCriteria.Builder.builder().runStatus("RUNNING").build()
+        PagedEntityList<JobValue> list = this.repository.search(JobQuery.builder().criteria(
+                JobCriteria.builder().runStatus("RUNNING").build()
         ).build(), 0, 100);
 
         assertThat(list, hasSize(3));
@@ -66,11 +66,11 @@ public class JobRepositoryTest {
     public void exitStatusFilter() throws Exception {
         for (int i = 0; i < 10; i++) {
             Status.Exit status = Status.Exit.values()[i % Status.Exit.values().length];
-            this.repository.create(JobValue.Builder.builder().status(Status.Builder.builder().exit(status).build()).build());
+            this.repository.create(JobValue.builder().status(Status.builder().exit(status).build()).build());
         }
 
-        PagedEntityList<JobValue> list = this.repository.search(JobQuery.Builder.builder().criteria(
-                JobCriteria.Builder.builder().exitStatus(Status.Exit.SUCCESS.name()).build()
+        PagedEntityList<JobValue> list = this.repository.search(JobQuery.builder().criteria(
+                JobCriteria.builder().exitStatus(Status.Exit.SUCCESS.name()).build()
         ).build(), 0, 100);
 
         assertThat(list, hasSize(5));

@@ -25,9 +25,9 @@ public class JobCollectionPostHandlerTest {
 
     @Test
     public void whenJobCreationDataIsValid__thenReturnsStatus201_andJobCreated() throws Exception {
-        JobCollectionPostResponse response = this.api.handlers().jobCollectionPostHandler().apply(JobCollectionPostRequest.Builder.builder()
+        JobCollectionPostResponse response = this.api.handlers().jobCollectionPostHandler().apply(JobCollectionPostRequest.builder()
                 .accountId("1212")
-                .payload(JobCreationData.Builder.builder()
+                .payload(JobCreationData.builder()
                         .category("category")
                         .name("name")
                         .arguments("one", "two")
@@ -47,9 +47,9 @@ public class JobCollectionPostHandlerTest {
 
     @Test
     public void whenJobCreationDataIsInvalid__thenReturnsStatus400_andJobNotCreated() throws Exception {
-        JobCollectionPostResponse response = this.api.handlers().jobCollectionPostHandler().apply(JobCollectionPostRequest.Builder.builder()
+        JobCollectionPostResponse response = this.api.handlers().jobCollectionPostHandler().apply(JobCollectionPostRequest.builder()
                 .accountId("1212")
-                .payload(JobCreationData.Builder.builder()
+                .payload(JobCreationData.builder()
                         .category("category")
                         .build())
                 .build());

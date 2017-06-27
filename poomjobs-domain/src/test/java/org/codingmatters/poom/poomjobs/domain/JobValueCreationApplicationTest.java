@@ -18,7 +18,7 @@ public class JobValueCreationApplicationTest {
 
     @Test
     public void providedNameCategoryAndArguments__valuesAreLeftUnchanged() throws Exception {
-        JobValue jobValue = JobValueCreation.with(JobValue.Builder.builder()
+        JobValue jobValue = JobValueCreation.with(JobValue.builder()
                 .name("job")
                 .category("category")
                 .arguments("a", "b", "c")
@@ -43,7 +43,7 @@ public class JobValueCreationApplicationTest {
     public void whenSubmissionDateIsSetted__thenSubmissionDateIsUpdated() throws Exception {
         LocalDateTime currentDate = LocalDateTime.now().minus(10, ChronoUnit.MINUTES);
         JobValue jobValue = JobValueCreation.with(this.base()
-                .processing(Processing.Builder.builder().submitted(currentDate).build())
+                .processing(Processing.builder().submitted(currentDate).build())
                 .build())
                 .applied();
 
@@ -60,7 +60,7 @@ public class JobValueCreationApplicationTest {
     }
 
     private JobValue.Builder base() {
-        return JobValue.Builder.builder()
+        return JobValue.builder()
                 .name("job")
                 .category("category")
                 .arguments("arg");

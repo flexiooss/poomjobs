@@ -33,18 +33,18 @@ public class JobResourcePutHandlerTest {
 
     @Test
     public void whenJobInRepository__willUpdateJob_andReturnStatus200() throws Exception {
-        Entity<JobValue> entity = this.repository.create(JobValue.Builder.builder()
+        Entity<JobValue> entity = this.repository.create(JobValue.builder()
                 .name("test")
-                .status(Status.Builder.builder()
+                .status(Status.builder()
                         .run(Status.Run.PENDING)
                         .build())
                 .build());
 
-        JobResourcePutResponse response = this.api.handlers().jobResourcePutHandler().apply(JobResourcePutRequest.Builder.builder()
+        JobResourcePutResponse response = this.api.handlers().jobResourcePutHandler().apply(JobResourcePutRequest.builder()
                 .accountId("121212")
                 .currentVersion(entity.version().toString())
                 .jobId(entity.id())
-                .payload(JobUpdateData.Builder.builder()
+                .payload(JobUpdateData.builder()
                         .build())
                 .build());
 
@@ -59,11 +59,11 @@ public class JobResourcePutHandlerTest {
 
     @Test
     public void whenJobNotInRepository__willReturnStatus404() throws Exception {
-        JobResourcePutResponse response = this.api.handlers().jobResourcePutHandler().apply(JobResourcePutRequest.Builder.builder()
+        JobResourcePutResponse response = this.api.handlers().jobResourcePutHandler().apply(JobResourcePutRequest.builder()
                 .accountId("121212")
                 .currentVersion("2")
                 .jobId("123456789")
-                .payload(JobUpdateData.Builder.builder()
+                .payload(JobUpdateData.builder()
                         .build())
                 .build());
 
@@ -77,11 +77,11 @@ public class JobResourcePutHandlerTest {
 
     @Test
     public void whenUnexpectedRepositoryException__willReturnStatus500() throws Exception {
-        JobResourcePutResponse response = new PoomjobsAPI(new MockedJobRepository()).handlers().jobResourcePutHandler().apply(JobResourcePutRequest.Builder.builder()
+        JobResourcePutResponse response = new PoomjobsAPI(new MockedJobRepository()).handlers().jobResourcePutHandler().apply(JobResourcePutRequest.builder()
                 .accountId("121212")
                 .currentVersion("2")
                 .jobId("123456789")
-                .payload(JobUpdateData.Builder.builder()
+                .payload(JobUpdateData.builder()
                         .build())
                 .build());
 
@@ -95,23 +95,23 @@ public class JobResourcePutHandlerTest {
 
     @Test
     public void whenChangeIsValidated__returnStatus200_andChangeRulesAreApplied() throws Exception {
-        Entity<JobValue> entity = this.repository.create(JobValue.Builder.builder()
+        Entity<JobValue> entity = this.repository.create(JobValue.builder()
                 .name("test")
-                .status(Status.Builder.builder()
+                .status(Status.builder()
                         .run(Status.Run.PENDING)
                         .build())
-                .processing(Processing.Builder.builder()
+                .processing(Processing.builder()
                         .submitted(LocalDateTime.now().minus(1, ChronoUnit.MINUTES))
                         .build())
                 .build());
         assertThat(entity.value().processing().started(), is(nullValue()));
 
-        JobResourcePutResponse response = this.api.handlers().jobResourcePutHandler().apply(JobResourcePutRequest.Builder.builder()
+        JobResourcePutResponse response = this.api.handlers().jobResourcePutHandler().apply(JobResourcePutRequest.builder()
                 .accountId("121212")
                 .currentVersion(entity.version().toString())
                 .jobId(entity.id())
-                .payload(JobUpdateData.Builder.builder()
-                        .status(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Builder.builder()
+                .payload(JobUpdateData.builder()
+                        .status(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.builder()
                                 .run(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Run.RUNNING)
                                 .build())
                         .build())
@@ -126,19 +126,19 @@ public class JobResourcePutHandlerTest {
 
     @Test
     public void whenChangeIsNotValidated__returnsStatus400_withILLEGAL_JOB_CHANGEErrorCode() throws Exception {
-        Entity<JobValue> job = this.repository.create(JobValue.Builder.builder()
+        Entity<JobValue> job = this.repository.create(JobValue.builder()
                 .name("test")
-                .status(Status.Builder.builder()
+                .status(Status.builder()
                         .run(Status.Run.DONE)
                         .build())
                 .build());
 
-        JobResourcePutResponse response = this.api.handlers().jobResourcePutHandler().apply(JobResourcePutRequest.Builder.builder()
+        JobResourcePutResponse response = this.api.handlers().jobResourcePutHandler().apply(JobResourcePutRequest.builder()
                 .accountId("121212")
                 .currentVersion(job.version().toString())
                 .jobId(job.id())
-                .payload(JobUpdateData.Builder.builder()
-                        .status(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Builder.builder()
+                .payload(JobUpdateData.builder()
+                        .status(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.builder()
                                 .run(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Run.RUNNING)
                                 .build())
                         .build())

@@ -66,8 +66,8 @@ public class JobResourcePutHandler implements Function<JobResourcePutRequest, Jo
             entity = this.repository.update(entity, newValue);
 
             log.info("updated job");
-            return JobResourcePutResponse.Builder.builder()
-                    .status200(Status200.Builder.builder()
+            return JobResourcePutResponse.builder()
+                    .status200(Status200.builder()
                             .payload(JobEntityTransformation.transform(entity).asJob())
                             .build())
                     .build();
@@ -75,9 +75,9 @@ public class JobResourcePutHandler implements Function<JobResourcePutRequest, Jo
             String errorToken = UUID.randomUUID().toString();
             MDC.put("error-token", errorToken);
             log.info("illegal job change: {}", change.validation().message());
-            return JobResourcePutResponse.Builder.builder()
-                    .status400(Status400.Builder.builder()
-                            .payload(Error.Builder.builder()
+            return JobResourcePutResponse.builder()
+                    .status400(Status400.builder()
+                            .payload(Error.builder()
                                     .code(Error.Code.ILLEGAL_JOB_CHANGE)
                                     .description(change.validation().message())
                                     .token(errorToken)
@@ -91,9 +91,9 @@ public class JobResourcePutHandler implements Function<JobResourcePutRequest, Jo
         String errorToken = UUID.randomUUID().toString();
         MDC.put("error-token", errorToken);
         log.info("no job found with id: {}", request.jobId());
-        return JobResourcePutResponse.Builder.builder()
-                .status404(Status404.Builder.builder()
-                        .payload(Error.Builder.builder()
+        return JobResourcePutResponse.builder()
+                .status404(Status404.builder()
+                        .payload(Error.builder()
                                 .token(errorToken)
                                 .code(Error.Code.JOB_NOT_FOUND)
                                 .description("no job found with the given jobId")
@@ -109,9 +109,9 @@ public class JobResourcePutHandler implements Function<JobResourcePutRequest, Jo
         log.error("unexpected error while looking up job : {}", request.jobId());
         log.debug("unexpected exception", e);
 
-        return JobResourcePutResponse.Builder.builder()
-                .status500(Status500.Builder.builder()
-                        .payload(Error.Builder.builder()
+        return JobResourcePutResponse.builder()
+                .status500(Status500.builder()
+                        .payload(Error.builder()
                                 .code(Error.Code.UNEXPECTED_ERROR)
                                 .description("unexpected error, see logs")
                                 .token(errorToken)

@@ -52,8 +52,8 @@ public class JobResourceGetHandler implements Function<JobResourceGetRequest, Jo
 
     private JobResourceGetResponse job(Entity<JobValue> jobEntity) {
         log.info("request for job {} returns version {}", jobEntity.id(), jobEntity.version());
-        return JobResourceGetResponse.Builder.builder()
-                .status200(Status200.Builder.builder()
+        return JobResourceGetResponse.builder()
+                .status200(Status200.builder()
                         .payload(transform(jobEntity).asJob())
                         .build())
                 .build();
@@ -65,9 +65,9 @@ public class JobResourceGetHandler implements Function<JobResourceGetRequest, Jo
         MDC.put("error-token", errorToken);
         log.info("no job found with id: {}", jobResourceGetRequest.jobId());
 
-        return JobResourceGetResponse.Builder.builder()
-                .status404(Status404.Builder.builder()
-                        .payload(Error.Builder.builder()
+        return JobResourceGetResponse.builder()
+                .status404(Status404.builder()
+                        .payload(Error.builder()
                                 .code(Error.Code.JOB_NOT_FOUND)
                                 .description("no job found with the given jobId")
                                 .token(errorToken)
@@ -83,9 +83,9 @@ public class JobResourceGetHandler implements Function<JobResourceGetRequest, Jo
         log.error("unexpected error while looking up job : {}", jobResourceGetRequest.jobId());
         log.debug("unexpected exception", e);
 
-        return JobResourceGetResponse.Builder.builder()
-                .status500(Status500.Builder.builder()
-                        .payload(Error.Builder.builder()
+        return JobResourceGetResponse.builder()
+                .status500(Status500.builder()
+                        .payload(Error.builder()
                                 .code(Error.Code.UNEXPECTED_ERROR)
                                 .description("unexpected error, see logs")
                                 .token(errorToken)

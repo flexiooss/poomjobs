@@ -19,12 +19,12 @@ public class JobValueChangeApplicationTest {
 
     @Test
     public void runStatusIsPENDING__whenRunStatusChangedToRUNNING__willSetProcessingStartedDate() throws Exception {
-        JobValue currentValue = JobValue.Builder.builder()
+        JobValue currentValue = JobValue.builder()
                 .name("test")
-                .status(Status.Builder.builder()
+                .status(Status.builder()
                         .run(Status.Run.PENDING)
                         .build())
-                .processing(Processing.Builder.builder()
+                .processing(Processing.builder()
                         .submitted(LocalDateTime.now().minus(1, ChronoUnit.MINUTES))
                         .started(null)
                         .build())
@@ -42,12 +42,12 @@ public class JobValueChangeApplicationTest {
 
     @Test
     public void runStatusIsRUNNING__whenRunStatusChangedToDONE__willSetProcessingSFinishedDate() throws Exception {
-        JobValue currentValue = JobValue.Builder.builder()
+        JobValue currentValue = JobValue.builder()
                 .name("test")
-                .status(Status.Builder.builder()
+                .status(Status.builder()
                         .run(Status.Run.RUNNING)
                         .build())
-                .processing(Processing.Builder.builder()
+                .processing(Processing.builder()
                         .submitted(LocalDateTime.now().minus(1, ChronoUnit.MINUTES))
                         .started(LocalDateTime.now().minus(30, ChronoUnit.SECONDS))
                         .finished(null)
