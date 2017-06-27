@@ -2,6 +2,7 @@ package org.codingmatters.poom.poomjobs.domain;
 
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Processing;
+import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status;
 import org.codingmatters.poom.services.domain.change.Change;
 import org.codingmatters.poom.services.domain.change.Validation;
 
@@ -40,6 +41,7 @@ public class JobValueCreation extends Change<JobValue> {
                 Processing.Builder.from(this.newValue().processing()) :
                 Processing.Builder.builder();
         return this.newValue()
-                .withProcessing(processing.submitted(LocalDateTime.now()).build());
+                .withProcessing(processing.submitted(LocalDateTime.now()).build())
+                .withStatus(Status.Builder.builder().run(Status.Run.PENDING).build());
     }
 }

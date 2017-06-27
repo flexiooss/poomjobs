@@ -2,6 +2,7 @@ package org.codingmatters.poom.poomjobs.domain;
 
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Processing;
+import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
@@ -47,6 +48,15 @@ public class JobValueCreationApplicationTest {
                 .applied();
 
         assertThat(jobValue.processing().submitted(), is(not(currentDate)));
+    }
+
+    @Test
+    public void whenCreaed__thenRunStatusIsSettedToPENDING() throws Exception {
+        JobValue jobValue = JobValueCreation.with(this.base()
+                .build())
+                .applied();
+
+        assertThat(jobValue.status().run(), is(Status.Run.PENDING));
     }
 
     private JobValue.Builder base() {

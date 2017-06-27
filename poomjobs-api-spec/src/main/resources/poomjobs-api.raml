@@ -13,9 +13,9 @@ mediaType: application/json
         description: |
           A job is created from the minimal information provided with
           the payload JobCreationData.
-          The created job will have it's submission date setted.
-          The job accounting information will be initialized given the
-          account-id header.
+          * The created job will have it's submission date setted.
+          * The job accounting information will be initialized given the account-id header.
+          * The job will have its run status setted to PENDING.
         responses:
             201:
                 description: new job created
@@ -34,6 +34,8 @@ mediaType: application/json
                 type: string
                 required: true
         get:
+            description: |
+                If a job with the given jobId, returns the full description of the job.
             responses:
                 200:
                     description: a job with the given jobId is found and returned
@@ -49,12 +51,23 @@ mediaType: application/json
             headers:
                 account-id: string
                 current-version: string
+            description: |
+                The job with the given jobId is updated provided the payload JobUpdateData.
+                The job change is only valid if :
+                * the job is not in the DONE run status.
+                * the job changes from RUNNING to DONE run status and the job exit status is set
+
+                The following changes are applied to the job :
+                * if the run status is PENDING, when the run status is changed to RUNNING, the the started date is
+                setted
+                * if run status is RUNNING, when the run status is changed to DONE, then the finished date is setted
+
             responses:
                 200:
                     description: the job update was successful
                     body: Job
                 400:
-                    description: request is not acceptable
+                    description: request is not acceptable. Code ILLEGAL_JOB_CHANGE.
                     body: Error
                 404:
                     description: no job found with the given jobId. Code JOB_NOT_FOUND.
@@ -117,7 +130,7 @@ types:
                 type: object
                 properties:
                     run:
-                        enum: [PENDING, RUNNING, DONE]
+                        enum: [RUNNING, DONE]
                     exit:
                         enum: [SUCCESS, FAILURE]
 

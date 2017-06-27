@@ -15,7 +15,7 @@ import static org.junit.Assert.assertThat;
 /**
  * Created by nelt on 6/23/17.
  */
-public class JobValueChangeAppliedTest {
+public class JobValueChangeApplicationTest {
 
     @Test
     public void runStatusIsPENDING__whenRunStatusChangedToRUNNING__willSetProcessingStartedDate() throws Exception {
@@ -41,7 +41,7 @@ public class JobValueChangeAppliedTest {
     }
 
     @Test
-    public void runStatusIsRUNNING__whenRunStatusChangedToDONE__willSetProcessingStartedDate() throws Exception {
+    public void runStatusIsRUNNING__whenRunStatusChangedToDONE__willSetProcessingSFinishedDate() throws Exception {
         JobValue currentValue = JobValue.Builder.builder()
                 .name("test")
                 .status(Status.Builder.builder()
