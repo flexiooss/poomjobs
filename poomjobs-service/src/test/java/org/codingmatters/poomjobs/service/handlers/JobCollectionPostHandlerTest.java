@@ -10,6 +10,7 @@ import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.service.PoomjobsAPI;
+import org.codingmatters.poomjobs.service.handlers.mocks.MockedJobRepository;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
@@ -60,5 +61,21 @@ public class JobCollectionPostHandlerTest {
         assertThat(response.status400().payload().token(), is(notNullValue()));
         assertThat(response.status400().payload().code(), is(Error.Code.ILLEGAL_JOB_SPEC));
         assertThat(response.status400().payload().description(), is("cannot create a job with no name"));
+    }
+
+    @Test
+    public void whenUnexpectedRepositoryException__willReturnAStatus500() throws Exception {
+        JobCollectionPostResponse response = new PoomjobsAPI(new MockedJobRepository()).handlers().jobCollectionPostHandler().apply(JobCollectionPostRequest.builder()
+                .accountId("1212")
+                .payload(JobCreationData.builder()
+                        .category("category")
+                        .name("name")
+                        .arguments("one", "two")
+                        .build())
+                .build());
+
+        assertThat(response.status500().payload().code(), is(Error.Code.UNEXPECTED_ERROR));
+        assertThat(response.status500().payload().description(), is("unexpected error, see logs"));
+        assertThat(response.status500().payload().token(), is(notNullValue()));
     }
 }

@@ -13,7 +13,7 @@ import org.codingmatters.poom.servives.domain.entities.PagedEntityList;
 public class MockedJobRepository implements Repository<JobValue, JobQuery> {
     @Override
     public Entity<JobValue> create(JobValue withValue) throws RepositoryException {
-        return null;
+        throw new RepositoryException("");
     }
 
     @Override

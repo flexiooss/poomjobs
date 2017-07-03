@@ -63,4 +63,8 @@ public class JobValueChange extends Change<JobValue> {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return String.format("JobValueChange{currentValue=%s newValue=%s}", this.currentValue(), this.newValue());
+    }
 }

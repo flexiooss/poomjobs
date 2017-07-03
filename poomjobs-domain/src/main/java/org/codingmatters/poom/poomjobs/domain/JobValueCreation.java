@@ -44,4 +44,9 @@ public class JobValueCreation extends Change<JobValue> {
                 .withProcessing(processing.submitted(LocalDateTime.now()).build())
                 .withStatus(Status.builder().run(Status.Run.PENDING).build());
     }
+
+    @Override
+    public String toString() {
+        return String.format("JobValueCreation{newValue=%s}", this.newValue());
+    }
 }
