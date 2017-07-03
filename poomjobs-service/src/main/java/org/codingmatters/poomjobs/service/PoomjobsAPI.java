@@ -4,6 +4,7 @@ import org.codingmatters.poom.poomjobs.domain.values.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poomjobs.service.api.PoomjobsAPIHandlers;
+import org.codingmatters.poomjobs.service.handlers.JobCollectionGetHandler;
 import org.codingmatters.poomjobs.service.handlers.JobCollectionPostHandler;
 import org.codingmatters.poomjobs.service.handlers.JobResourceGetHandler;
 import org.codingmatters.poomjobs.service.handlers.JobResourcePutHandler;
@@ -16,6 +17,7 @@ public class PoomjobsAPI {
 
     public PoomjobsAPI(Repository<JobValue, JobQuery> repository) {
         this.handlers = new PoomjobsAPIHandlers.Builder()
+                .jobCollectionGetHandler(new JobCollectionGetHandler(repository))
                 .jobCollectionPostHandler(new JobCollectionPostHandler(repository))
                 .jobResourceGetHandler(new JobResourceGetHandler(repository))
                 .jobResourcePutHandler(new JobResourcePutHandler(repository))

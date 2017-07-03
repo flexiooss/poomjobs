@@ -6,6 +6,16 @@ mediaType: application/json
 
 /jobs:
     displayName: JobCollection
+    get:
+        queryParameters:
+            range: string
+        responses:
+            200:
+                description: complete list of jobs or last elements of the list of jobs
+                headers:
+                    Content-Range: string
+                    Accept-Range: string
+                body: Job[]
     post:
         headers:
             account-id: string
@@ -80,6 +90,7 @@ types:
     Job:
         type: object
         properties:
+            id: string
             version: string
 
             category: string
