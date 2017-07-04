@@ -16,6 +16,8 @@ import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status500;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.service.JobEntityTransformation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
 import java.util.Collection;
@@ -29,6 +31,8 @@ import java.util.regex.Pattern;
  * Created by nelt on 6/29/17.
  */
 public class JobCollectionGetHandler implements Function<JobCollectionGetRequest, JobCollectionGetResponse> {
+    static private final Logger log = LoggerFactory.getLogger(JobCollectionGetHandler.class);
+
     private static final int DEFAULT_MAX_PAGE_SIZE = 100;
 
     private final Repository<JobValue, JobQuery> repository;
@@ -56,68 +60,72 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
                 }
 
                 if(startIndex > endIndex) {
-                    String errorToken = UUID.randomUUID().toString();
-                    MDC.put("error-token", errorToken);
-                    return JobCollectionGetResponse.builder()
-                            .status416(Status416.builder()
-                                    .contentRange(String.format("Job */%d",
-                                            this.repository.all(0, 0).total()
-                                    ))
-                                    .acceptRange(String.format("Job %d", this.maxPageSize))
-                                    .payload(Error.builder()
-                                            .token(errorToken)
-                                            .code(Error.Code.ILLEGAL_RANGE_SPEC)
-                                            .description("start must be before end of range")
-                                            .build())
-                                    .build())
-                            .build();
+                    String message = "start must be before end of range";
+                    return this.invalidRangeQuery(message, request.range());
                 }
 
                 PagedEntityList<JobValue> list = this.repository.all(startIndex, endIndex);
-
                 Collection<Job> jobs = this.resultList(list);
-                long resultRangeStart = list.startIndex();
-                long resultRangeEnd = list.endIndex();
 
                 if(list.size() < list.total()) {
-                    return JobCollectionGetResponse.builder()
-                            .status206(Status206.builder()
-                                    .contentRange(String.format("Job %d-%d/%d",
-                                            resultRangeStart,
-                                            resultRangeEnd,
-                                            list.total()
-                                    ))
-                                    .acceptRange(String.format("Job %d", this.maxPageSize))
-                                    .payload(jobs)
-                                    .build())
-                            .build();
+                    return this.partialJobList(list, jobs);
                 } else {
-                    return JobCollectionGetResponse.builder()
-                            .status200(Status200.builder()
-                                    .contentRange(String.format("Job %d-%d/%d",
-                                            resultRangeStart,
-                                            resultRangeEnd,
-                                            list.total()
-                                    ))
-                                    .acceptRange(String.format("Job %d", this.maxPageSize))
-                                    .payload(jobs)
-                                    .build())
-                            .build();
+                    return this.completeList(list, jobs);
                 }
             } catch (RepositoryException e) {
-                String errorToken = UUID.randomUUID().toString();
-                MDC.put("error-token", errorToken);
-                return JobCollectionGetResponse.builder()
-                        .status500(Status500.builder()
-                                .payload(Error.builder()
-                                        .token(errorToken)
-                                        .code(Error.Code.UNEXPECTED_ERROR)
-                                        .description("unexpected error, see logs")
-                                        .build())
-                                .build())
-                        .build();
+                return this.unexpectedError(e);
             }
         }
+    }
+
+    private JobCollectionGetResponse partialJobList(PagedEntityList<JobValue> list, Collection<Job> jobs) {
+        log.info("returning partial job list ({}-{}/{})", list.startIndex(), list.endIndex(), list.total());
+        return JobCollectionGetResponse.builder()
+                .status206(Status206.builder()
+                        .contentRange(String.format("Job %d-%d/%d",
+                                list.startIndex(),
+                                list.endIndex(),
+                                list.total()
+                        ))
+                        .acceptRange(String.format("Job %d", this.maxPageSize))
+                        .payload(jobs)
+                        .build())
+                .build();
+    }
+
+    private JobCollectionGetResponse completeList(PagedEntityList<JobValue> list, Collection<Job> jobs) {
+        log.info("returning complete job list ({} elements)", list.size());
+        return JobCollectionGetResponse.builder()
+                .status200(Status200.builder()
+                        .contentRange(String.format("Job %d-%d/%d",
+                                list.startIndex(),
+                                list.endIndex(),
+                                list.total()
+                        ))
+                        .acceptRange(String.format("Job %d", this.maxPageSize))
+                        .payload(jobs)
+                        .build())
+                .build();
+    }
+
+    private JobCollectionGetResponse invalidRangeQuery(String message, String range) throws RepositoryException {
+        String errorToken = UUID.randomUUID().toString();
+        MDC.put("error-token", errorToken);
+
+        log.info(message + " (requested range: {})", range);
+        return JobCollectionGetResponse.builder()
+                .status416(Status416.builder()
+                        .contentRange(String.format("Job */%d",
+                                this.repository.all(0, 0).total()
+                        ))
+                        .acceptRange(String.format("Job %d", this.maxPageSize))
+                        .payload(Error.builder()
+                                .token(errorToken)
+                                .code(Error.Code.ILLEGAL_RANGE_SPEC)
+                                .description(message)
+                                .build())
+                        .build())
+                .build();
     }
 
     private Collection<Job> resultList(PagedEntityList<JobValue> list) {
@@ -127,5 +135,21 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
         }
 
         return result;
+    }
+
+    private JobCollectionGetResponse unexpectedError(RepositoryException e) {
+        String errorToken = UUID.randomUUID().toString();
+        MDC.put("error-token", errorToken);
+        log.error("unexpected error while handling job list query", e);
+
+        return JobCollectionGetResponse.builder()
+                .status500(Status500.builder()
+                        .payload(Error.builder()
+                                .token(errorToken)
+                                .code(Error.Code.UNEXPECTED_ERROR)
+                                .description("unexpected error, see logs")
+                                .build())
+                        .build())
+                .build();
     }
 }
