@@ -22,6 +22,12 @@ mediaType: application/json
                     Content-Range: string
                     Accept-Range: string
                 body: Job[]
+            416:
+                description: the specified range is not acceptable. Error code is ILLEGAL_RANGE_SPEC.
+                headers:
+                    Content-Range: string
+                    Accept-Range: string
+                body: Error
     post:
         headers:
             account-id: string
@@ -156,5 +162,5 @@ types:
         properties:
             token: string
             code:
-                enum: [JOB_NOT_FOUND, UNEXPECTED_ERROR, ILLEGAL_JOB_CHANGE, ILLEGAL_JOB_SPEC]
+                enum: [JOB_NOT_FOUND, UNEXPECTED_ERROR, ILLEGAL_JOB_CHANGE, ILLEGAL_JOB_SPEC, ILLEGAL_RANGE_SPEC]
             description: string

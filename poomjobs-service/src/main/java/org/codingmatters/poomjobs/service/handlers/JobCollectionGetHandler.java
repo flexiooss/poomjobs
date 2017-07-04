@@ -11,6 +11,8 @@ import org.codingmatters.poomjobs.api.JobCollectionGetRequest;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
 import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status200;
 import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status206;
+import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status416;
+import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.service.JobEntityTransformation;
 import org.slf4j.MDC;
@@ -50,6 +52,23 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
                         startIndex = Long.parseLong(rangeMatcher.group(1));
                         endIndex = Long.parseLong(rangeMatcher.group(2));
                     }
+                }
+
+                if(startIndex > endIndex) {
+                    String errorToken = UUID.randomUUID().toString();
+                    return JobCollectionGetResponse.builder()
+                            .status416(Status416.builder()
+                                    .contentRange(String.format("Job */%d",
+                                            this.repository.all(0, 0).total()
+                                    ))
+                                    .acceptRange(String.format("Job %d", this.maxPageSize))
+                                    .payload(Error.builder()
+                                            .token(errorToken)
+                                            .code(Error.Code.ILLEGAL_RANGE_SPEC)
+                                            .description("start must be before end of range")
+                                            .build())
+                                    .build())
+                            .build();
                 }
 
                 PagedEntityList<JobValue> list = this.repository.all(startIndex, endIndex);

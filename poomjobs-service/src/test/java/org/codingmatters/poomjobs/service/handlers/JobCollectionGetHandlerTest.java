@@ -8,6 +8,7 @@ import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobCollectionGetRequest;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
+import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.service.PoomjobsAPI;
 import org.junit.Test;
 
@@ -139,5 +140,25 @@ public class JobCollectionGetHandlerTest {
 
         assertThat(response.status206().payload().size(), is(50));
         assertThat(response.status206().payload().get(0).id(), is(startEntity.id()));
+    }
+
+    @Test
+    public void whenRangeRequested__ifRangeIsInvalid__thenResturnStatus406() throws Exception {
+        for(int i = 0 ; i < 150 ; i++) {
+            this.repository.create(JobValue.builder()
+                    .category("test").name("test").status(Status.builder().run(Status.Run.PENDING).build())
+                    .build());
+        }
+
+        JobCollectionGetResponse response = this.api.handlers().jobCollectionGetHandler().apply(JobCollectionGetRequest.builder()
+                .range("9-0")
+                .build());
+
+        assertThat(response.status416(), is(notNullValue()));
+        assertThat(response.status416().acceptRange(), is("Job 100"));
+        assertThat(response.status416().contentRange(), is("Job */150"));
+        assertThat(response.status416().payload().code(), is(Error.Code.ILLEGAL_RANGE_SPEC));
+        assertThat(response.status416().payload().description(), is("start must be before end of range"));
+        assertThat(response.status416().payload().token(), is(notNullValue()));
     }
 }
