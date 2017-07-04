@@ -15,12 +15,12 @@ import java.util.stream.Stream;
  */
 public class InMemoryJobRepository extends InMemoryRepository<JobValue, JobQuery> {
     @Override
-    public PagedEntityList<JobValue> search(JobQuery query, int page, int pageSize) throws RepositoryException {
+    public PagedEntityList<JobValue> search(JobQuery query, long startIndex, long endIndex) throws RepositoryException {
         Stream<Entity<JobValue>> filtered = this.stream();
         for (JobCriteria jobCriteria : query.criteria()) {
             filtered = this.applyCriterionFilter(filtered, jobCriteria);
         }
-        return this.paged(filtered, page, pageSize);
+        return this.paged(filtered, startIndex, endIndex);
     }
 
     private Stream<Entity<JobValue>> applyCriterionFilter(Stream<Entity<JobValue>> filtered, JobCriteria jobCriteria) {

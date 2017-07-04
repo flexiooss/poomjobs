@@ -16,6 +16,12 @@ mediaType: application/json
                     Content-Range: string
                     Accept-Range: string
                 body: Job[]
+            206:
+                description: complete list of jobs or last elements of the list of jobs
+                headers:
+                    Content-Range: string
+                    Accept-Range: string
+                body: Job[]
     post:
         headers:
             account-id: string

@@ -4,7 +4,7 @@ import org.codingmatters.poom.poomjobs.domain.values.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.repositories.Repository;
-import org.codingmatters.poom.services.support.LoggingContext;
+import org.codingmatters.poom.services.support.logging.LoggingContext;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobResourceGetRequest;
 import org.codingmatters.poomjobs.api.JobResourceGetResponse;

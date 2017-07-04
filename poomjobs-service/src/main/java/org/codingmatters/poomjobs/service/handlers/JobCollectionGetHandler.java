@@ -4,12 +4,13 @@ import org.codingmatters.poom.poomjobs.domain.values.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.repositories.Repository;
-import org.codingmatters.poom.services.support.LoggingContext;
+import org.codingmatters.poom.services.support.logging.LoggingContext;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poom.servives.domain.entities.PagedEntityList;
 import org.codingmatters.poomjobs.api.JobCollectionGetRequest;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
 import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status200;
+import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status206;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.service.JobEntityTransformation;
 import org.slf4j.MDC;
@@ -18,6 +19,8 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by nelt on 6/29/17.
@@ -37,18 +40,49 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
         try(LoggingContext ctx = LoggingContext.start()) {
             MDC.put("request-id", UUID.randomUUID().toString());
             try {
-                int pageSize = this.maxPageSize;
-                int page = 0;
-                PagedEntityList<JobValue> list = this.repository.all(page, pageSize);
+                long startIndex = 0;
+                long endIndex = startIndex + this.maxPageSize - 1;
+
+                if(request.range() != null) {
+                    Pattern RANGE_PATTERN = Pattern.compile("(\\d+)-(\\d+)");
+                    Matcher rangeMatcher = RANGE_PATTERN.matcher(request.range());
+                    if(rangeMatcher.matches()) {
+                        startIndex = Long.parseLong(rangeMatcher.group(1));
+                        endIndex = Long.parseLong(rangeMatcher.group(2));
+                    }
+                }
+
+                PagedEntityList<JobValue> list = this.repository.all(startIndex, endIndex);
 
                 Collection<Job> jobs = this.resultList(list);
-                return JobCollectionGetResponse.builder()
-                        .status200(Status200.builder()
-                                .contentRange(String.format("Job %d-%d/%d", page * pageSize, page * pageSize + list.size() - 1, list.totalSize()))
-                                .acceptRange(String.format("Job %d", pageSize))
-                                .payload(jobs)
-                                .build())
-                        .build();
+                long resultRangeStart = list.startIndex();
+                long resultRangeEnd = list.endIndex();
+
+                if(list.size() < list.total()) {
+                    return JobCollectionGetResponse.builder()
+                            .status206(Status206.builder()
+                                    .contentRange(String.format("Job %d-%d/%d",
+                                            resultRangeStart,
+                                            resultRangeEnd,
+                                            list.total()
+                                    ))
+                                    .acceptRange(String.format("Job %d", this.maxPageSize))
+                                    .payload(jobs)
+                                    .build())
+                            .build();
+                } else {
+                    return JobCollectionGetResponse.builder()
+                            .status200(Status200.builder()
+                                    .contentRange(String.format("Job %d-%d/%d",
+                                            resultRangeStart,
+                                            resultRangeEnd,
+                                            list.total()
+                                    ))
+                                    .acceptRange(String.format("Job %d", this.maxPageSize))
+                                    .payload(jobs)
+                                    .build())
+                            .build();
+                }
             } catch (RepositoryException e) {
                 e.printStackTrace();
             }

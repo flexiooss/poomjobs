@@ -32,12 +32,12 @@ public class MockedJobRepository implements Repository<JobValue, JobQuery> {
     }
 
     @Override
-    public PagedEntityList<JobValue> all(int page, int pageSize) throws RepositoryException {
+    public PagedEntityList<JobValue> all(long startIndex, long endIndex) throws RepositoryException {
         throw new RepositoryException("");
     }
 
     @Override
-    public PagedEntityList<JobValue> search(JobQuery query, int page, int pageSize) throws RepositoryException {
+    public PagedEntityList<JobValue> search(JobQuery query, long startIndex, long endIndex) throws RepositoryException {
         throw new RepositoryException("");
     }
 }
