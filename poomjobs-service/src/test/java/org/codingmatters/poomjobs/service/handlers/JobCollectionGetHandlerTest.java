@@ -10,6 +10,7 @@ import org.codingmatters.poomjobs.api.JobCollectionGetRequest;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.service.PoomjobsAPI;
+import org.codingmatters.poomjobs.service.handlers.mocks.MockedJobRepository;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -160,5 +161,17 @@ public class JobCollectionGetHandlerTest {
         assertThat(response.status416().payload().code(), is(Error.Code.ILLEGAL_RANGE_SPEC));
         assertThat(response.status416().payload().description(), is("start must be before end of range"));
         assertThat(response.status416().payload().token(), is(notNullValue()));
+    }
+
+
+
+    @Test
+    public void whenUnexpectedRepositoryException__willReturnAStatus500() throws Exception {
+        JobCollectionGetResponse response = new PoomjobsAPI(new MockedJobRepository()).handlers().jobCollectionGetHandler().apply(JobCollectionGetRequest.builder()
+                .build());
+
+        assertThat(response.status500().payload().code(), is(Error.Code.UNEXPECTED_ERROR));
+        assertThat(response.status500().payload().description(), is("unexpected error, see logs"));
+        assertThat(response.status500().payload().token(), is(notNullValue()));
     }
 }

@@ -12,6 +12,7 @@ import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
 import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status200;
 import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status206;
 import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status416;
+import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status500;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.service.JobEntityTransformation;
@@ -56,6 +57,7 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
 
                 if(startIndex > endIndex) {
                     String errorToken = UUID.randomUUID().toString();
+                    MDC.put("error-token", errorToken);
                     return JobCollectionGetResponse.builder()
                             .status416(Status416.builder()
                                     .contentRange(String.format("Job */%d",
@@ -103,9 +105,18 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
                             .build();
                 }
             } catch (RepositoryException e) {
-                e.printStackTrace();
+                String errorToken = UUID.randomUUID().toString();
+                MDC.put("error-token", errorToken);
+                return JobCollectionGetResponse.builder()
+                        .status500(Status500.builder()
+                                .payload(Error.builder()
+                                        .token(errorToken)
+                                        .code(Error.Code.UNEXPECTED_ERROR)
+                                        .description("unexpected error, see logs")
+                                        .build())
+                                .build())
+                        .build();
             }
-            return null;
         }
     }
 

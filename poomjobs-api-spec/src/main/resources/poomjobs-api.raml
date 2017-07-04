@@ -28,6 +28,9 @@ mediaType: application/json
                     Content-Range: string
                     Accept-Range: string
                 body: Error
+            500:
+                description: UNEXPECTED_ERROR.
+                body: Error
     post:
         headers:
             account-id: string
