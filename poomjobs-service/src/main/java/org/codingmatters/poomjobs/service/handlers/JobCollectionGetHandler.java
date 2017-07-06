@@ -1,5 +1,6 @@
 package org.codingmatters.poomjobs.service.handlers;
 
+import org.codingmatters.poom.poomjobs.domain.values.JobCriteria;
 import org.codingmatters.poom.poomjobs.domain.values.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
@@ -23,6 +24,7 @@ import org.slf4j.MDC;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -46,11 +48,34 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
         try(LoggingContext ctx = LoggingContext.start()) {
             MDC.put("request-id", UUID.randomUUID().toString());
             try {
-                Rfc7233Pager.Page page = Rfc7233Pager.forRequestedRange(request.range())
+
+                Rfc7233Pager<JobValue, JobQuery> pager = Rfc7233Pager.forRequestedRange(request.range())
                         .unit("Job")
                         .maxPageSize(this.maxPageSize)
-                        .pager(this.repository)
-                        .page();
+                        .pager(this.repository);
+
+
+                Rfc7233Pager.Page page;
+                if(request.name() != null || request.category() != null || request.runStatus() != null || request.exitStatus() != null) {
+                    List<JobCriteria> criteria = new LinkedList<>();
+                    if(request.name() != null) {
+                        criteria.add(JobCriteria.builder().name(request.name()).build());
+                    }
+                    if(request.category() != null) {
+                        criteria.add(JobCriteria.builder().category(request.category()).build());
+                    }
+                    if(request.runStatus() != null) {
+                        criteria.add(JobCriteria.builder().runStatus(request.runStatus()).build());
+                    }
+                    if(request.exitStatus() != null) {
+                        criteria.add(JobCriteria.builder().exitStatus(request.exitStatus()).build());
+                    }
+                    JobQuery query = JobQuery.builder().criteria(criteria).build();
+                    log.info("job list requested with filter : {}", query);
+                    page = pager.page(query);
+                } else {
+                    page = pager.page();
+                }
 
                 if(page.isValid()) {
                     if (page.isPartial()) {

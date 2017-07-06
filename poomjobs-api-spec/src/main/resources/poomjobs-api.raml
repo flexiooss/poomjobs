@@ -9,6 +9,11 @@ mediaType: application/json
     get:
         queryParameters:
             range: string
+
+            name: string
+            category: string
+            runStatus: string
+            exitStatus: string
         responses:
             200:
                 description: complete list of jobs or last elements of the list of jobs

@@ -174,4 +174,97 @@ public class JobCollectionGetHandlerTest {
         assertThat(response.status500().payload().description(), is("unexpected error, see logs"));
         assertThat(response.status500().payload().token(), is(notNullValue()));
     }
+
+    @Test
+    public void whenNameParameter__thenOnlyJobWithSuchNameAreReturned() throws Exception {
+        this.repository.create(JobValue.builder()
+                .name("J1").category("C1").status(Status.builder().run(Status.Run.PENDING).build())
+                .build());
+        this.repository.create(JobValue.builder()
+                .name("J2").category("C2").status(Status.builder().run(Status.Run.RUNNING).build())
+                .build());
+        this.repository.create(JobValue.builder()
+                .name("J3").category("C3").status(Status.builder().run(Status.Run.DONE).exit(Status.Exit.SUCCESS).build())
+                .build());
+        this.repository.create(JobValue.builder()
+                .name("J4").category("C4").status(Status.builder().run(Status.Run.DONE).exit(Status.Exit.FAILURE).build())
+                .build());
+
+        JobCollectionGetResponse response = this.api.handlers().jobCollectionGetHandler().apply(JobCollectionGetRequest.builder()
+                .name("J2")
+                .build());
+
+        assertThat(response.status200().payload().size(), is(1));
+        assertThat(response.status200().payload().get(0).name(), is("J2"));
+    }
+
+    @Test
+    public void whenCategoryParameter__thenOnlyJobWithSuchCategoryAreReturned() throws Exception {
+        this.repository.create(JobValue.builder()
+                .name("J1").category("C1").status(Status.builder().run(Status.Run.PENDING).build())
+                .build());
+        this.repository.create(JobValue.builder()
+                .name("J2").category("C2").status(Status.builder().run(Status.Run.RUNNING).build())
+                .build());
+        this.repository.create(JobValue.builder()
+                .name("J3").category("C3").status(Status.builder().run(Status.Run.DONE).exit(Status.Exit.SUCCESS).build())
+                .build());
+        this.repository.create(JobValue.builder()
+                .name("J4").category("C4").status(Status.builder().run(Status.Run.DONE).exit(Status.Exit.FAILURE).build())
+                .build());
+
+        JobCollectionGetResponse response = this.api.handlers().jobCollectionGetHandler().apply(JobCollectionGetRequest.builder()
+                .category("C3")
+                .build());
+
+        assertThat(response.status200().payload().size(), is(1));
+        assertThat(response.status200().payload().get(0).category(), is("C3"));
+    }
+
+    @Test
+    public void whenRunStatusParameter__thenOnlyJobWithSuchRunStatusAreReturned() throws Exception {
+        this.repository.create(JobValue.builder()
+                .name("J1").category("C1").status(Status.builder().run(Status.Run.PENDING).build())
+                .build());
+        this.repository.create(JobValue.builder()
+                .name("J2").category("C2").status(Status.builder().run(Status.Run.RUNNING).build())
+                .build());
+        this.repository.create(JobValue.builder()
+                .name("J3").category("C3").status(Status.builder().run(Status.Run.DONE).exit(Status.Exit.SUCCESS).build())
+                .build());
+        this.repository.create(JobValue.builder()
+                .name("J4").category("C4").status(Status.builder().run(Status.Run.DONE).exit(Status.Exit.FAILURE).build())
+                .build());
+
+        JobCollectionGetResponse response = this.api.handlers().jobCollectionGetHandler().apply(JobCollectionGetRequest.builder()
+                .runStatus("DONE")
+                .build());
+
+        assertThat(response.status200().payload().size(), is(2));
+        assertThat(response.status200().payload().get(0).status().run(), is(org.codingmatters.poomjobs.api.types.job.Status.Run.DONE));
+        assertThat(response.status200().payload().get(1).status().run(), is(org.codingmatters.poomjobs.api.types.job.Status.Run.DONE));
+    }
+
+    @Test
+    public void whenRunExitParameter__thenOnlyJobWithSuchExitStatusAreReturned() throws Exception {
+        this.repository.create(JobValue.builder()
+                .name("J1").category("C1").status(Status.builder().run(Status.Run.PENDING).build())
+                .build());
+        this.repository.create(JobValue.builder()
+                .name("J2").category("C2").status(Status.builder().run(Status.Run.RUNNING).build())
+                .build());
+        this.repository.create(JobValue.builder()
+                .name("J3").category("C3").status(Status.builder().run(Status.Run.DONE).exit(Status.Exit.SUCCESS).build())
+                .build());
+        this.repository.create(JobValue.builder()
+                .name("J4").category("C4").status(Status.builder().run(Status.Run.DONE).exit(Status.Exit.FAILURE).build())
+                .build());
+
+        JobCollectionGetResponse response = this.api.handlers().jobCollectionGetHandler().apply(JobCollectionGetRequest.builder()
+                .exitStatus("SUCCESS")
+                .build());
+
+        assertThat(response.status200().payload().size(), is(1));
+        assertThat(response.status200().payload().get(0).status().exit(), is(org.codingmatters.poomjobs.api.types.job.Status.Exit.SUCCESS));
+    }
 }
