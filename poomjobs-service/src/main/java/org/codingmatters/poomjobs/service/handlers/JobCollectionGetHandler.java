@@ -5,6 +5,7 @@ import org.codingmatters.poom.poomjobs.domain.values.JobValue;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.support.logging.LoggingContext;
+import org.codingmatters.poom.services.support.paging.Rfc7233Pager;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poom.servives.domain.entities.PagedEntityList;
 import org.codingmatters.poomjobs.api.JobCollectionGetRequest;
@@ -24,8 +25,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by nelt on 6/29/17.
@@ -47,30 +46,20 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
         try(LoggingContext ctx = LoggingContext.start()) {
             MDC.put("request-id", UUID.randomUUID().toString());
             try {
-                long startIndex = 0;
-                long endIndex = startIndex + this.maxPageSize - 1;
+                Rfc7233Pager.Page page = Rfc7233Pager.forRequestedRange(request.range())
+                        .unit("Job")
+                        .maxPageSize(this.maxPageSize)
+                        .pager(this.repository)
+                        .page();
 
-                if(request.range() != null) {
-                    Pattern RANGE_PATTERN = Pattern.compile("(\\d+)-(\\d+)");
-                    Matcher rangeMatcher = RANGE_PATTERN.matcher(request.range());
-                    if(rangeMatcher.matches()) {
-                        startIndex = Long.parseLong(rangeMatcher.group(1));
-                        endIndex = Long.parseLong(rangeMatcher.group(2));
+                if(page.isValid()) {
+                    if (page.isPartial()) {
+                        return this.partialJobList(page);
+                    } else {
+                        return this.completeList(page);
                     }
-                }
-
-                if(startIndex > endIndex) {
-                    String message = "start must be before end of range";
-                    return this.invalidRangeQuery(message, request.range());
-                }
-
-                PagedEntityList<JobValue> list = this.repository.all(startIndex, endIndex);
-                Collection<Job> jobs = this.resultList(list);
-
-                if(list.size() < list.total()) {
-                    return this.partialJobList(list, jobs);
                 } else {
-                    return this.completeList(list, jobs);
+                    return this.invalidRangeQuery(page);
                 }
             } catch (RepositoryException e) {
                 return this.unexpectedError(e);
@@ -78,51 +67,43 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
         }
     }
 
-    private JobCollectionGetResponse partialJobList(PagedEntityList<JobValue> list, Collection<Job> jobs) {
-        log.info("returning partial job list ({}-{}/{})", list.startIndex(), list.endIndex(), list.total());
+    private JobCollectionGetResponse partialJobList(Rfc7233Pager.Page page) {
+        Collection<Job> jobs = this.resultList(page.list());
+        log.info("returning partial job list ({})", page.contentRange());
         return JobCollectionGetResponse.builder()
                 .status206(Status206.builder()
-                        .contentRange(String.format("Job %d-%d/%d",
-                                list.startIndex(),
-                                list.endIndex(),
-                                list.total()
-                        ))
-                        .acceptRange(String.format("Job %d", this.maxPageSize))
+                        .contentRange(page.contentRange())
+                        .acceptRange(page.acceptRange())
                         .payload(jobs)
                         .build())
                 .build();
     }
 
-    private JobCollectionGetResponse completeList(PagedEntityList<JobValue> list, Collection<Job> jobs) {
-        log.info("returning complete job list ({} elements)", list.size());
+    private JobCollectionGetResponse completeList(Rfc7233Pager.Page page) {
+        Collection<Job> jobs = this.resultList(page.list());
+        log.info("returning complete job list ({} elements)", jobs.size());
         return JobCollectionGetResponse.builder()
                 .status200(Status200.builder()
-                        .contentRange(String.format("Job %d-%d/%d",
-                                list.startIndex(),
-                                list.endIndex(),
-                                list.total()
-                        ))
-                        .acceptRange(String.format("Job %d", this.maxPageSize))
+                        .contentRange(page.contentRange())
+                        .acceptRange(page.acceptRange())
                         .payload(jobs)
                         .build())
                 .build();
     }
 
-    private JobCollectionGetResponse invalidRangeQuery(String message, String range) throws RepositoryException {
+    private JobCollectionGetResponse invalidRangeQuery(Rfc7233Pager.Page page) throws RepositoryException {
         String errorToken = UUID.randomUUID().toString();
         MDC.put("error-token", errorToken);
 
-        log.info(message + " (requested range: {})", range);
+        log.info(page.validationMessage() + " (requested range: {})", page.requestedRange());
         return JobCollectionGetResponse.builder()
                 .status416(Status416.builder()
-                        .contentRange(String.format("Job */%d",
-                                this.repository.all(0, 0).total()
-                        ))
-                        .acceptRange(String.format("Job %d", this.maxPageSize))
+                        .contentRange(page.contentRange())
+                        .acceptRange(page.acceptRange())
                         .payload(Error.builder()
                                 .token(errorToken)
                                 .code(Error.Code.ILLEGAL_RANGE_SPEC)
-                                .description(message)
+                                .description(page.validationMessage())
                                 .build())
                         .build())
                 .build();
