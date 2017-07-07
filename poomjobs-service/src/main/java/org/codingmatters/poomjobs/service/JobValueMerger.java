@@ -1,7 +1,7 @@
 package org.codingmatters.poomjobs.service;
 
-import org.codingmatters.poom.poomjobs.domain.values.JobValue;
-import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 

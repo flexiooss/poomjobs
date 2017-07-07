@@ -1,9 +1,9 @@
 package org.codingmatters.poomjobs.service;
 
-import org.codingmatters.poom.poomjobs.domain.values.JobValue;
-import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Accounting;
-import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Processing;
-import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Accounting;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Processing;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.types.Job;
 

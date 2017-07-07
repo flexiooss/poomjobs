@@ -1,8 +1,8 @@
 package org.codingmatters.poom.poomjobs.domain.repositories.inmemory;
 
-import org.codingmatters.poom.poomjobs.domain.values.JobCriteria;
-import org.codingmatters.poom.poomjobs.domain.values.JobQuery;
-import org.codingmatters.poom.poomjobs.domain.values.JobValue;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.JobCriteria;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.repositories.inmemory.InMemoryRepository;
 import org.codingmatters.poom.servives.domain.entities.Entity;

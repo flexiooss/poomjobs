@@ -1,7 +1,7 @@
 package org.codingmatters.poom.poomjobs.domain;
 
-import org.codingmatters.poom.poomjobs.domain.values.JobValue;
-import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Accounting;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Accounting;
 import org.codingmatters.poom.services.domain.change.Validation;
 import org.junit.Test;
 

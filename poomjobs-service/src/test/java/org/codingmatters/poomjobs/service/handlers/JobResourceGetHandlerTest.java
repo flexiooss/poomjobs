@@ -1,11 +1,11 @@
 package org.codingmatters.poomjobs.service.handlers;
 
 import org.codingmatters.poom.poomjobs.domain.repositories.JobRepository;
-import org.codingmatters.poom.poomjobs.domain.values.JobQuery;
-import org.codingmatters.poom.poomjobs.domain.values.JobValue;
-import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Accounting;
-import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Processing;
-import org.codingmatters.poom.poomjobs.domain.values.jobvalue.Status;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Accounting;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Processing;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobResourceGetRequest;

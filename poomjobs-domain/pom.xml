@@ -43,7 +43,7 @@
                             <goal>json</goal>
                         </goals>
                         <configuration>
-                            <destination-package>org.codingmatters.poom.poomjobs.domain.values</destination-package>
+                            <destination-package>org.codingmatters.poom.poomjobs.domain.values.jobs</destination-package>
                             <input-spec>src/main/resources/job-value.yaml</input-spec>
                         </configuration>
                     </execution>
@@ -55,7 +55,7 @@
                             <goal>json</goal>
                         </goals>
                         <configuration>
-                            <destination-package>org.codingmatters.poom.poomjobs.domain.values</destination-package>
+                            <destination-package>org.codingmatters.poom.poomjobs.domain.values.jobs</destination-package>
                             <input-spec>src/main/resources/job-queries.yaml</input-spec>
                         </configuration>
                     </execution>
