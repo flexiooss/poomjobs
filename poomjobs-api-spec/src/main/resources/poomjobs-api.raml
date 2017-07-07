@@ -106,6 +106,98 @@ mediaType: application/json
                     description: UNEXPECTED_ERROR.
                     body: Error
 
+/runners:
+    displayName: Runners
+    get:
+        queryParameters:
+            range: string
+
+            nameCompetency: string
+            categoryCompetency: string
+            runtimeStatus: string
+        responses:
+            200:
+                description: complete list of runners or last elements of the list of jobs
+                headers:
+                    Content-Range: string
+                    Accept-Range: string
+                body: Job[]
+            206:
+                description: complete list of runners or last elements of the list of jobs
+                headers:
+                    Content-Range: string
+                    Accept-Range: string
+                body: Job[]
+            416:
+                description: the specified range is not acceptable. Error code is ILLEGAL_RANGE_SPEC.
+                headers:
+                    Content-Range: string
+                    Accept-Range: string
+                body: Error
+            500:
+                description: UNEXPECTED_ERROR.
+                body: Error
+    /{runnerId}:
+        displayName: Runner
+        uriParameters:
+            runnerId:
+                type: string
+                required: true
+        get:
+            description: |
+                If a runner with the given jobId, returns the full description of the runner.
+            responses:
+                200:
+                    description: a runner with the given jobId is found and returned
+                    body: Runner
+                404:
+                    description: no runner found with the given runnerId. Code RUNNER_NOT_FOUND.
+                    body: Error
+                500:
+                    description: UNEXPECTED_ERROR.
+                    body: Error
+        put:
+            body: RunnerData
+            description: |
+                The runner is created or updated provided the payload JobUpdateData.
+                The runner change is only valid if :
+                TODO
+
+            responses:
+                200:
+                    description: the runner update was successful
+                    body: Runner
+                400:
+                    description: request is not acceptable. Code ILLEGAL_RUNNER_CHANGE.
+                    body: Error
+                500:
+                    description: UNEXPECTED_ERROR.
+                    body: Error
+        /run-status:
+            displayName: RunnerStatus
+            put:
+                body: RunnerStatusData
+                description: |
+                    The runner status is updated provided the payload RunnerStatusData.
+
+                    Only the status can be provided. In future version, runtime statistics will be
+                    added to the status data.
+
+                    The runner status change is only valid if :
+                    TODO
+
+                responses:
+                    201:
+                        description: the runner status update was successful
+                        headers:
+                            Location: string
+                    400:
+                        description: request is not acceptable. Code ILLEGAL_RUNNER_STATUS_CHANGE.
+                        body: Error
+                    500:
+                        description: UNEXPECTED_ERROR.
+                        body: Error
+
 types:
     Job:
         type: object
@@ -165,10 +257,53 @@ types:
                     exit:
                         enum: [SUCCESS, FAILURE]
 
+    Runner:
+        type: object
+        properties:
+            id: string
+            callback: string
+            competencies:
+                type: object
+                properties:
+                    categories:
+                        type: array
+                        items: string
+                    names:
+                        type: array
+                        items: string
+            runtime:
+                type: object
+                properties:
+                    status:
+                        enum: [IDLE, RUNNING, DISCONNECTED]
+                    created: datetime-only
+                    last-ping: datetime-only
+                    ttl: integer
+    RunnerData:
+        type: object
+        properties:
+            callback: string
+            competencies:
+                type: object
+                properties:
+                    categories:
+                        type: array
+                        items: string
+                    names:
+                        type: array
+                        items: string
+    RunnerStatusData:
+        type: object
+        properties:
+            status:
+              enum: [IDLE, RUNNING, DISCONNECTED]
+
     Error:
         type: object
         properties:
             token: string
             code:
-                enum: [JOB_NOT_FOUND, UNEXPECTED_ERROR, ILLEGAL_JOB_CHANGE, ILLEGAL_JOB_SPEC, ILLEGAL_RANGE_SPEC]
+                enum: [JOB_NOT_FOUND, ILLEGAL_JOB_CHANGE, ILLEGAL_JOB_SPEC,
+                    RUNNER_NOT_FOUND, ILLEGAL_RUNNER_CHANGE, ILLEGAL_RUNNER_STATUS_CHANGE,
+                    ILLEGAL_RANGE_SPEC, UNEXPECTED_ERROR]
             description: string

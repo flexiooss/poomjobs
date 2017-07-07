@@ -48,7 +48,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>job-quries-objects</id>
+                        <id>job-queries-objects</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>generate</goal>
@@ -57,6 +57,32 @@
                         <configuration>
                             <destination-package>org.codingmatters.poom.poomjobs.domain.values</destination-package>
                             <input-spec>src/main/resources/job-queries.yaml</input-spec>
+                        </configuration>
+                    </execution>
+
+
+                    <execution>
+                        <id>runner-value-objects</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                            <goal>json</goal>
+                        </goals>
+                        <configuration>
+                            <destination-package>org.codingmatters.poom.poomjobs.domain.values.runners</destination-package>
+                            <input-spec>src/main/resources/runner-value.yaml</input-spec>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>runner-queries-objects</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                            <goal>json</goal>
+                        </goals>
+                        <configuration>
+                            <destination-package>org.codingmatters.poom.poomjobs.domain.values.runners</destination-package>
+                            <input-spec>src/main/resources/runner-queries.yaml</input-spec>
                         </configuration>
                     </execution>
                 </executions>

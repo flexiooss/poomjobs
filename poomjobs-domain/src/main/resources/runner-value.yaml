@@ -1,0 +1,13 @@
+Runner:
+  callback: string
+  competencies:
+    categories:
+      $set: string
+    names:
+      $set: string
+    runtime:
+      status:
+        $enum: IDLE, RUNNING, DISCONNECTED
+      created: date-time
+      lastPing: date-time
+      timeToLive: long
