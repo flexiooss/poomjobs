@@ -1,4 +1,4 @@
-package org.codingmatters.poom.poomjobs.domain.jobs.repositories;
+package org.codingmatters.poom.poomjobs.domain.testutils;
 
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.hamcrest.Description;

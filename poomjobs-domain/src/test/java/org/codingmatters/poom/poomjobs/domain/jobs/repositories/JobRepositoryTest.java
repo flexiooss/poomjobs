@@ -8,7 +8,7 @@ import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.servives.domain.entities.PagedEntityList;
 import org.junit.Test;
 
-import static org.codingmatters.poom.poomjobs.domain.jobs.repositories.EntityValueMatcher.valueMatches;
+import static org.codingmatters.poom.poomjobs.domain.testutils.EntityValueMatcher.valueMatches;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
