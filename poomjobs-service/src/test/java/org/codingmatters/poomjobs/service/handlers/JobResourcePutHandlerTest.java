@@ -1,6 +1,6 @@
 package org.codingmatters.poomjobs.service.handlers;
 
-import org.codingmatters.poom.poomjobs.domain.repositories.JobRepository;
+import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Processing;

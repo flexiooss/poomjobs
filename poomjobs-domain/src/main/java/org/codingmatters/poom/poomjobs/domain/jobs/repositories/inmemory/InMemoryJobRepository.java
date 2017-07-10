@@ -1,4 +1,4 @@
-package org.codingmatters.poom.poomjobs.domain.repositories.inmemory;
+package org.codingmatters.poom.poomjobs.domain.jobs.repositories.inmemory;
 
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobCriteria;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;

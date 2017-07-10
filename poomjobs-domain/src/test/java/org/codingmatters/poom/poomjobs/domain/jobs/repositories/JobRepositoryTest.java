@@ -1,4 +1,4 @@
-package org.codingmatters.poom.poomjobs.domain.repositories;
+package org.codingmatters.poom.poomjobs.domain.jobs.repositories;
 
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobCriteria;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
@@ -8,7 +8,7 @@ import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.servives.domain.entities.PagedEntityList;
 import org.junit.Test;
 
-import static org.codingmatters.poom.poomjobs.domain.repositories.EntityValueMatcher.valueMatches;
+import static org.codingmatters.poom.poomjobs.domain.jobs.repositories.EntityValueMatcher.valueMatches;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;

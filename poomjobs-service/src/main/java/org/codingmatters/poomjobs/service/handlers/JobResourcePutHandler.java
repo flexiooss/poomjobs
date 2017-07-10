@@ -1,6 +1,6 @@
 package org.codingmatters.poomjobs.service.handlers;
 
-import org.codingmatters.poom.poomjobs.domain.JobValueChange;
+import org.codingmatters.poom.poomjobs.domain.jobs.JobValueChange;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;

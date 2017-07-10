@@ -1,4 +1,4 @@
-package org.codingmatters.poom.poomjobs.domain;
+package org.codingmatters.poom.poomjobs.domain.jobs;
 
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Accounting;
