@@ -271,6 +271,7 @@ types:
                     names:
                         type: array
                         items: string
+            ttl: integer
             runtime:
                 type: object
                 properties:
@@ -278,7 +279,6 @@ types:
                         enum: [IDLE, RUNNING, DISCONNECTED]
                     created: datetime-only
                     last-ping: datetime-only
-                    ttl: integer
     RunnerData:
         type: object
         properties:
