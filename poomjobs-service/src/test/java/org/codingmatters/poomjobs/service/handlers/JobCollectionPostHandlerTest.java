@@ -11,6 +11,7 @@ import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.service.PoomjobsAPI;
 import org.codingmatters.poomjobs.service.handlers.mocks.MockedJobRepository;
+import org.codingmatters.poomjobs.service.handlers.mocks.MockedRunnerRepository;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
@@ -22,7 +23,7 @@ import static org.junit.Assert.assertThat;
 public class JobCollectionPostHandlerTest {
 
     private Repository<JobValue, JobQuery> repository = JobRepository.createInMemory();
-    private PoomjobsAPI api = new PoomjobsAPI(this.repository);
+    private PoomjobsAPI api = new PoomjobsAPI(this.repository, new MockedRunnerRepository());
 
     @Test
     public void whenJobCreationDataIsValid__thenReturnsStatus201_andJobCreated() throws Exception {
@@ -65,7 +66,7 @@ public class JobCollectionPostHandlerTest {
 
     @Test
     public void whenUnexpectedRepositoryException__willReturnAStatus500() throws Exception {
-        JobCollectionPostResponse response = new PoomjobsAPI(new MockedJobRepository()).handlers().jobCollectionPostHandler().apply(JobCollectionPostRequest.builder()
+        JobCollectionPostResponse response = new PoomjobsAPI(new MockedJobRepository(), new MockedRunnerRepository()).handlers().jobCollectionPostHandler().apply(JobCollectionPostRequest.builder()
                 .accountId("1212")
                 .payload(JobCreationData.builder()
                         .category("category")

@@ -14,6 +14,7 @@ import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.service.PoomjobsAPI;
 import org.codingmatters.poomjobs.service.handlers.mocks.MockedJobRepository;
+import org.codingmatters.poomjobs.service.handlers.mocks.MockedRunnerRepository;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
@@ -28,7 +29,7 @@ import static org.junit.Assert.assertThat;
 public class JobResourceGetHandlerTest {
 
     private Repository<JobValue, JobQuery> repository = JobRepository.createInMemory();
-    private PoomjobsAPI api = new PoomjobsAPI(this.repository);
+    private PoomjobsAPI api = new PoomjobsAPI(this.repository, new MockedRunnerRepository());
 
     @Test
     public void whenJobInRepository__willReturnAStatus200() throws Exception {
@@ -76,7 +77,7 @@ public class JobResourceGetHandlerTest {
 
     @Test
     public void whenUnexpectedRepositoryException__willReturnAStatus500() throws Exception {
-        JobResourceGetResponse response = new PoomjobsAPI(new MockedJobRepository()).handlers().jobResourceGetHandler().apply(JobResourceGetRequest.builder()
+        JobResourceGetResponse response = new PoomjobsAPI(new MockedJobRepository(), new MockedRunnerRepository()).handlers().jobResourceGetHandler().apply(JobResourceGetRequest.builder()
                 .jobId("id")
                 .build());
 

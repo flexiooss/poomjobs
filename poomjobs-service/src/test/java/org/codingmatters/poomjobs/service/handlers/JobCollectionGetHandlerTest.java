@@ -11,6 +11,7 @@ import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.service.PoomjobsAPI;
 import org.codingmatters.poomjobs.service.handlers.mocks.MockedJobRepository;
+import org.codingmatters.poomjobs.service.handlers.mocks.MockedRunnerRepository;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -23,7 +24,7 @@ import static org.junit.Assert.assertThat;
 public class JobCollectionGetHandlerTest {
 
     private Repository<JobValue, JobQuery> repository = JobRepository.createInMemory();
-    private PoomjobsAPI api = new PoomjobsAPI(this.repository);
+    private PoomjobsAPI api = new PoomjobsAPI(this.repository, new MockedRunnerRepository());
 
     @Test
     public void whenNoRangeRequested__ifRepositoryIsEmpty__thenReturnStatus200_andEmptyJobList() throws Exception {
@@ -167,7 +168,7 @@ public class JobCollectionGetHandlerTest {
 
     @Test
     public void whenUnexpectedRepositoryException__willReturnAStatus500() throws Exception {
-        JobCollectionGetResponse response = new PoomjobsAPI(new MockedJobRepository()).handlers().jobCollectionGetHandler().apply(JobCollectionGetRequest.builder()
+        JobCollectionGetResponse response = new PoomjobsAPI(new MockedJobRepository(), new MockedRunnerRepository()).handlers().jobCollectionGetHandler().apply(JobCollectionGetRequest.builder()
                 .build());
 
         assertThat(response.status500().payload().code(), is(Error.Code.UNEXPECTED_ERROR));

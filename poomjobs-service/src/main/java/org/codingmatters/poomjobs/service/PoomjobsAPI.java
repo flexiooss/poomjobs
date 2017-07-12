@@ -2,12 +2,11 @@ package org.codingmatters.poomjobs.service;
 
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
+import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
+import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poomjobs.service.api.PoomjobsAPIHandlers;
-import org.codingmatters.poomjobs.service.handlers.JobCollectionGetHandler;
-import org.codingmatters.poomjobs.service.handlers.JobCollectionPostHandler;
-import org.codingmatters.poomjobs.service.handlers.JobResourceGetHandler;
-import org.codingmatters.poomjobs.service.handlers.JobResourcePutHandler;
+import org.codingmatters.poomjobs.service.handlers.*;
 
 /**
  * Created by nelt on 6/15/17.
@@ -15,12 +14,19 @@ import org.codingmatters.poomjobs.service.handlers.JobResourcePutHandler;
 public class PoomjobsAPI {
     private final PoomjobsAPIHandlers handlers;
 
-    public PoomjobsAPI(Repository<JobValue, JobQuery> repository) {
+    public PoomjobsAPI(
+            Repository<JobValue, JobQuery> jobRepository,
+            Repository<RunnerValue, RunnerQuery> runnerRepository
+    ) {
         this.handlers = new PoomjobsAPIHandlers.Builder()
-                .jobCollectionGetHandler(new JobCollectionGetHandler(repository))
-                .jobCollectionPostHandler(new JobCollectionPostHandler(repository))
-                .jobResourceGetHandler(new JobResourceGetHandler(repository))
-                .jobResourcePutHandler(new JobResourcePutHandler(repository))
+                .jobCollectionGetHandler(new JobCollectionGetHandler(jobRepository))
+                .jobCollectionPostHandler(new JobCollectionPostHandler(jobRepository))
+                .jobResourceGetHandler(new JobResourceGetHandler(jobRepository))
+                .jobResourcePutHandler(new JobResourcePutHandler(jobRepository))
+
+                .runnerCollectionGetHandler(new RunnerCollectionGetHandler(runnerRepository))
+
+
                 .build();
     }
 
