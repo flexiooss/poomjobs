@@ -121,13 +121,13 @@ mediaType: application/json
                 headers:
                     Content-Range: string
                     Accept-Range: string
-                body: Job[]
+                body: Runner[]
             206:
                 description: complete list of runners or last elements of the list of jobs
                 headers:
                     Content-Range: string
                     Accept-Range: string
-                body: Job[]
+                body: Runner[]
             416:
                 description: the specified range is not acceptable. Error code is ILLEGAL_RANGE_SPEC.
                 headers:

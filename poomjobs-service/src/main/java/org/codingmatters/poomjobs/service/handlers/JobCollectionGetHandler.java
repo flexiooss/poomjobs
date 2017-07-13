@@ -48,30 +48,15 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
         try(LoggingContext ctx = LoggingContext.start()) {
             MDC.put("request-id", UUID.randomUUID().toString());
             try {
-
                 Rfc7233Pager<JobValue, JobQuery> pager = Rfc7233Pager.forRequestedRange(request.range())
                         .unit("Job")
                         .maxPageSize(this.maxPageSize)
                         .pager(this.repository);
 
+                JobQuery query = this.parseQuery(request);
 
                 Rfc7233Pager.Page page;
-                if(request.name() != null || request.category() != null || request.runStatus() != null || request.exitStatus() != null) {
-                    List<JobCriteria> criteria = new LinkedList<>();
-                    if(request.name() != null) {
-                        criteria.add(JobCriteria.builder().name(request.name()).build());
-                    }
-                    if(request.category() != null) {
-                        criteria.add(JobCriteria.builder().category(request.category()).build());
-                    }
-                    if(request.runStatus() != null) {
-                        criteria.add(JobCriteria.builder().runStatus(request.runStatus()).build());
-                    }
-                    if(request.exitStatus() != null) {
-                        criteria.add(JobCriteria.builder().exitStatus(request.exitStatus()).build());
-                    }
-                    JobQuery query = JobQuery.builder().criteria(criteria).build();
-                    log.info("job list requested with filter : {}", query);
+                if(query != null) {
                     page = pager.page(query);
                 } else {
                     page = pager.page();
@@ -90,6 +75,28 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
                 return this.unexpectedError(e);
             }
         }
+    }
+
+    private JobQuery parseQuery(JobCollectionGetRequest request) {
+        JobQuery query = null;
+        if(request.name() != null || request.category() != null || request.runStatus() != null || request.exitStatus() != null) {
+            List<JobCriteria> criteria = new LinkedList<>();
+            if(request.name() != null) {
+                criteria.add(JobCriteria.builder().name(request.name()).build());
+            }
+            if(request.category() != null) {
+                criteria.add(JobCriteria.builder().category(request.category()).build());
+            }
+            if(request.runStatus() != null) {
+                criteria.add(JobCriteria.builder().runStatus(request.runStatus()).build());
+            }
+            if(request.exitStatus() != null) {
+                criteria.add(JobCriteria.builder().exitStatus(request.exitStatus()).build());
+            }
+            query = JobQuery.builder().criteria(criteria).build();
+            log.info("job list requested with filter : {}", query);
+        }
+        return query;
     }
 
     private JobCollectionGetResponse partialJobList(Rfc7233Pager.Page page) {
