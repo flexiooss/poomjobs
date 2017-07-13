@@ -5,7 +5,7 @@ import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.repositories.Repository;
-import org.codingmatters.poom.services.support.logging.LoggingContext;
+import org.codingmatters.poom.services.rest.protocol.CollectionGetProtocol;
 import org.codingmatters.poom.services.support.paging.Rfc7233Pager;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poom.servives.domain.entities.PagedEntityList;
@@ -20,18 +20,15 @@ import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.service.JobEntityTransformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
-import java.util.function.Function;
 
 /**
  * Created by nelt on 6/29/17.
  */
-public class JobCollectionGetHandler implements Function<JobCollectionGetRequest, JobCollectionGetResponse> {
+public class JobCollectionGetHandler implements CollectionGetProtocol<JobValue, JobQuery, JobCollectionGetRequest, JobCollectionGetResponse> {
     static private final Logger log = LoggerFactory.getLogger(JobCollectionGetHandler.class);
 
     private static final int DEFAULT_MAX_PAGE_SIZE = 100;
@@ -43,41 +40,37 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
         this.repository = repository;
     }
 
-    @Override
-    public JobCollectionGetResponse apply(JobCollectionGetRequest request) {
-        try(LoggingContext ctx = LoggingContext.start()) {
-            MDC.put("request-id", UUID.randomUUID().toString());
-            try {
-                Rfc7233Pager<JobValue, JobQuery> pager = Rfc7233Pager.forRequestedRange(request.range())
-                        .unit("Job")
-                        .maxPageSize(this.maxPageSize)
-                        .pager(this.repository);
-
-                JobQuery query = this.parseQuery(request);
-
-                Rfc7233Pager.Page page;
-                if(query != null) {
-                    page = pager.page(query);
-                } else {
-                    page = pager.page();
-                }
-
-                if(page.isValid()) {
-                    if (page.isPartial()) {
-                        return this.partialJobList(page);
-                    } else {
-                        return this.completeList(page);
-                    }
-                } else {
-                    return this.invalidRangeQuery(page);
-                }
-            } catch (RepositoryException e) {
-                return this.unexpectedError(e);
-            }
+    private Collection<Job> resultList(PagedEntityList<JobValue> list) {
+        Collection<Job> result = new LinkedList<>();
+        for (Entity<JobValue> jobValueEntity : list) {
+            result.add(JobEntityTransformation.transform(jobValueEntity).asJob());
         }
+
+        return result;
     }
 
-    private JobQuery parseQuery(JobCollectionGetRequest request) {
+    @Override
+    public Repository<JobValue, JobQuery> repository() {
+        return this.repository;
+    }
+
+    @Override
+    public int maxPageSize() {
+        return this.maxPageSize;
+    }
+
+    @Override
+    public String rfc7233Unit() {
+        return "Job";
+    }
+
+    @Override
+    public String rfc7233Range(JobCollectionGetRequest request) {
+        return request.range();
+    }
+
+    @Override
+    public JobQuery parseQuery(JobCollectionGetRequest request) {
         JobQuery query = null;
         if(request.name() != null || request.category() != null || request.runStatus() != null || request.exitStatus() != null) {
             List<JobCriteria> criteria = new LinkedList<>();
@@ -99,7 +92,8 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
         return query;
     }
 
-    private JobCollectionGetResponse partialJobList(Rfc7233Pager.Page page) {
+    @Override
+    public JobCollectionGetResponse partialJobList(Rfc7233Pager.Page page) {
         Collection<Job> jobs = this.resultList(page.list());
         log.info("returning partial job list ({})", page.contentRange());
         return JobCollectionGetResponse.builder()
@@ -111,7 +105,8 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
                 .build();
     }
 
-    private JobCollectionGetResponse completeList(Rfc7233Pager.Page page) {
+    @Override
+    public JobCollectionGetResponse completeList(Rfc7233Pager.Page page) {
         Collection<Job> jobs = this.resultList(page.list());
         log.info("returning complete job list ({} elements)", jobs.size());
         return JobCollectionGetResponse.builder()
@@ -123,10 +118,8 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
                 .build();
     }
 
-    private JobCollectionGetResponse invalidRangeQuery(Rfc7233Pager.Page page) throws RepositoryException {
-        String errorToken = UUID.randomUUID().toString();
-        MDC.put("error-token", errorToken);
-
+    @Override
+    public JobCollectionGetResponse invalidRangeQuery(Rfc7233Pager.Page page, String errorToken) {
         log.info(page.validationMessage() + " (requested range: {})", page.requestedRange());
         return JobCollectionGetResponse.builder()
                 .status416(Status416.builder()
@@ -141,20 +134,9 @@ public class JobCollectionGetHandler implements Function<JobCollectionGetRequest
                 .build();
     }
 
-    private Collection<Job> resultList(PagedEntityList<JobValue> list) {
-        Collection<Job> result = new LinkedList<>();
-        for (Entity<JobValue> jobValueEntity : list) {
-            result.add(JobEntityTransformation.transform(jobValueEntity).asJob());
-        }
-
-        return result;
-    }
-
-    private JobCollectionGetResponse unexpectedError(RepositoryException e) {
-        String errorToken = UUID.randomUUID().toString();
-        MDC.put("error-token", errorToken);
+    @Override
+    public JobCollectionGetResponse unexpectedError(RepositoryException e, String errorToken) {
         log.error("unexpected error while handling job list query", e);
-
         return JobCollectionGetResponse.builder()
                 .status500(Status500.builder()
                         .payload(Error.builder()
