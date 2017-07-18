@@ -23,7 +23,6 @@ public class JobCollectionGetHandlerTest {
     private PoomjobsAPI api = new PoomjobsAPI(JobRepository.createInMemory(), new MockedRunnerRepository());
     private JobCollectionGetHandler handler = (JobCollectionGetHandler) this.api.handlers().jobCollectionGetHandler();
 
-
     @Test
     public void maxPageSize() throws Exception {
         assertThat(this.handler.maxPageSize(), is(100));
