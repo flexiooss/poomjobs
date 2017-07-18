@@ -10,10 +10,8 @@ import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.RunnerGetRequest;
 import org.codingmatters.poomjobs.api.RunnerGetResponse;
 import org.codingmatters.poomjobs.api.types.Error;
-import org.codingmatters.poomjobs.api.types.Runner;
 import org.codingmatters.poomjobs.service.PoomjobsAPI;
 import org.codingmatters.poomjobs.service.handlers.mocks.MockedJobRepository;
-import org.codingmatters.poomjobs.service.handlers.mocks.MockedRunnerRepository;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
@@ -28,10 +26,28 @@ import static org.junit.Assert.assertThat;
 public class RunnerGetHandlerTest {
 
     private Repository<RunnerValue, RunnerQuery> repository = RunnerRepository.createInMemory();
-    private PoomjobsAPI api = new PoomjobsAPI(new MockedJobRepository(), this.repository);
+    private RunnerGetHandler handler = (RunnerGetHandler) new PoomjobsAPI(new MockedJobRepository(), this.repository).handlers().runnerGetHandler();
 
     @Test
-    public void whenInRepository__willReturnAStatus200() throws Exception {
+    public void log() throws Exception {
+        assertThat(this.handler.log().getName(), is(RunnerGetHandler.class.getName()));
+    }
+
+    @Test
+    public void repository() throws Exception {
+        assertThat(this.handler.repository(), is(this.repository));
+    }
+
+    @Test
+    public void entityId() throws Exception {
+        assertThat(this.handler.entityId(RunnerGetRequest.builder().runnerId("12").build()), is("12"));
+    }
+
+    @Test
+    public void whenEntityFoundCalled__thenReturnsStatus200() throws Exception {
+        LocalDateTime created = LocalDateTime.now().minus(1, ChronoUnit.DAYS);
+        LocalDateTime lastPing = LocalDateTime.now().minus(1, ChronoUnit.MINUTES);
+
         Entity<RunnerValue> entity = this.repository.create(RunnerValue.builder()
                 .competencies(Competencies.builder()
                         .names("n1", "n2")
@@ -40,58 +56,50 @@ public class RunnerGetHandlerTest {
                 .timeToLive(12L)
                 .callback("http://call.me/up")
                 .runtime(Runtime.builder()
-                        .created(LocalDateTime.now().minus(1, ChronoUnit.DAYS))
-                        .lastPing(LocalDateTime.now().minus(1, ChronoUnit.MINUTES))
+                        .created(created)
+                        .lastPing(lastPing)
                         .status(Runtime.Status.RUNNING)
                         .build())
                 .build());
+        RunnerGetResponse response = this.handler.entityFound(entity);
 
-        RunnerGetResponse response = this.api.handlers().runnerGetHandler().apply(RunnerGetRequest.builder()
-                .runnerId(entity.id())
-                .build());
-
-
-        assertThat(response.status404(), is(nullValue()));
-        assertThat(response.status500(), is(nullValue()));
-
-        Runner runner = response.status200().payload();
-
-        assertThat(runner.id(), is(entity.id()));
-        assertThat(runner.callback(), is("http://call.me/up"));
-        assertThat(runner.ttl(), is(12L));
-        assertThat(runner.competencies().names().toArray(), arrayContaining("n1", "n2"));
-        assertThat(runner.competencies().categories().toArray(), arrayContaining("c1", "c2"));
-        assertThat(runner.runtime().status(), is(org.codingmatters.poomjobs.api.types.runner.Runtime.Status.RUNNING));
-        assertThat(runner.runtime().created(), is(notNullValue()));
-        assertThat(runner.runtime().lastPing(), is(notNullValue()));
-
+        assertThat(response.status200(), is(notNullValue()));
+        assertThat(response.status200().payload().competencies().names(), contains("n1", "n2"));
+        assertThat(response.status200().payload().competencies().categories(), contains("c1", "c2"));
+        assertThat(response.status200().payload().ttl(), is(12L));
+        assertThat(response.status200().payload().callback(), is("http://call.me/up"));
+        assertThat(response.status200().payload().runtime().created(), is(created));
+        assertThat(response.status200().payload().runtime().lastPing(), is(lastPing));
+        assertThat(response.status200().payload().runtime().status(), is(org.codingmatters.poomjobs.api.types.runner.Runtime.Status.RUNNING));
     }
 
     @Test
-    public void whenNotInRepository__willReturnAStatus404() throws Exception {
-        RunnerGetResponse response = this.api.handlers().runnerGetHandler().apply(RunnerGetRequest.builder()
-                .runnerId("not in repo")
-                .build());
+    public void whenEntityNotFoundCalled__thenReturnsStatus404() throws Exception {
+        RunnerGetResponse response = this.handler.entityNotFound("error-token");
 
-        assertThat(response.status200(), is(nullValue()));
-        assertThat(response.status500(), is(nullValue()));
-
-        assertThat(response.status404().payload().code(), is(Error.Code.RUNNER_NOT_FOUND));
-        assertThat(response.status404().payload().description(), is("no runner found with the given runner id"));
-        assertThat(response.status404().payload().token(), is(notNullValue()));
+        assertThat(response.status404(), is(notNullValue()));
+        assertThat(
+                response.status404().payload(),
+                is(Error.builder()
+                        .token("error-token")
+                        .code(Error.Code.RUNNER_NOT_FOUND)
+                        .description("no runner found with the given runner id")
+                        .build())
+        );
     }
 
     @Test
-    public void whenUnexpectedRepositoryException__willReturnAStatus500() throws Exception {
-        RunnerGetResponse response = new PoomjobsAPI(new MockedJobRepository(), new MockedRunnerRepository()).handlers().runnerGetHandler().apply(RunnerGetRequest.builder()
-                .runnerId("12")
-                .build());
+    public void whenUnexpectedErrorCalled__thenReturnsStatus500() throws Exception {
+        RunnerGetResponse response = this.handler.unexpectedError("error-token");
 
-        assertThat(response.status200(), is(nullValue()));
-        assertThat(response.status404(), is(nullValue()));
-
-        assertThat(response.status500().payload().code(), is(Error.Code.UNEXPECTED_ERROR));
-        assertThat(response.status500().payload().description(), is("unexpected error, see logs"));
-        assertThat(response.status500().payload().token(), is(notNullValue()));
+        assertThat(response.status500(), is(notNullValue()));
+        assertThat(
+                response.status500().payload(),
+                is(Error.builder()
+                        .token("error-token")
+                        .code(Error.Code.UNEXPECTED_ERROR)
+                        .description("unexpected error, see logs")
+                        .build())
+        );
     }
 }
