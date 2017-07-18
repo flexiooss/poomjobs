@@ -85,7 +85,7 @@ public class RunnerCollectionGetHandler implements CollectionGetProtocol<RunnerV
     }
 
     @Override
-    public RunnerCollectionGetResponse partialJobList(Rfc7233Pager.Page page) {
+    public RunnerCollectionGetResponse partialList(Rfc7233Pager.Page page) {
         return RunnerCollectionGetResponse.builder()
                 .status206(Status206.builder()
                         .acceptRange(page.acceptRange())

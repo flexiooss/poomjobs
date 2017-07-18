@@ -1,133 +1,134 @@
 package org.codingmatters.poomjobs.service.handlers;
 
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.RunnerRepository;
-import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
+import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerCriteria;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
-import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Competencies;
-import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Runtime;
-import org.codingmatters.poom.services.domain.repositories.Repository;
-import org.codingmatters.poom.servives.domain.entities.Entity;
+import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
+import org.codingmatters.poom.services.support.paging.Rfc7233Pager;
 import org.codingmatters.poomjobs.api.RunnerCollectionGetRequest;
 import org.codingmatters.poomjobs.api.RunnerCollectionGetResponse;
+import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.service.PoomjobsAPI;
 import org.codingmatters.poomjobs.service.handlers.mocks.MockedJobRepository;
 import org.junit.Test;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 /**
  * Created by nelt on 7/12/17.
  */
 public class RunnerCollectionGetHandlerTest {
-    private Repository<RunnerValue, RunnerQuery> repository = RunnerRepository.createInMemory();
-    private PoomjobsAPI api = new PoomjobsAPI(new MockedJobRepository(), this.repository);
-
-
-    @Test
-    public void whenNoRangeRequested__ifRepositoryIsEmpty__thenReturnStatus200_andEmptyJobList() throws Exception {
-        RunnerCollectionGetResponse response = this.api.handlers().runnerCollectionGetHandler().apply(RunnerCollectionGetRequest.builder()
-                .build());
-        assertThat(response.status200(), is(notNullValue()));
-        assertThat(response.status200().contentRange(), is("Runner 0-0/0"));
-        assertThat(response.status200().acceptRange(), is("Runner 100"));
-
-        assertThat(response.status200().payload().size(), is(0));
-    }
-
+    private PoomjobsAPI api = new PoomjobsAPI(new MockedJobRepository(), RunnerRepository.createInMemory());
+    private RunnerCollectionGetHandler handler = (RunnerCollectionGetHandler) this.api.handlers().runnerCollectionGetHandler();
 
     @Test
-    public void whenNoRangeRequested__ifRepositorySmallerThanDefaultRange__thenReturnStatus200_andCompleteJobList() throws Exception {
-        Entity<RunnerValue> stored = this.repository.create(this.createRunnerBuilder().build());
-        RunnerCollectionGetResponse response = this.api.handlers().runnerCollectionGetHandler().apply(RunnerCollectionGetRequest.builder()
-                .build());
-
-        assertThat(response.status200(), is(notNullValue()));
-        assertThat(response.status200().contentRange(), is("Runner 0-0/1"));
-        assertThat(response.status200().acceptRange(), is("Runner 100"));
-
-        assertThat(response.status200().payload().size(), is(1));
-        assertThat(response.status200().payload().get(0).id(), is(stored.id()));
+    public void maxPageSize() throws Exception {
+        assertThat(this.handler.maxPageSize(), is(100));
     }
 
     @Test
-    public void whenNoRangeRequested__ifRepositoryLargerThanDefaultRange__thenReturnStatus206_andPartialJobList() throws Exception {
-        for(int i = 0 ; i < 150 ; i++) {
-            this.repository.create(this.createRunnerBuilder().build());
-        }
-        RunnerCollectionGetResponse response = this.api.handlers().runnerCollectionGetHandler().apply(RunnerCollectionGetRequest.builder()
-                .build());
-
-        assertThat(response.status206(), is(notNullValue()));
-        assertThat(response.status206().contentRange(), is("Runner 0-99/150"));
-        assertThat(response.status206().acceptRange(), is("Runner 100"));
-
-        assertThat(response.status206().payload().size(), is(100));
-    }
-
-
-    @Test
-    public void whenRangeRequested__ifRepositoryIsEmpty__thenReturnStatus200_andEmptyJobList() throws Exception {
-        RunnerCollectionGetResponse response = this.api.handlers().runnerCollectionGetHandler().apply(RunnerCollectionGetRequest.builder()
-                .build());
-
-        assertThat(response.status200(), is(notNullValue()));
-        assertThat(response.status200().contentRange(), is("Runner 0-0/0"));
-        assertThat(response.status200().acceptRange(), is("Runner 100"));
-
-        assertThat(response.status200().payload().size(), is(0));
+    public void rfc7233Unit() throws Exception {
+        assertThat(this.handler.rfc7233Unit(), is("Runner"));
     }
 
     @Test
-    public void whenRangeRequested__ifRangeIsLargerRepository__thenReturnStatus200_andCompleteJobList() throws Exception {
-        Entity<RunnerValue> stored = this.repository.create(this.createRunnerBuilder().build());
-        RunnerCollectionGetResponse response = this.api.handlers().runnerCollectionGetHandler().apply(RunnerCollectionGetRequest.builder()
-                .range("0-10")
-                .build());
-
-        assertThat(response.status200(), is(notNullValue()));
-        assertThat(response.status200().contentRange(), is("Runner 0-0/1"));
-        assertThat(response.status200().acceptRange(), is("Runner 100"));
-
-        assertThat(response.status200().payload().size(), is(1));
-        assertThat(response.status200().payload().get(0).id(), is(stored.id()));
+    public void rfc7233Range() throws Exception {
+        assertThat(this.handler.rfc7233Range(RunnerCollectionGetRequest.builder().range("0-10").build()), is("0-10"));
     }
 
     @Test
-    public void whenRangeRequested__ifRepositoryLargerThanRange__thenReturnStatus206_andPartialJobList() throws Exception {
-        for(int i = 0 ; i < 150 ; i++) {
-            this.repository.create(this.createRunnerBuilder().build());
+    public void whenNameCategoryAndRuntimeStatusAreNonNull__thenJobQuery() throws Exception {
+        assertThat(this.handler.parseQuery(RunnerCollectionGetRequest.builder()
+                        .nameCompetency("name")
+                        .categoryCompetency("category")
+                        .runtimeStatus("status")
+                        .build()).criteria(),
+                containsInAnyOrder(
+                        RunnerCriteria.builder().nameCompetency("name").build(),
+                        RunnerCriteria.builder().categoryCompetency("category").build(),
+                        RunnerCriteria.builder().runtimeStatus("status").build()
+                )
+        );
+    }
+    @Test
+    public void whenAllNameCategoryAndRuntimeStatusAreNull__thenJobQueryIsNull() throws Exception {
+        assertThat(this.handler.parseQuery(RunnerCollectionGetRequest.builder().build()),is(nullValue()));
+    }
+
+    @Test
+    public void partialJobList() throws Exception {
+        for(int i = 0 ; i < 15 ; i++) {
+            this.handler.repository().create(RunnerValue.builder().build());
         }
 
-        RunnerCollectionGetResponse response = this.api.handlers().runnerCollectionGetHandler().apply(RunnerCollectionGetRequest.builder()
-                .range("0-9")
-                .build());
+        Rfc7233Pager.Page<RunnerValue> page = Rfc7233Pager.forRequestedRange("5-9")
+                .unit("String")
+                .maxPageSize(10)
+                .pager(this.handler.repository())
+                .page();
 
+        RunnerCollectionGetResponse response = this.handler.partialList(page);
         assertThat(response.status206(), is(notNullValue()));
-        assertThat(response.status206().contentRange(), is("Runner 0-9/150"));
-        assertThat(response.status206().acceptRange(), is("Runner 100"));
-
-        assertThat(response.status206().payload().size(), is(10));
+        assertThat(response.status206().payload().size(), is(5));
+        assertThat(response.status206().acceptRange(), is(page.acceptRange()));
+        assertThat(response.status206().contentRange(), is(page.contentRange()));
     }
 
+    @Test
+    public void completeList() throws Exception {
+        for(int i = 0 ; i < 10 ; i++) {
+            this.handler.repository().create(RunnerValue.builder().build());
+        }
 
+        Rfc7233Pager.Page<RunnerValue> page = Rfc7233Pager.forRequestedRange("0-9")
+                .unit("String")
+                .maxPageSize(10)
+                .pager(this.handler.repository())
+                .page();
 
-    private RunnerValue.Builder createRunnerBuilder() {
-        return RunnerValue.builder()
-                .callback("http://call.me/up")
-                .timeToLive(1200L)
-                .competencies(Competencies.builder()
-                        .categories("test").names("test")
+        RunnerCollectionGetResponse response = this.handler.completeList(page);
+        assertThat(response.status200(), is(notNullValue()));
+        assertThat(response.status200().payload().size(), is(10));
+        assertThat(response.status200().contentRange(), is(page.contentRange()));
+        assertThat(response.status200().acceptRange(), is(page.acceptRange()));
+    }
+
+    @Test
+    public void invalidRangeQuery() throws Exception {
+        for(int i = 0 ; i < 10 ; i++) {
+            this.handler.repository().create(RunnerValue.builder().build());
+        }
+
+        Rfc7233Pager.Page<RunnerValue> page = Rfc7233Pager.forRequestedRange("10-9")
+                .unit("String")
+                .maxPageSize(10)
+                .pager(this.handler.repository())
+                .page();
+
+        RunnerCollectionGetResponse response = this.handler.invalidRangeQuery(page, "error-token");
+        assertThat(response.status416(), is(notNullValue()));
+        assertThat(
+                response.status416().payload(),
+                is(Error.builder()
+                        .token("error-token")
+                        .description("start must be before end of range")
+                        .code(Error.Code.ILLEGAL_RANGE_SPEC)
                         .build())
-                .runtime(Runtime.builder()
-                        .status(Runtime.Status.IDLE)
-                        .created(LocalDateTime.now().minus(1, ChronoUnit.HOURS))
-                        .lastPing(LocalDateTime.now().minus(1, ChronoUnit.MINUTES))
-                        .build());
+        );
+        assertThat(response.status416().acceptRange(), is(page.acceptRange()));
+        assertThat(response.status416().contentRange(), is(page.contentRange()));
     }
+
+    @Test
+    public void unexpectedError() throws Exception {
+        RunnerCollectionGetResponse response = this.handler.unexpectedError(new RepositoryException("repo exploded"), "error-token");
+
+        assertThat(response.status500(), is(notNullValue()));
+        assertThat(response.status500().payload().token(), is("error-token"));
+        assertThat(response.status500().payload().description(), is("unexpected error, see logs"));
+        assertThat(response.status500().payload().code(), is(Error.Code.UNEXPECTED_ERROR));
+    }
+
 
 }

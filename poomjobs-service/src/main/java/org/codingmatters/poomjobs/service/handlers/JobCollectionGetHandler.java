@@ -93,7 +93,7 @@ public class JobCollectionGetHandler implements CollectionGetProtocol<JobValue, 
     }
 
     @Override
-    public JobCollectionGetResponse partialJobList(Rfc7233Pager.Page page) {
+    public JobCollectionGetResponse partialList(Rfc7233Pager.Page page) {
         Collection<Job> jobs = this.resultList(page.list());
         log.info("returning partial job list ({})", page.contentRange());
         return JobCollectionGetResponse.builder()
