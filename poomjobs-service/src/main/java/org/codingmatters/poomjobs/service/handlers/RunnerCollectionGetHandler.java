@@ -40,6 +40,11 @@ public class RunnerCollectionGetHandler implements CollectionGetProtocol<RunnerV
     }
 
     @Override
+    public Logger log() {
+        return log;
+    }
+
+    @Override
     public Repository<RunnerValue, RunnerQuery> repository() {
         return this.repository;
     }
@@ -118,7 +123,6 @@ public class RunnerCollectionGetHandler implements CollectionGetProtocol<RunnerV
 
     @Override
     public RunnerCollectionGetResponse invalidRangeQuery(Rfc7233Pager.Page page, String errorToken) {
-        log.info(page.validationMessage() + " (requested range: {})", page.requestedRange());
         return RunnerCollectionGetResponse.builder()
                 .status416(Status416.builder()
                         .acceptRange(page.acceptRange())
@@ -134,7 +138,6 @@ public class RunnerCollectionGetHandler implements CollectionGetProtocol<RunnerV
 
     @Override
     public RunnerCollectionGetResponse unexpectedError(RepositoryException e, String errorToken) {
-        log.error("unexpected error while handling job list query", e);
         return RunnerCollectionGetResponse.builder()
                 .status500(Status500.builder()
                         .payload(Error.builder()

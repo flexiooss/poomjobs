@@ -50,6 +50,11 @@ public class JobCollectionGetHandler implements CollectionGetProtocol<JobValue, 
     }
 
     @Override
+    public Logger log() {
+        return log;
+    }
+
+    @Override
     public Repository<JobValue, JobQuery> repository() {
         return this.repository;
     }
@@ -87,7 +92,6 @@ public class JobCollectionGetHandler implements CollectionGetProtocol<JobValue, 
                 criteria.add(JobCriteria.builder().exitStatus(request.exitStatus()).build());
             }
             query = JobQuery.builder().criteria(criteria).build();
-            log.info("job list requested with filter : {}", query);
         }
         return query;
     }
@@ -95,7 +99,6 @@ public class JobCollectionGetHandler implements CollectionGetProtocol<JobValue, 
     @Override
     public JobCollectionGetResponse partialList(Rfc7233Pager.Page page) {
         Collection<Job> jobs = this.resultList(page.list());
-        log.info("returning partial job list ({})", page.contentRange());
         return JobCollectionGetResponse.builder()
                 .status206(Status206.builder()
                         .contentRange(page.contentRange())
@@ -108,7 +111,6 @@ public class JobCollectionGetHandler implements CollectionGetProtocol<JobValue, 
     @Override
     public JobCollectionGetResponse completeList(Rfc7233Pager.Page page) {
         Collection<Job> jobs = this.resultList(page.list());
-        log.info("returning complete job list ({} elements)", jobs.size());
         return JobCollectionGetResponse.builder()
                 .status200(Status200.builder()
                         .contentRange(page.contentRange())
@@ -120,7 +122,6 @@ public class JobCollectionGetHandler implements CollectionGetProtocol<JobValue, 
 
     @Override
     public JobCollectionGetResponse invalidRangeQuery(Rfc7233Pager.Page page, String errorToken) {
-        log.info(page.validationMessage() + " (requested range: {})", page.requestedRange());
         return JobCollectionGetResponse.builder()
                 .status416(Status416.builder()
                         .contentRange(page.contentRange())
@@ -136,7 +137,6 @@ public class JobCollectionGetHandler implements CollectionGetProtocol<JobValue, 
 
     @Override
     public JobCollectionGetResponse unexpectedError(RepositoryException e, String errorToken) {
-        log.error("unexpected error while handling job list query", e);
         return JobCollectionGetResponse.builder()
                 .status500(Status500.builder()
                         .payload(Error.builder()
