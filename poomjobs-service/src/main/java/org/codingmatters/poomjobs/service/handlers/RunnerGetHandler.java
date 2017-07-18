@@ -3,6 +3,7 @@ package org.codingmatters.poomjobs.service.handlers;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.services.domain.repositories.Repository;
+import org.codingmatters.poom.services.rest.protocol.ResourceGetProtocol;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.RunnerGetRequest;
 import org.codingmatters.poomjobs.api.RunnerGetResponse;
