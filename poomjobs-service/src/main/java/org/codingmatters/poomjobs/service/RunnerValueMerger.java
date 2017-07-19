@@ -28,7 +28,10 @@ public class RunnerValueMerger {
     public RunnerValue with(RunnerData runnerData) {
         RunnerValue result = this.currentValue;
 
-        result = result.withCallback(runnerData.callback());
+        result = result
+                .withCallback(runnerData.callback())
+                .withTimeToLive(runnerData.ttl())
+                ;
 
         if(runnerData.competencies() != null) {
             result = result.withCompetencies(Competencies.builder()

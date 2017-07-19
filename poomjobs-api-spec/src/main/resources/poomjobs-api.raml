@@ -137,6 +137,21 @@ mediaType: application/json
             500:
                 description: UNEXPECTED_ERROR.
                 body: Error
+    post:
+        body: RunnerData
+        description: |
+          The runner is created provided the payload RunnerData.
+        responses:
+            201:
+                description: new runner created
+                headers:
+                    Location: string
+            400:
+                description: request is not acceptable. Code ILLEGAL_RUNNER_SPEC.
+                body: Error
+            500:
+                description: UNEXPECTED_ERROR.
+                body: Error
     /{runnerId}:
         displayName: Runner
         uriParameters:
@@ -159,7 +174,7 @@ mediaType: application/json
         put:
             body: RunnerData
             description: |
-                The runner is created or updated provided the payload JobUpdateData.
+                The runner is created or updated provided the payload RunnerData.
                 The runner change is only valid if :
                 TODO
 
@@ -283,6 +298,7 @@ types:
         type: object
         properties:
             callback: string
+            ttl: integer
             competencies:
                 type: object
                 properties:
@@ -304,6 +320,6 @@ types:
             token: string
             code:
                 enum: [JOB_NOT_FOUND, ILLEGAL_JOB_CHANGE, ILLEGAL_JOB_SPEC,
-                    RUNNER_NOT_FOUND, ILLEGAL_RUNNER_CHANGE, ILLEGAL_RUNNER_STATUS_CHANGE,
+                    RUNNER_NOT_FOUND, ILLEGAL_RUNNER_SPEC, ILLEGAL_RUNNER_CHANGE, ILLEGAL_RUNNER_STATUS_CHANGE,
                     ILLEGAL_RANGE_SPEC, UNEXPECTED_ERROR]
             description: string

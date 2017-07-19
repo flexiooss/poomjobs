@@ -4,9 +4,10 @@ import org.codingmatters.poom.poomjobs.domain.jobs.JobValueCreation;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Accounting;
+import org.codingmatters.poom.services.domain.change.Change;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.repositories.Repository;
-import org.codingmatters.poom.services.support.logging.LoggingContext;
+import org.codingmatters.poom.services.rest.protocol.CollectionPostProtocol;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
@@ -17,15 +18,11 @@ import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.service.JobValueMerger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-
-import java.util.UUID;
-import java.util.function.Function;
 
 /**
  * Created by nelt on 6/15/17.
  */
-public class JobCollectionPostHandler implements Function<JobCollectionPostRequest, JobCollectionPostResponse> {
+public class JobCollectionPostHandler implements CollectionPostProtocol<JobValue, JobQuery, JobCollectionPostRequest, JobCollectionPostResponse> {
     static private final Logger log = LoggerFactory.getLogger(JobCollectionPostHandler.class);
 
     private final Repository<JobValue, JobQuery> repository;
@@ -35,44 +32,37 @@ public class JobCollectionPostHandler implements Function<JobCollectionPostReque
     }
 
     @Override
-    public JobCollectionPostResponse apply(JobCollectionPostRequest request) {
-        try(LoggingContext ctx = LoggingContext.start()) {
-            MDC.put("request-id", UUID.randomUUID().toString());
-            JobValue jobValue = JobValueMerger.create()
-                    .with(request.payload())
-                    .withAccounting(Accounting.builder()
-                            .accountId(request.accountId())
-                            .build());
-
-            JobValueCreation creation = JobValueCreation.with(jobValue);
-            if (creation.validation().isValid()) {
-                return this.createJobAndReturnJobURI(creation);
-            } else {
-                return this.returnInvalidJobCreation(creation);
-            }
-        }
+    public Logger log() {
+        return log;
     }
 
-    private JobCollectionPostResponse createJobAndReturnJobURI(JobValueCreation creation) {
-        try {
-            Entity<JobValue> entity = this.repository.create(creation.applied());
-            MDC.put("job-id", entity.id());
-            log.info("created entity {}", entity.id());
-
-            return JobCollectionPostResponse.builder()
-                    .status201(Status201.builder()
-                            .location("%API_PATH%/jobs/" + entity.id())
-                            .build())
-                    .build();
-        } catch (RepositoryException e) {
-            return this.returnUnexpectedError(e);
-        }
+    @Override
+    public Repository<JobValue, JobQuery> repository() {
+        return this.repository;
     }
 
-    private JobCollectionPostResponse returnInvalidJobCreation(JobValueCreation creation) {
-        String errorToken = UUID.randomUUID().toString();
-        MDC.put("error-token", errorToken);
-        log.info("job creation request with invalid job spec: {}", creation.validation().message());
+    @Override
+    public Change<JobValue> valueCreation(JobCollectionPostRequest request) {
+        JobValue jobValue = JobValueMerger.create()
+                .with(request.payload())
+                .withAccounting(Accounting.builder()
+                        .accountId(request.accountId())
+                        .build());
+
+        return JobValueCreation.with(jobValue);
+    }
+
+    @Override
+    public JobCollectionPostResponse entityCreated(Change<JobValue> creation, Entity<JobValue> entity) {
+        return JobCollectionPostResponse.builder()
+                .status201(Status201.builder()
+                        .location("%API_PATH%/jobs/" + entity.id())
+                        .build())
+                .build();
+    }
+
+    @Override
+    public JobCollectionPostResponse invalidCreation(Change<JobValue> creation, String errorToken) {
         return JobCollectionPostResponse.builder()
                 .status400(Status400.builder()
                         .payload(Error.builder()
@@ -84,10 +74,8 @@ public class JobCollectionPostHandler implements Function<JobCollectionPostReque
                 .build();
     }
 
-    private JobCollectionPostResponse returnUnexpectedError(RepositoryException e) {
-        String errorToken = UUID.randomUUID().toString();
-        MDC.put("error-token", errorToken);
-        log.error("unexpected error while creating job", e);
+    @Override
+    public JobCollectionPostResponse unexpectedError(Change<JobValue> creation, RepositoryException e, String errorToken) {
         return JobCollectionPostResponse.builder()
                 .status500(Status500.builder()
                         .payload(Error.builder()
