@@ -43,9 +43,9 @@ public class JobResourcePutHandler implements Function<JobResourcePutRequest, Jo
             try {
                 Entity<JobValue> entity = this.repository.retrieve(request.jobId());
                 if(entity != null) {
-                    return this.updateJob(request, entity);
+                    return this.existingJob(request, entity);
                 } else {
-                    return this.jobNotFound(request);
+                    return this.unexistingJob(request);
                 }
             } catch (RepositoryException e) {
                 return this.unexpectedRepositoryError(request, e);
@@ -53,7 +53,7 @@ public class JobResourcePutHandler implements Function<JobResourcePutRequest, Jo
         }
     }
 
-    private JobResourcePutResponse updateJob(JobResourcePutRequest request, Entity<JobValue> entity) throws RepositoryException {
+    private JobResourcePutResponse existingJob(JobResourcePutRequest request, Entity<JobValue> entity) throws RepositoryException {
         MDC.put("job-id", entity.id());
 
         JobValue currentValue = entity.value();
@@ -87,7 +87,7 @@ public class JobResourcePutHandler implements Function<JobResourcePutRequest, Jo
         }
     }
 
-    private JobResourcePutResponse jobNotFound(JobResourcePutRequest request) {
+    private JobResourcePutResponse unexistingJob(JobResourcePutRequest request) {
         String errorToken = UUID.randomUUID().toString();
         MDC.put("error-token", errorToken);
         log.info("no job found with id: {}", request.jobId());
