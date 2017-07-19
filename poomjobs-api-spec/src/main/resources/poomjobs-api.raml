@@ -171,23 +171,6 @@ mediaType: application/json
                 500:
                     description: UNEXPECTED_ERROR.
                     body: Error
-        put:
-            body: RunnerData
-            description: |
-                The runner is created or updated provided the payload RunnerData.
-                The runner change is only valid if :
-                TODO
-
-            responses:
-                200:
-                    description: the runner update was successful
-                    body: Runner
-                400:
-                    description: request is not acceptable. Code ILLEGAL_RUNNER_CHANGE.
-                    body: Error
-                500:
-                    description: UNEXPECTED_ERROR.
-                    body: Error
         /run-status:
             displayName: RunnerStatus
             put:
