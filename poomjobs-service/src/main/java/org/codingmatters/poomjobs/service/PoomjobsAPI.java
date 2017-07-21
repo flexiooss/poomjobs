@@ -5,7 +5,7 @@ import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.services.domain.repositories.Repository;
-import org.codingmatters.poomjobs.service.api.PoomjobsAPIHandlers;
+import org.codingmatters.poomjobs.api.PoomjobsAPIHandlers;
 import org.codingmatters.poomjobs.service.handlers.*;
 
 /**
