@@ -22,6 +22,9 @@ import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.json.JobReader;
 import org.codingmatters.poomjobs.service.PoomjobsAPI;
 import org.codingmatters.poomjobs.service.api.PoomjobsAPIProcessor;
+import org.codingmatters.rest.api.client.Requester;
+import org.codingmatters.rest.api.client.ResponseDelegate;
+import org.codingmatters.rest.api.client.okhttp.OkHttpRequester;
 import org.codingmatters.rest.undertow.CdmHttpUndertowHandler;
 import org.codingmatters.rest.undertow.support.UndertowResource;
 import org.junit.Rule;
@@ -43,7 +46,6 @@ public class ClientTest {
 
     @Rule
     public UndertowResource undertow = new UndertowResource(new CdmHttpUndertowHandler(this.processor));
-
 
     @Test
     public void direct() throws Exception {
@@ -91,23 +93,20 @@ public class ClientTest {
 
         PoomjobsAPIHandlers api = new PoomjobsAPIHandlers.Builder()
                 .jobCollectionGetHandler(req -> {
-                    String path = "/poom/jobs";
+                    String url = this.undertow.baseUrl() + "/poom";
+                    Requester requester = new OkHttpRequester(client, url).path("/jobs");
                     if(req.range() != null) {
-                        path += "?range=" + req.range();
+                        requester.queryParameter("range", req.range());
                     }
 
-                    Request request = new Request.Builder()
-                            .url(this.undertow.baseUrl() + path)
-                            .get()
-                            .build();
-
                     try {
-                        Response response = client.newCall(request).execute();
+                        ResponseDelegate response = requester.get();
+
                         System.out.println(response);
                         if(response.code() == 200) {
                             return JobCollectionGetResponse.builder()
                                     .status200(Status200.builder()
-                                            .payload(readListValue(jsonFactory.createParser(response.body().bytes())))
+                                            .payload(readListValue(jsonFactory.createParser(response.body())))
                                             .acceptRange(response.header("accept-range"))
                                             .contentRange(response.header("content-range"))
                                             .build())
@@ -116,7 +115,7 @@ public class ClientTest {
                         if(response.code() == 206) {
                             return JobCollectionGetResponse.builder()
                                     .status206(Status206.builder()
-                                            .payload(readListValue(jsonFactory.createParser(response.body().bytes())))
+                                            .payload(readListValue(jsonFactory.createParser(response.body())))
                                             .acceptRange(response.header("accept-range"))
                                             .contentRange(response.header("content-range"))
                                             .build())
@@ -140,6 +139,7 @@ public class ClientTest {
         System.out.println(resp);
         assertThat(resp.status200().payload().size(), is(4));
     }
+
 
 
     private List<Job> readListValue(JsonParser parser) throws IOException {
