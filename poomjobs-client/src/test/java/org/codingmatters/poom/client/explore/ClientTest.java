@@ -96,7 +96,7 @@ public class ClientTest {
                     String url = this.undertow.baseUrl() + "/poom";
                     Requester requester = new OkHttpRequester(client, url).path("/jobs");
                     if(req.range() != null) {
-                        requester.queryParameter("range", req.range());
+                        requester.parameter("range", req.range());
                     }
 
                     try {
