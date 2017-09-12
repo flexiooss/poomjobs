@@ -1,13 +1,18 @@
 package org.codingmatters.poom.client.explore;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import org.codingmatters.poomjobs.api.JobCollectionGetRequest;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
+import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
+import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
 import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status200;
 import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status206;
+import org.codingmatters.poomjobs.api.jobcollectionpostresponse.Status201;
 import org.codingmatters.poomjobs.api.types.Job;
+import org.codingmatters.poomjobs.api.types.json.JobCreationDataWriter;
 import org.codingmatters.poomjobs.api.types.json.JobReader;
 import org.codingmatters.rest.api.client.Requester;
 import org.codingmatters.rest.api.client.RequesterFactory;
@@ -15,9 +20,11 @@ import org.codingmatters.rest.api.client.ResponseDelegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class PoomjobsAPIRequesterClient implements PoomjobsAPIClient {
 
@@ -65,6 +72,41 @@ public class PoomjobsAPIRequesterClient implements PoomjobsAPIClient {
                             .build();
                 }
                 return null;
+            }
+
+            @Override
+            public JobCollectionPostResponse post(JobCollectionPostRequest req) throws IOException {
+                Requester requester = requesterFactory
+                        .forBaseUrl(baseUrl)
+                        .path("/jobs");
+                if(req.accountId() != null) {
+                    requester.header("account-id", req.accountId());
+                }
+                byte[] bytes;
+                try(ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                    try(JsonGenerator generator = jsonFactory.createGenerator(out)) {
+                        new JobCreationDataWriter().write(generator, req.payload());
+                    }
+                    out.flush();
+                    bytes = out.toByteArray();
+                }
+
+                ResponseDelegate response = requester.post("application/json", bytes);
+                if(response.code() == 201) {
+                    return JobCollectionPostResponse.builder()
+                            .status201(Status201.builder()
+                                    .location(response.header("Location"))
+                                    .build())
+                            .build();
+                }
+                return null;
+            }
+
+            @Override
+            public JobCollectionPostResponse post(Consumer<JobCollectionPostRequest.Builder> builder) throws IOException {
+                JobCollectionPostRequest.Builder b = JobCollectionPostRequest.builder();
+                builder.accept(b);
+                return this.post(b.build());
             }
         };
     }

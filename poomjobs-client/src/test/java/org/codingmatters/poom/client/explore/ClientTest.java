@@ -11,15 +11,20 @@ import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poomjobs.api.JobCollectionGetRequest;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
+import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
+import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
+import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.service.PoomjobsAPI;
 import org.codingmatters.poomjobs.service.api.PoomjobsAPIProcessor;
 import org.codingmatters.rest.api.client.okhttp.OkHttpRequesterFactory;
 import org.codingmatters.rest.undertow.CdmHttpUndertowHandler;
 import org.codingmatters.rest.undertow.support.UndertowResource;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class ClientTest {
@@ -28,12 +33,13 @@ public class ClientTest {
     private final Repository<RunnerValue, RunnerQuery> runnerRepository = RunnerRepository.createInMemory();
     private PoomjobsAPI serverApi = new PoomjobsAPI(jobRepository, runnerRepository);
     private PoomjobsAPIProcessor processor = new PoomjobsAPIProcessor("/poom", new JsonFactory(), this.serverApi.handlers());
+    private PoomjobsAPIClient apiClient;
 
     @Rule
     public UndertowResource undertow = new UndertowResource(new CdmHttpUndertowHandler(this.processor));
 
-    @Test
-    public void api() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         this.jobRepository.create(JobValue.builder()
                 .name("test1")
                 .category("categ")
@@ -54,20 +60,52 @@ public class ClientTest {
         OkHttpClient client = new OkHttpClient();
         JsonFactory jsonFactory = new JsonFactory();
 
-        PoomjobsAPIClient apiClient = new PoomjobsAPIRequesterClient(
+        this.apiClient = new PoomjobsAPIRequesterClient(
                 new OkHttpRequesterFactory(client),
                 jsonFactory,
                 this.undertow.baseUrl() + "/poom"
         );
 
-        JobCollectionGetResponse resp = apiClient.jobCollection().get(JobCollectionGetRequest.builder()
+    }
+
+    @Test
+    public void jobCollection_get() throws Exception {
+        JobCollectionGetResponse resp = this.apiClient.jobCollection().get(JobCollectionGetRequest.builder()
                 .range("1-2")
                 .build());
         assertThat(resp.status206().payload().size(), is(2));
+        assertThat(resp.status206().acceptRange(), is("Job 100"));
+        assertThat(resp.status206().contentRange(), is("Job 1-2/4"));
 
-        resp = apiClient.jobCollection().get(JobCollectionGetRequest.builder()
+        resp = this.apiClient.jobCollection().get(JobCollectionGetRequest.builder()
                 .build());
-        System.out.println(resp);
         assertThat(resp.status200().payload().size(), is(4));
+        assertThat(resp.status200().acceptRange(), is("Job 100"));
+        assertThat(resp.status200().contentRange(), is("Job 0-3/4"));
+    }
+
+    @Test
+    public void jobCollection_post() throws Exception {
+        JobCollectionPostResponse resp = this.apiClient.jobCollection().post(JobCollectionPostRequest.builder()
+                .accountId("12")
+                .payload(JobCreationData.builder()
+                        .category("new")
+                        .name("test")
+                        .build())
+                .build());
+
+        assertThat(resp.status201(), is(notNullValue()));
+    }
+
+    @Test
+    public void jobCollection_postWithBuilderConsumer() throws Exception {
+        JobCollectionPostResponse resp = this.apiClient.jobCollection().post(builder -> builder
+                .accountId("12")
+                .payload(JobCreationData.builder()
+                        .category("new")
+                        .name("test")
+                        .build()));
+
+        assertThat(resp.status201(), is(notNullValue()));
     }
 }
