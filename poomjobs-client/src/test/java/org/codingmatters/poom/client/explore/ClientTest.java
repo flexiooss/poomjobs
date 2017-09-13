@@ -13,7 +13,6 @@ import org.codingmatters.poomjobs.api.JobCollectionGetRequest;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
-import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.service.PoomjobsAPI;
 import org.codingmatters.poomjobs.service.api.PoomjobsAPIProcessor;
 import org.codingmatters.rest.api.client.okhttp.OkHttpRequesterFactory;
@@ -88,10 +87,9 @@ public class ClientTest {
     public void jobCollection_post() throws Exception {
         JobCollectionPostResponse resp = this.apiClient.jobCollection().post(JobCollectionPostRequest.builder()
                 .accountId("12")
-                .payload(JobCreationData.builder()
+                .payload(payload -> payload
                         .category("new")
-                        .name("test")
-                        .build())
+                        .name("test"))
                 .build());
 
         assertThat(resp.status201(), is(notNullValue()));
@@ -101,10 +99,10 @@ public class ClientTest {
     public void jobCollection_postWithBuilderConsumer() throws Exception {
         JobCollectionPostResponse resp = this.apiClient.jobCollection().post(builder -> builder
                 .accountId("12")
-                .payload(JobCreationData.builder()
+                .payload(payload -> payload
                         .category("new")
-                        .name("test")
-                        .build()));
+                        .name("test"))
+                );
 
         assertThat(resp.status201(), is(notNullValue()));
     }

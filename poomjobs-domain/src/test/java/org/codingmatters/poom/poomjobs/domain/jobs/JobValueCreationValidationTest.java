@@ -38,7 +38,7 @@ public class JobValueCreationValidationTest {
     public void whenAccountingAccountIdIsNotSetted__theCreationIsInvalid() throws Exception {
         assertThat(
                 JobValueCreation.with(this.valid()
-                        .accounting(null)
+                        .accounting((Accounting) null)
                         .build())
                         .validation(),
                 is(new Validation(false, "cannot create a job with no account id"))
