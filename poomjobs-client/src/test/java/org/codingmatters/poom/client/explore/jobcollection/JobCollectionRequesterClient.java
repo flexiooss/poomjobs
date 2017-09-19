@@ -41,25 +41,22 @@ public class JobCollectionRequesterClient implements PoomjobsAPIClient.JobCollec
         }
 
         ResponseDelegate response = requester.get();
+
+        JobCollectionGetResponse.Builder resp = JobCollectionGetResponse.builder();
         if(response.code() == 200) {
-            return JobCollectionGetResponse.builder()
-                    .status200(Status200.builder()
-                            .payload(new JobReader().readArray(this.jsonFactory.createParser(response.body())))
-                            .acceptRange(response.header("accept-range"))
-                            .contentRange(response.header("content-range"))
-                            .build())
-                    .build();
+            resp.status200(Status200.builder()
+                .payload(new JobReader().readArray(this.jsonFactory.createParser(response.body())))
+                .acceptRange(response.header("accept-range"))
+                .contentRange(response.header("content-range"))
+                .build());
+        } else if(response.code() == 206) {
+            resp.status206(Status206.builder()
+                .payload(new JobReader().readArray(this.jsonFactory.createParser(response.body())))
+                .acceptRange(response.header("accept-range"))
+                .contentRange(response.header("content-range"))
+                .build());
         }
-        if(response.code() == 206) {
-            return JobCollectionGetResponse.builder()
-                    .status206(Status206.builder()
-                            .payload(new JobReader().readArray(this.jsonFactory.createParser(response.body())))
-                            .acceptRange(response.header("accept-range"))
-                            .contentRange(response.header("content-range"))
-                            .build())
-                    .build();
-        }
-        return null;
+        return resp.build();
     }
 
     @Override
