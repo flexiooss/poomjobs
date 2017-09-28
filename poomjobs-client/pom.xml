@@ -17,6 +17,10 @@
     <dependencies>
         <dependency>
             <groupId>org.codingmatters.poom</groupId>
+            <artifactId>poomjobs-api-spec</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codingmatters.poom</groupId>
             <artifactId>poomjobs-api</artifactId>
         </dependency>
         <dependency>
@@ -49,5 +53,53 @@
             <artifactId>cdm-rest-tests-support</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codingmatters.rest</groupId>
+                <artifactId>cdm-rest-maven-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codingmatters.poom</groupId>
+                        <artifactId>poomjobs-api-spec</artifactId>
+                        <version>0.0.1-SNAPSHOT</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>api-gen</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate-client-side</goal>
+                        </goals>
+                        <configuration>
+                            <destination-package>org.codingmatters.poom.client</destination-package>
+                            <api-spec-resource>poomjobs-api.raml</api-spec-resource>
+                            <types-package>org.codingmatters.poomjobs.api.types</types-package>
+                            <api-package>org.codingmatters.poomjobs.api</api-package>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>target/generated-sources</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
     
 </project>

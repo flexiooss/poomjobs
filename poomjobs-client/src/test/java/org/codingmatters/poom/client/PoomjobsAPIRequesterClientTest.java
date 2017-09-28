@@ -1,4 +1,4 @@
-package org.codingmatters.poom.client.explore;
+package org.codingmatters.poom.client;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import okhttp3.OkHttpClient;
@@ -26,7 +26,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class ClientTest {
+public class PoomjobsAPIRequesterClientTest {
+
 
     private final Repository<JobValue, JobQuery> jobRepository = JobRepository.createInMemory();
     private final Repository<RunnerValue, RunnerQuery> runnerRepository = RunnerRepository.createInMemory();
@@ -64,14 +65,17 @@ public class ClientTest {
                 jsonFactory,
                 this.undertow.baseUrl() + "/poom"
         );
-
     }
+
 
     @Test
     public void jobCollection_get() throws Exception {
         JobCollectionGetResponse resp = this.apiClient.jobCollection().get(JobCollectionGetRequest.builder()
                 .range("1-2")
                 .build());
+
+        System.out.println(resp);
+
         assertThat(resp.status206().payload().size(), is(2));
         assertThat(resp.status206().acceptRange(), is("Job 100"));
         assertThat(resp.status206().contentRange(), is("Job 1-2/4"));
@@ -82,7 +86,6 @@ public class ClientTest {
         assertThat(resp.status200().acceptRange(), is("Job 100"));
         assertThat(resp.status200().contentRange(), is("Job 0-3/4"));
     }
-
     @Test
     public void jobCollection_post() throws Exception {
         JobCollectionPostResponse resp = this.apiClient.jobCollection().post(JobCollectionPostRequest.builder()
@@ -102,8 +105,9 @@ public class ClientTest {
                 .payload(payload -> payload
                         .category("new")
                         .name("test"))
-                );
+        );
 
         assertThat(resp.status201(), is(notNullValue()));
     }
+
 }
