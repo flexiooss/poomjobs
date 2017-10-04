@@ -9,8 +9,8 @@ import org.codingmatters.poom.services.domain.change.Validation;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.servives.domain.entities.Entity;
-import org.codingmatters.poomjobs.api.JobResourcePutRequest;
-import org.codingmatters.poomjobs.api.JobResourcePutResponse;
+import org.codingmatters.poomjobs.api.JobResourcePatchRequest;
+import org.codingmatters.poomjobs.api.JobResourcePatchResponse;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 import org.codingmatters.poomjobs.service.JobEntityTransformation;
@@ -28,7 +28,7 @@ import static org.junit.Assert.assertThat;
 public class JobResourcePutHandlerTest {
 
     private Repository<JobValue, JobQuery> repository = JobRepository.createInMemory();
-    private JobResourcePutHandler handler = (JobResourcePutHandler) new PoomjobsAPI(this.repository, new MockedRunnerRepository()).handlers().jobResourcePutHandler();
+    private JobResourcePutHandler handler = (JobResourcePutHandler) new PoomjobsAPI(this.repository, new MockedRunnerRepository()).handlers().jobResourcePatchHandler();
 
 
     @Test
@@ -43,7 +43,7 @@ public class JobResourcePutHandlerTest {
 
     @Test
     public void entityId() throws Exception {
-        assertThat(this.handler.entityId(JobResourcePutRequest.builder().jobId("12").build()), is("12"));
+        assertThat(this.handler.entityId(JobResourcePatchRequest.builder().jobId("12").build()), is("12"));
     }
 
     @Test
@@ -54,7 +54,7 @@ public class JobResourcePutHandlerTest {
                         .run(Status.Run.RUNNING)
                         .build())
                 .build());
-        Change<JobValue> update = this.handler.valueUpdate(JobResourcePutRequest.builder()
+        Change<JobValue> update = this.handler.valueUpdate(JobResourcePatchRequest.builder()
                 .accountId("12")
                 .jobId(entity.id())
                 .currentVersion(entity.version().toString())
@@ -82,7 +82,7 @@ public class JobResourcePutHandlerTest {
     @Test
     public void whenEntityUpdatedCalled__thenStatus200Returned() throws Exception {
         Entity<JobValue> entity = this.repository.create(JobValue.builder().build());
-        JobResourcePutResponse response = this.handler.entityUpdated(entity);
+        JobResourcePatchResponse response = this.handler.entityUpdated(entity);
 
         assertThat(response.status200(), is(notNullValue()));
         assertThat(response.status200().payload(), is(JobEntityTransformation.transform(entity).asJob()));
@@ -90,7 +90,7 @@ public class JobResourcePutHandlerTest {
 
     @Test
     public void whenInvalidUpdateCalled__thenStatus400Returned() throws Exception {
-        JobResourcePutResponse response = this.handler.invalidUpdate(this.createChange(false, "invalid update", null, null), "error-token");
+        JobResourcePatchResponse response = this.handler.invalidUpdate(this.createChange(false, "invalid update", null, null), "error-token");
 
         assertThat(response.status400(), is(notNullValue()));
         assertThat(response.status400().payload().code(), is(Error.Code.ILLEGAL_JOB_CHANGE));
@@ -100,7 +100,7 @@ public class JobResourcePutHandlerTest {
 
     @Test
     public void whenEntityNotFoundCalled__thenStatus404Returned() throws Exception {
-        JobResourcePutResponse response = this.handler.entityNotFound("error-token");
+        JobResourcePatchResponse response = this.handler.entityNotFound("error-token");
 
         assertThat(response.status404(), is(notNullValue()));
         assertThat(response.status404().payload().code(), is(Error.Code.JOB_NOT_FOUND));
@@ -110,7 +110,7 @@ public class JobResourcePutHandlerTest {
 
     @Test
     public void whenUnexpectedErrorCalled__theStatus500Returned() throws Exception {
-        JobResourcePutResponse response = this.handler.unexpectedError(new RepositoryException("erro"), "error-token");
+        JobResourcePatchResponse response = this.handler.unexpectedError(new RepositoryException("erro"), "error-token");
 
         assertThat(response.status500(), is(notNullValue()));
         assertThat(response.status500().payload().code(), is(Error.Code.UNEXPECTED_ERROR));

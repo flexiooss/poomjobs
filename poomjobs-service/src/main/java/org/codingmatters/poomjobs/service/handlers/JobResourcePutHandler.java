@@ -8,12 +8,12 @@ import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.rest.protocol.ResourcePutProtocol;
 import org.codingmatters.poom.servives.domain.entities.Entity;
-import org.codingmatters.poomjobs.api.JobResourcePutRequest;
-import org.codingmatters.poomjobs.api.JobResourcePutResponse;
-import org.codingmatters.poomjobs.api.jobresourceputresponse.Status200;
-import org.codingmatters.poomjobs.api.jobresourceputresponse.Status400;
-import org.codingmatters.poomjobs.api.jobresourceputresponse.Status404;
-import org.codingmatters.poomjobs.api.jobresourceputresponse.Status500;
+import org.codingmatters.poomjobs.api.JobResourcePatchRequest;
+import org.codingmatters.poomjobs.api.JobResourcePatchResponse;
+import org.codingmatters.poomjobs.api.jobresourcepatchresponse.Status200;
+import org.codingmatters.poomjobs.api.jobresourcepatchresponse.Status400;
+import org.codingmatters.poomjobs.api.jobresourcepatchresponse.Status404;
+import org.codingmatters.poomjobs.api.jobresourcepatchresponse.Status500;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.service.JobEntityTransformation;
 import org.slf4j.Logger;
@@ -24,7 +24,7 @@ import static org.codingmatters.poomjobs.service.JobValueMerger.merge;
 /**
  * Created by nelt on 6/15/17.
  */
-public class JobResourcePutHandler implements ResourcePutProtocol<JobValue, JobQuery, JobResourcePutRequest, JobResourcePutResponse> {
+public class JobResourcePutHandler implements ResourcePutProtocol<JobValue, JobQuery, JobResourcePatchRequest, JobResourcePatchResponse> {
     static private final Logger log = LoggerFactory.getLogger(JobResourcePutHandler.class);
 
     private final Repository<JobValue, JobQuery> repository;
@@ -34,7 +34,7 @@ public class JobResourcePutHandler implements ResourcePutProtocol<JobValue, JobQ
     }
 
     @Override
-    public String entityId(JobResourcePutRequest request) {
+    public String entityId(JobResourcePatchRequest request) {
         return request.jobId();
     }
 
@@ -49,15 +49,15 @@ public class JobResourcePutHandler implements ResourcePutProtocol<JobValue, JobQ
     }
 
     @Override
-    public Change<JobValue> valueUpdate(JobResourcePutRequest request, Entity<JobValue> entity) {
+    public Change<JobValue> valueUpdate(JobResourcePatchRequest request, Entity<JobValue> entity) {
         JobValue currentValue = entity.value();
         JobValue newValue = merge(currentValue).with(request.payload());
         return JobValueChange.from(currentValue).to(newValue);
     }
 
     @Override
-    public JobResourcePutResponse entityUpdated(Entity<JobValue> entity) {
-        return JobResourcePutResponse.builder()
+    public JobResourcePatchResponse entityUpdated(Entity<JobValue> entity) {
+        return JobResourcePatchResponse.builder()
                 .status200(Status200.builder()
                         .payload(JobEntityTransformation.transform(entity).asJob())
                         .build())
@@ -65,8 +65,8 @@ public class JobResourcePutHandler implements ResourcePutProtocol<JobValue, JobQ
     }
 
     @Override
-    public JobResourcePutResponse invalidUpdate(Change<JobValue> change, String errorToken) {
-        return JobResourcePutResponse.builder()
+    public JobResourcePatchResponse invalidUpdate(Change<JobValue> change, String errorToken) {
+        return JobResourcePatchResponse.builder()
                 .status400(Status400.builder()
                         .payload(Error.builder()
                                 .code(Error.Code.ILLEGAL_JOB_CHANGE)
@@ -78,8 +78,8 @@ public class JobResourcePutHandler implements ResourcePutProtocol<JobValue, JobQ
     }
 
     @Override
-    public JobResourcePutResponse entityNotFound(String errorToken) {
-        return JobResourcePutResponse.builder()
+    public JobResourcePatchResponse entityNotFound(String errorToken) {
+        return JobResourcePatchResponse.builder()
                 .status404(Status404.builder()
                         .payload(Error.builder()
                                 .token(errorToken)
@@ -91,8 +91,8 @@ public class JobResourcePutHandler implements ResourcePutProtocol<JobValue, JobQ
     }
 
     @Override
-    public JobResourcePutResponse unexpectedError(RepositoryException e, String errorToken) {
-        return JobResourcePutResponse.builder()
+    public JobResourcePatchResponse unexpectedError(RepositoryException e, String errorToken) {
+        return JobResourcePatchResponse.builder()
                 .status500(Status500.builder()
                         .payload(Error.builder()
                                 .code(Error.Code.UNEXPECTED_ERROR)
