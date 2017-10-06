@@ -23,7 +23,6 @@ public class PoomjobsAPI {
                 .jobCollectionPostHandler(new JobCollectionPostHandler(jobRepository))
                 .jobResourceGetHandler(new JobResourceGetHandler(jobRepository))
                 .jobResourcePatchHandler(new JobResourcePutHandler(jobRepository))
-//                .jobResourcePutHandler(new JobResourcePutHandler(jobRepository))
 
                 .runnerCollectionGetHandler(new RunnerCollectionGetHandler(runnerRepository))
                 .runnerCollectionPostHandler(new RunnerCollectionPostHandler(runnerRepository))
