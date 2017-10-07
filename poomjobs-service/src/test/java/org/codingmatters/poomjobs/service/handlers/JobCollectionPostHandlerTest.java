@@ -12,7 +12,7 @@ import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
-import org.codingmatters.poomjobs.service.PoomjobsJobsAPI;
+import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
@@ -24,7 +24,7 @@ import static org.junit.Assert.assertThat;
 public class JobCollectionPostHandlerTest {
 
     private Repository<JobValue, JobQuery> repository = JobRepository.createInMemory();
-    private JobCollectionPostHandler handler = (JobCollectionPostHandler) new PoomjobsJobsAPI(this.repository).handlers().jobCollectionPostHandler();
+    private JobCollectionPostHandler handler = (JobCollectionPostHandler) new PoomjobsJobRegistryAPI(this.repository).handlers().jobCollectionPostHandler();
 
     @Test
     public void log() throws Exception {

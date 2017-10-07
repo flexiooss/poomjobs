@@ -14,7 +14,7 @@ import org.codingmatters.poomjobs.api.JobResourcePatchResponse;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 import org.codingmatters.poomjobs.service.JobEntityTransformation;
-import org.codingmatters.poomjobs.service.PoomjobsJobsAPI;
+import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -27,7 +27,7 @@ import static org.junit.Assert.assertThat;
 public class JobResourcePutHandlerTest {
 
     private Repository<JobValue, JobQuery> repository = JobRepository.createInMemory();
-    private JobResourcePutHandler handler = (JobResourcePutHandler) new PoomjobsJobsAPI(this.repository).handlers().jobResourcePatchHandler();
+    private JobResourcePutHandler handler = (JobResourcePutHandler) new PoomjobsJobRegistryAPI(this.repository).handlers().jobResourcePatchHandler();
 
 
     @Test

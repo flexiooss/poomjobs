@@ -12,7 +12,7 @@ import org.codingmatters.poomjobs.api.JobResourceGetRequest;
 import org.codingmatters.poomjobs.api.JobResourceGetResponse;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.Job;
-import org.codingmatters.poomjobs.service.PoomjobsJobsAPI;
+import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
@@ -28,7 +28,7 @@ import static org.junit.Assert.assertThat;
 public class JobResourceGetHandlerTest {
 
     private Repository<JobValue, JobQuery> repository = JobRepository.createInMemory();
-    private JobResourceGetHandler handler = (JobResourceGetHandler) new PoomjobsJobsAPI(this.repository).handlers().jobResourceGetHandler();
+    private JobResourceGetHandler handler = (JobResourceGetHandler) new PoomjobsJobRegistryAPI(this.repository).handlers().jobResourceGetHandler();
 
     @Test
     public void log() throws Exception {

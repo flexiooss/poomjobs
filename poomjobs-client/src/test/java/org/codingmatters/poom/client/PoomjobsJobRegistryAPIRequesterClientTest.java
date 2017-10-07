@@ -10,8 +10,8 @@ import org.codingmatters.poomjobs.api.JobCollectionGetRequest;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
-import org.codingmatters.poomjobs.service.PoomjobsJobsAPI;
-import org.codingmatters.poomjobs.service.api.PoomjobsJobsAPIProcessor;
+import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
+import org.codingmatters.poomjobs.service.api.PoomjobsJobRegistryAPIProcessor;
 import org.codingmatters.rest.api.client.okhttp.OkHttpRequesterFactory;
 import org.codingmatters.rest.undertow.CdmHttpUndertowHandler;
 import org.codingmatters.rest.undertow.support.UndertowResource;
@@ -23,13 +23,13 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class PoomjobsJobsAPIRequesterClientTest {
+public class PoomjobsJobRegistryAPIRequesterClientTest {
 
 
     private final Repository<JobValue, JobQuery> jobRepository = JobRepository.createInMemory();
-    private PoomjobsJobsAPI serverApi = new PoomjobsJobsAPI(jobRepository);
-    private PoomjobsJobsAPIProcessor processor = new PoomjobsJobsAPIProcessor("/poom", new JsonFactory(), this.serverApi.handlers());
-    private PoomjobsJobsAPIRequesterClient apiClient;
+    private PoomjobsJobRegistryAPI serverApi = new PoomjobsJobRegistryAPI(jobRepository);
+    private PoomjobsJobRegistryAPIProcessor processor = new PoomjobsJobRegistryAPIProcessor("/poom", new JsonFactory(), this.serverApi.handlers());
+    private PoomjobsJobRegistryAPIClient apiClient;
 
     @Rule
     public UndertowResource undertow = new UndertowResource(new CdmHttpUndertowHandler(this.processor));
@@ -56,7 +56,7 @@ public class PoomjobsJobsAPIRequesterClientTest {
         OkHttpClient client = new OkHttpClient();
         JsonFactory jsonFactory = new JsonFactory();
 
-        this.apiClient = new PoomjobsJobsAPIRequesterClient(
+        this.apiClient = new PoomjobsJobRegistryAPIRequesterClient(
                 new OkHttpRequesterFactory(client),
                 jsonFactory,
                 this.undertow.baseUrl() + "/poom"
