@@ -64,7 +64,7 @@
                 </dependencies>
                 <executions>
                     <execution>
-                        <id>jobs-api-gen</id>
+                        <id>job-registry-api-gen</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>generate-server-side</goal>
@@ -76,7 +76,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>runners-api-gen</id>
+                        <id>runner-registry-api-gen</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>generate-server-side</goal>
@@ -85,6 +85,18 @@
                             <destination-package>org.codingmatters.poomjobs.service.api</destination-package>
                             <types-package>org.codingmatters.poomjobs.api</types-package>
                             <api-spec-resource>poomjobs-runner-registry-api.raml</api-spec-resource>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>runner-api-gen</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate-server-side</goal>
+                        </goals>
+                        <configuration>
+                            <destination-package>org.codingmatters.poomjobs.service.api</destination-package>
+                            <types-package>org.codingmatters.poomjobs.api</types-package>
+                            <api-spec-resource>poomjobs-runner-api.raml</api-spec-resource>
                         </configuration>
                     </execution>
                 </executions>

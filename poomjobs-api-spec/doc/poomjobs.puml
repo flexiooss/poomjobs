@@ -3,8 +3,8 @@ title Job submitted with pending runner
 
 participant "Job Services Consumer" as client
 box "POOM Job Services"
-    participant "Jobs API" as jobs
-    participant "Runners API" as runners
+    participant "Job Registry API" as jobs
+    participant "Runner Registry API" as runners
     participant "Job Runner" as runner
 end box
 
@@ -56,8 +56,8 @@ deactivate runner
 @startuml
 title Job Runner
 
-participant "Jobs API" as jobs
-participant "Runners API" as runners
+participant "Job Registry API" as jobs
+participant "Runner Registry API" as runners
 
 box "Runner Internals"
     participant "Job Runner \n {callback, competencies, ttl}" as runner
@@ -127,7 +127,7 @@ deactivate runner
 
 ==Process Job Run Request==
 
-    jobs -> endpoint: <b>PUT /runner-id/jobs/<job-id></b> \n\
+    jobs -> endpoint: <b>PUT /jobs/running/<job-id></b> \n\
         Job
     activate endpoint
         alt runner.status != PENDING

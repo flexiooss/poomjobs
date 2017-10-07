@@ -25,6 +25,6 @@
         <module>poomjobs-api-spec</module>
         <module>poomjobs-api</module>
         <module>poomjobs-service</module>
-        <module>poomjobs-client</module>
+        <module>poomjobs-clients</module>
     </modules>
 </project>

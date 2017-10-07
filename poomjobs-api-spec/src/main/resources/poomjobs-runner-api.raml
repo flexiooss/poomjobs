@@ -1,0 +1,25 @@
+#%RAML 1.0
+title: Poomjobs Runner API
+version: v1
+baseUri: https://api.codingmatters.org/poomjobs
+mediaType: application/json
+
+types:
+  !include poomjobs-types.raml
+
+/jobs/{jobId}:
+  displayName: Running Job
+  uriParameters:
+    jobId:
+      type: string
+      required: true
+  put:
+    body: Job
+    responses:
+      201:
+        description: runner accepts running the job and redirect to its URL
+        headers:
+          Location: string
+      409:
+        description: runner is busy, it cannot accept running the job (RUNNER_IS_BUSY)
+        body: Error
