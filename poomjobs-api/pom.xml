@@ -46,7 +46,7 @@
                         </goals>
                         <configuration>
                             <destination-package>org.codingmatters.poomjobs.api</destination-package>
-                            <api-spec-resource>poomjobs-api.raml</api-spec-resource>
+                            <api-spec-resource>poomjobs-jobs-api.raml</api-spec-resource>
                         </configuration>
                     </execution>
                 </executions>

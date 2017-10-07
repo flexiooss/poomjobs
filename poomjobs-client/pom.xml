@@ -75,7 +75,7 @@
                         </goals>
                         <configuration>
                             <destination-package>org.codingmatters.poom.client</destination-package>
-                            <api-spec-resource>poomjobs-api.raml</api-spec-resource>
+                            <api-spec-resource>poomjobs-jobs-api.raml</api-spec-resource>
                             <types-package>org.codingmatters.poomjobs.api.types</types-package>
                             <api-package>org.codingmatters.poomjobs.api</api-package>
                         </configuration>

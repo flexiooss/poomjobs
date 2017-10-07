@@ -4,6 +4,9 @@ version: v1
 baseUri: https://api.codingmatters.org/poomjobs
 mediaType: application/json
 
+types:
+  !include poomjobs-types.raml
+
 /jobs:
     displayName: JobCollection
     get:
@@ -194,7 +197,3 @@ mediaType: application/json
                     description: UNEXPECTED_ERROR.
                     body: Error
 
-
-
-types:
-  !include poomjobs-types.raml
