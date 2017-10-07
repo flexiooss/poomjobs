@@ -39,7 +39,7 @@
                 </dependencies>
                 <executions>
                     <execution>
-                        <id>api-gen</id>
+                        <id>jobs-api-gen</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>generate-api-types</goal>
@@ -47,6 +47,17 @@
                         <configuration>
                             <destination-package>org.codingmatters.poomjobs.api</destination-package>
                             <api-spec-resource>poomjobs-jobs-api.raml</api-spec-resource>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>runners-api-gen</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate-api-types</goal>
+                        </goals>
+                        <configuration>
+                            <destination-package>org.codingmatters.poomjobs.api</destination-package>
+                            <api-spec-resource>poomjobs-runners-api.raml</api-spec-resource>
                         </configuration>
                     </execution>
                 </executions>

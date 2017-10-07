@@ -13,8 +13,7 @@ import org.codingmatters.poomjobs.api.RunnerCollectionPostResponse;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.RunnerData;
 import org.codingmatters.poomjobs.api.types.runnerdata.Competencies;
-import org.codingmatters.poomjobs.service.PoomjobsAPI;
-import org.codingmatters.poomjobs.service.handlers.mocks.MockedJobRepository;
+import org.codingmatters.poomjobs.service.PoomjobsRunnerRegistryAPI;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
@@ -23,7 +22,7 @@ import static org.junit.Assert.assertThat;
 public class RunnerCollectionPostHandlerTest {
 
     private Repository<RunnerValue, RunnerQuery> repository = RunnerRepository.createInMemory();
-    private RunnerCollectionPostHandler handler = (RunnerCollectionPostHandler) new PoomjobsAPI(new MockedJobRepository(), this.repository).handlers().runnerCollectionPostHandler();
+    private RunnerCollectionPostHandler handler = (RunnerCollectionPostHandler) new PoomjobsRunnerRegistryAPI(this.repository).handlers().runnerCollectionPostHandler();
 
 
     @Test

@@ -1,0 +1,97 @@
+#%RAML 1.0
+title: Poomjobs Runner Registry API
+version: v1
+baseUri: https://api.codingmatters.org/poomjobs
+mediaType: application/json
+
+types:
+  !include poomjobs-types.raml
+
+/runners:
+    displayName: RunnerCollection
+    get:
+        queryParameters:
+            range: string
+
+            nameCompetency: string
+            categoryCompetency: string
+            runtimeStatus: string
+        responses:
+            200:
+                description: complete list of runners or last elements of the list of jobs
+                headers:
+                    Content-Range: string
+                    Accept-Range: string
+                body: Runner[]
+            206:
+                description: complete list of runners or last elements of the list of jobs
+                headers:
+                    Content-Range: string
+                    Accept-Range: string
+                body: Runner[]
+            416:
+                description: the specified range is not acceptable. Error code is ILLEGAL_RANGE_SPEC.
+                headers:
+                    Content-Range: string
+                    Accept-Range: string
+                body: Error
+            500:
+                description: UNEXPECTED_ERROR.
+                body: Error
+    post:
+        body: RunnerData
+        description: |
+          The runner is created provided the payload RunnerData.
+        responses:
+            201:
+                description: new runner created
+                headers:
+                    Location: string
+            400:
+                description: request is not acceptable. Code ILLEGAL_RUNNER_SPEC.
+                body: Error
+            500:
+                description: UNEXPECTED_ERROR.
+                body: Error
+    /{runnerId}:
+        displayName: Runner
+        uriParameters:
+            runnerId:
+                type: string
+                required: true
+        get:
+            description: |
+                If a runner with the given jobId, returns the full description of the runner.
+            responses:
+                200:
+                    description: a runner with the given jobId is found and returned
+                    body: Runner
+                404:
+                    description: no runner found with the given runnerId. Code RUNNER_NOT_FOUND.
+                    body: Error
+                500:
+                    description: UNEXPECTED_ERROR.
+                    body: Error
+        patch:
+            body: RunnerStatusData
+            description: |
+                The runner status is updated provided the payload RunnerStatusData.
+
+                Only the status can be provided. In future version, runtime statistics will be
+                added to the status data.
+
+                The last-ping runtime property is updated.
+            responses:
+                200:
+                    description: the job update was successful
+                    body: Runner
+                400:
+                    description: request is not acceptable. Code ILLEGAL_JOB_CHANGE.
+                    body: Error
+                404:
+                    description: no job found with the given jobId. Code JOB_NOT_FOUND.
+                    body: Error
+                500:
+                    description: UNEXPECTED_ERROR.
+                    body: Error
+

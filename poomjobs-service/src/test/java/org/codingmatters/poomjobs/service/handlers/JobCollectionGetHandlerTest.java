@@ -8,8 +8,7 @@ import org.codingmatters.poom.services.support.paging.Rfc7233Pager;
 import org.codingmatters.poomjobs.api.JobCollectionGetRequest;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
 import org.codingmatters.poomjobs.api.types.Error;
-import org.codingmatters.poomjobs.service.PoomjobsAPI;
-import org.codingmatters.poomjobs.service.handlers.mocks.MockedRunnerRepository;
+import org.codingmatters.poomjobs.service.PoomjobsJobsAPI;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
@@ -20,7 +19,7 @@ import static org.junit.Assert.assertThat;
  */
 public class JobCollectionGetHandlerTest {
 
-    private PoomjobsAPI api = new PoomjobsAPI(JobRepository.createInMemory(), new MockedRunnerRepository());
+    private PoomjobsJobsAPI api = new PoomjobsJobsAPI(JobRepository.createInMemory());
     private JobCollectionGetHandler handler = (JobCollectionGetHandler) this.api.handlers().jobCollectionGetHandler();
 
     @Test

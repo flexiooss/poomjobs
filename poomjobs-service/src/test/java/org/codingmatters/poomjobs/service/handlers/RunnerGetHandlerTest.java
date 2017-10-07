@@ -10,8 +10,7 @@ import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.RunnerGetRequest;
 import org.codingmatters.poomjobs.api.RunnerGetResponse;
 import org.codingmatters.poomjobs.api.types.Error;
-import org.codingmatters.poomjobs.service.PoomjobsAPI;
-import org.codingmatters.poomjobs.service.handlers.mocks.MockedJobRepository;
+import org.codingmatters.poomjobs.service.PoomjobsRunnerRegistryAPI;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
@@ -26,7 +25,7 @@ import static org.junit.Assert.assertThat;
 public class RunnerGetHandlerTest {
 
     private Repository<RunnerValue, RunnerQuery> repository = RunnerRepository.createInMemory();
-    private RunnerGetHandler handler = (RunnerGetHandler) new PoomjobsAPI(new MockedJobRepository(), this.repository).handlers().runnerGetHandler();
+    private RunnerGetHandler handler = (RunnerGetHandler) new PoomjobsRunnerRegistryAPI(this.repository).handlers().runnerGetHandler();
 
     @Test
     public void log() throws Exception {

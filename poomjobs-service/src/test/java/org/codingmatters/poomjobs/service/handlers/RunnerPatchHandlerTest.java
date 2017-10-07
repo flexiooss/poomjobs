@@ -13,9 +13,8 @@ import org.codingmatters.poomjobs.api.RunnerPatchRequest;
 import org.codingmatters.poomjobs.api.RunnerPatchResponse;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.RunnerStatusData;
-import org.codingmatters.poomjobs.service.PoomjobsAPI;
+import org.codingmatters.poomjobs.service.PoomjobsRunnerRegistryAPI;
 import org.codingmatters.poomjobs.service.RunnerEntityTransformation;
-import org.codingmatters.poomjobs.service.handlers.mocks.MockedJobRepository;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
@@ -27,7 +26,7 @@ import static org.junit.Assert.assertThat;
 public class RunnerPatchHandlerTest {
 
     private Repository<RunnerValue, RunnerQuery> repository = RunnerRepository.createInMemory();
-    private RunnerPatchHandler handler = (RunnerPatchHandler) new PoomjobsAPI(new MockedJobRepository(), this.repository).handlers().runnerPatchHandler();
+    private RunnerPatchHandler handler = (RunnerPatchHandler) new PoomjobsRunnerRegistryAPI(this.repository).handlers().runnerPatchHandler();
 
     @Test
     public void log() throws Exception {
