@@ -24,29 +24,25 @@ public class InMemoryJobRepository extends InMemoryRepository<JobValue, JobQuery
     }
 
     private Stream<Entity<JobValue>> applyCriterionFilter(Stream<Entity<JobValue>> filtered, JobCriteria jobCriteria) {
-        if (jobCriteria.category() != null) {
+        if (jobCriteria.opt().category().isPresent()) {
             filtered = filtered.filter(jobValueEntity ->
-                    jobValueEntity.value().category() != null && jobValueEntity.value().category().matches(jobCriteria.category())
+                    jobValueEntity.value().opt().category().filter(s -> s.matches(jobCriteria.category())).isPresent()
             );
         }
-        if (jobCriteria.name() != null) {
+        if (jobCriteria.opt().name().isPresent()) {
             filtered = filtered.filter(jobValueEntity ->
-                    jobValueEntity.value().name() != null && jobValueEntity.value().name().matches(jobCriteria.name())
+                    jobValueEntity.value().opt().name().filter(s -> s.matches(jobCriteria.name())).isPresent()
             );
         }
-        if (jobCriteria.runStatus() != null) {
+        if (jobCriteria.opt().runStatus().isPresent()) {
             filtered = filtered.filter(jobValueEntity ->
-                    jobValueEntity.value().status() != null
-                            && jobValueEntity.value().status().run() != null
-                            && jobValueEntity.value().status().run().name().matches(jobCriteria.runStatus())
+                    jobValueEntity.value().opt().status().run().filter(run -> run.name().matches(jobCriteria.runStatus())).isPresent()
             );
         }
-        if (jobCriteria.exitStatus() != null) {
+        if (jobCriteria.opt().exitStatus().isPresent()) {
             filtered = filtered.filter(jobValueEntity ->
-                    jobValueEntity.value().status() != null
-                            && jobValueEntity.value().status().exit() != null
-                            && jobValueEntity.value().status().exit().name().matches(jobCriteria.exitStatus())
-            );
+                    jobValueEntity.value().opt().status().exit().filter(exit -> exit.name().matches(jobCriteria.exitStatus())).isPresent()
+        );
         }
         return filtered;
     }
