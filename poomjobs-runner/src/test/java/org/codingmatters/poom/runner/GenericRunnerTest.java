@@ -6,16 +6,20 @@ import org.codingmatters.poom.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poom.client.PoomjobsRunnerRegistryAPIHandlersClient;
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.RunnerRepository;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.JobCriteria;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Runtime;
 import org.codingmatters.poom.runner.configuration.RunnerConfiguration;
 import org.codingmatters.poom.runner.tests.Eventually;
 import org.codingmatters.poom.services.domain.repositories.Repository;
+import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.RunnerCollectionGetRequest;
 import org.codingmatters.poomjobs.api.types.Runner;
+import org.codingmatters.poomjobs.api.types.RunnerStatusData;
 import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
 import org.codingmatters.poomjobs.service.PoomjobsRunnerRegistryAPI;
 import org.junit.After;
@@ -79,6 +83,39 @@ public class GenericRunnerTest {
         assertThat(actualRuntime.lastPing().isBefore(nextTtlExpiration), is(true));
     }
 
+    @Test
+    public void whenJobToProcess_thenStatusBecomeRunningAndJobStatusToRunning() throws Exception {
+        Entity<JobValue> entity = this.jobRepository.create(JobValue.builder()
+                .name("TEST")
+                .category("TEST")
+                .status(status -> status.run(Status.Run.PENDING))
+                .processing(processing -> processing.submitted(LocalDateTime.now()))
+                .build());
+
+        System.out.println(entity.value());
+
+        assertThat(
+                this.jobRepository.search(JobQuery.builder()
+                        .criteria(
+                                JobCriteria.builder().category("TEST").build()
+                                , JobCriteria.builder().name("TEST").build()
+                                , JobCriteria.builder().runStatus("PENDING").build()
+                        )
+                        .build(), 0, 0).total(),
+                is(1L)
+        );
+
+        this.runner.start();
+        Eventually.assertThat(() -> this.runnerRepository.all(0, 0).total(), is(1L));
+
+        Thread.sleep(100L);
+
+        Entity<RunnerValue> registered = this.runnerRepository.retrieve(this.runner.id());
+
+        assertThat(registered.value().runtime().status(), is(Runtime.Status.RUNNING));
+        assertThat(this.jobRepository.retrieve(entity.id()).value().status().run(), is(Status.Run.RUNNING));
+    }
+
     @Before
     public void setUp() throws Exception {
         this.setUpJobRegistry();
@@ -127,8 +164,8 @@ public class GenericRunnerTest {
                 .runnerRegistryAPIClient(this.runnerRegistry)
                 .callbackBaseUrl("http://base.runner.url")
                 .ttl(TTL)
-                .jobCategories("TEST")
-                .jobNames("*")
+                .jobCategory("TEST")
+                .jobName("TEST")
                 .build());
     }
 

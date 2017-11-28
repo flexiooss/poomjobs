@@ -7,7 +7,5 @@ RunnerConfiguration:
     $type: java.util.concurrent.ExecutorService
   callbackBaseUrl: string
   ttl: long
-  jobCategories:
-    $list: string
-  jobNames:
-    $list: string
+  jobCategory: string
+  jobName: string

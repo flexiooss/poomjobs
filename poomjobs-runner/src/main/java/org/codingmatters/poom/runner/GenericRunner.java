@@ -4,16 +4,16 @@ import org.codingmatters.poom.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poom.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poom.runner.configuration.RunnerConfiguration;
 import org.codingmatters.poom.runner.exception.RunnerInitializationException;
-import org.codingmatters.poomjobs.api.RunnerCollectionPostResponse;
-import org.codingmatters.poomjobs.api.RunnerPatchResponse;
+import org.codingmatters.poomjobs.api.*;
+import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.RunnerStatusData;
+import org.codingmatters.poomjobs.api.types.jobupdatedata.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,8 +34,8 @@ public class GenericRunner {
 
     private final String callbackBaseUrl;
     private final Long ttl;
-    private final String[] jobCategories;
-    private final String[] jobNames;
+    private final String jobCategory;
+    private final String jobName;
 
     private final ScheduledExecutorService updateWorker = Executors.newSingleThreadScheduledExecutor();
 
@@ -49,8 +49,8 @@ public class GenericRunner {
         this.jobWorker = configuration.jobWorker();
         this.callbackBaseUrl = configuration.callbackBaseUrl();
         this.ttl = Math.max(MIN_TTL, configuration.ttl());
-        this.jobCategories = configuration.jobCategories().toArray(new String[configuration.jobCategories().size()]);
-        this.jobNames = configuration.jobNames().toArray(new String[configuration.jobNames().size()]);
+        this.jobCategory = configuration.jobCategory();
+        this.jobName = configuration.jobName();
     }
 
     public void start() throws RunnerInitializationException {
@@ -65,22 +65,24 @@ public class GenericRunner {
                                         .ttl(this.ttl)
                                         .competencies(competencies ->
                                                 competencies
-                                                        .categories(this.jobCategories)
-                                                        .names(this.jobNames)
+                                                        .categories(this.jobCategory)
+                                                        .names(this.jobName)
                                         )
                         )
                         .build());
+            if(response.status201() != null) {
+                String[] splitted = response.status201().location().split("/");
+                this.id = splitted[splitted.length - 1];
+            } else {
+                log.error("registry refused to register runner : {}", response);
+                throw new RunnerInitializationException("registry refused to register runner : " + response.toString());
+            }
+
             this.scheduleNextStatusUpdate(firstPing);
+            this.lookupPendingJobs();
         } catch (IOException e) {
             log.error("cannot connect to runner registry", e);
             throw new RunnerInitializationException("cannot connect to runner registry", e);
-        }
-        if(response.status201() != null) {
-            String[] splitted = response.status201().location().split("/");
-            this.id = splitted[splitted.length - 1];
-        } else {
-            log.error("registry refused to register runner : {}", response);
-            throw new RunnerInitializationException("registry refused to register runner : " + response.toString());
         }
     }
 
@@ -117,5 +119,67 @@ public class GenericRunner {
                 this::updateStatus,
                 Duration.between(LocalDateTime.now(), nextNotification).toMillis(), TimeUnit.MILLISECONDS
         );
+    }
+
+    private void lookupPendingJobs() {
+        try {
+            JobCollectionGetResponse response = this.jobRegistryAPIClient.jobCollection().get(request ->
+                    request
+                            .category(this.jobCategory)
+                            .name(this.jobName)
+                            .runStatus("PENDING")
+                            .range("0-1")
+            );
+
+            ValueList<Job> jobs = response.opt().status200().payload()
+                    .orElseGet(() ->
+                            response.opt().status206().payload()
+                                    .orElse(new ValueList.Builder<Job>().build())
+                    );
+
+            if(! jobs.isEmpty()) {
+                this.processJob(jobs.get(0));
+            }
+        } catch (IOException e) {
+            log.error("error retrieving jobs from repository", e);
+        }
+    }
+
+    private void processJob(Job job) {
+        log.info("will process job {}", job);
+        this.currentStatus.set(RunnerStatusData.Status.RUNNING);
+        this.updateStatus();
+
+        try {
+            JobResourcePatchResponse response = this.jobRegistryAPIClient.jobCollection().jobResource().patch(request ->
+                    request
+                            .jobId(job.id()).payload(
+                            payload -> payload
+                                    .status(Status.builder()
+                                            .run(Status.Run.RUNNING)
+                                            .build())
+                    )
+            );
+            if(response.opt().status200().isPresent()) {
+                this.jobWorker.submit(this.jobProcessor(job));
+            } else {
+                log.warn("job repository refused our RUNNING update on job : {}", job);
+                this.currentStatus.set(RunnerStatusData.Status.IDLE);
+                this.updateStatus();
+            }
+        } catch (IOException e) {
+            log.error("error updating run status for job " + job, e);
+        }
+
+    }
+
+    private Runnable jobProcessor(Job job) {
+        return () -> {
+            try {
+                Thread.sleep(3 * 1000L);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        };
     }
 }
