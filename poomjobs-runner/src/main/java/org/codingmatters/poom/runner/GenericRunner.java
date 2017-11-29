@@ -61,18 +61,18 @@ public class GenericRunner {
             LocalDateTime firstPing = LocalDateTime.now();
             response = this.runnerRegistryAPIClient.runnerCollection().post(request ->
                     request
-                        .payload(payload ->
-                                payload
-                                        .callback(this.callbackBaseUrl)
-                                        .ttl(this.ttl)
-                                        .competencies(competencies ->
-                                                competencies
-                                                        .categories(this.jobCategory)
-                                                        .names(this.jobName)
-                                        )
-                        )
-                        .build());
-            if(response.status201() != null) {
+                            .payload(payload ->
+                                    payload
+                                            .callback(this.callbackBaseUrl)
+                                            .ttl(this.ttl)
+                                            .competencies(competencies ->
+                                                    competencies
+                                                            .categories(this.jobCategory)
+                                                            .names(this.jobName)
+                                            )
+                            )
+                            .build());
+            if (response.status201() != null) {
                 String[] splitted = response.status201().location().split("/");
                 this.id = splitted[splitted.length - 1];
             } else {
@@ -100,7 +100,7 @@ public class GenericRunner {
                             .runnerId(this.id())
                             .payload(payload -> payload.status(status))
             );
-            if(response.status200() != null) {
+            if (response.status200() != null) {
                 log.debug("updated status for {} with status : {}", this.id(), status);
                 this.scheduleNextStatusUpdate(response.status200().payload().runtime().lastPing());
             } else {
@@ -139,7 +139,7 @@ public class GenericRunner {
                                     .orElse(new ValueList.Builder<Job>().build())
                     );
 
-            if(! jobs.isEmpty()) {
+            if (!jobs.isEmpty()) {
                 this.processJob(jobs.get(0));
             }
         } catch (IOException e) {
@@ -162,7 +162,7 @@ public class GenericRunner {
                                             .build())
                     )
             );
-            if(response.opt().status200().isPresent()) {
+            if (response.opt().status200().isPresent()) {
                 this.jobWorker.submit(this.jobProcessor(job));
             } else {
                 log.warn("job repository refused our RUNNING update on job : {}", job);
@@ -177,12 +177,39 @@ public class GenericRunner {
 
     private Runnable jobProcessor(Job job) {
         JobProcessor processor = this.prcessorFactory.createFor(job);
-        return () -> {
+        return () -> process(processor);
+    }
+
+    private void process(JobProcessor processor) {
+        try {
+            Job job = processor.process();
             try {
-                processor.process();
-            } catch (JobProcessingException e) {
-                e.printStackTrace();
+                this.jobRegistryAPIClient.jobCollection().jobResource().patch(req -> req
+                        .jobId(job.id()).payload(payload -> payload.status(this.patchStatus(job.status())))
+                );
+            } catch (IOException e) {
+                log.error("GRAVE : failed to update job status for job " + job.id(), e);
             }
-        };
+        } catch (JobProcessingException e) {
+            log.error("error processing job with processor : " + processor, e);
+
+        }
+    }
+
+    private Status patchStatus(org.codingmatters.poomjobs.api.types.job.Status status) {
+        return Status.builder()
+                .run(Status.Run.valueOf(
+                        status.opt().run()
+                                .orElse(org.codingmatters.poomjobs.api.types.job.Status.Run.DONE)
+                                .name()
+                        )
+                )
+                .exit(Status.Exit.valueOf(
+                        status.opt().exit()
+                                .orElse(org.codingmatters.poomjobs.api.types.job.Status.Exit.SUCCESS)
+                                .name()
+                        )
+                )
+                .build();
     }
 }
