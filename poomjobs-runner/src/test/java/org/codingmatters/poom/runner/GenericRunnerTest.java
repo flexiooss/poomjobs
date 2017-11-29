@@ -18,6 +18,7 @@ import org.codingmatters.poom.runner.tests.Eventually;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.RunnerCollectionGetRequest;
+import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.Runner;
 import org.codingmatters.poomjobs.api.types.RunnerStatusData;
 import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
@@ -166,6 +167,17 @@ public class GenericRunnerTest {
                 .ttl(TTL)
                 .jobCategory("TEST")
                 .jobName("TEST")
+                .processorFactory(job -> () -> {
+                    try {
+                        Thread.sleep(3 * 1000L);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return job.changed(builder -> builder.status(job.status()
+                            .withRun(org.codingmatters.poomjobs.api.types.job.Status.Run.DONE)
+                            .withExit(org.codingmatters.poomjobs.api.types.job.Status.Exit.SUCCESS)
+                    ));
+                })
                 .build());
     }
 

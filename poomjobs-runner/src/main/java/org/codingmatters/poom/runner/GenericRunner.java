@@ -36,6 +36,7 @@ public class GenericRunner {
     private final Long ttl;
     private final String jobCategory;
     private final String jobName;
+    private final JobProcessor.Factory prcessorFactory;
 
     private final ScheduledExecutorService updateWorker = Executors.newSingleThreadScheduledExecutor();
 
@@ -51,6 +52,7 @@ public class GenericRunner {
         this.ttl = Math.max(MIN_TTL, configuration.ttl());
         this.jobCategory = configuration.jobCategory();
         this.jobName = configuration.jobName();
+        this.prcessorFactory = configuration.processorFactory();
     }
 
     public void start() throws RunnerInitializationException {
@@ -174,10 +176,11 @@ public class GenericRunner {
     }
 
     private Runnable jobProcessor(Job job) {
+        JobProcessor processor = this.prcessorFactory.createFor(job);
         return () -> {
             try {
-                Thread.sleep(3 * 1000L);
-            } catch (InterruptedException e) {
+                processor.process();
+            } catch (JobProcessingException e) {
                 e.printStackTrace();
             }
         };

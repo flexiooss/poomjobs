@@ -9,3 +9,5 @@ RunnerConfiguration:
   ttl: long
   jobCategory: string
   jobName: string
+  processorFactory:
+    $type: org.codingmatters.poom.runner.JobProcessor.Factory
