@@ -1,4 +1,4 @@
-package org.codingmatters.poom.runner;
+package org.codingmatters.poom.runner.exception;
 
 public class JobProcessingException extends Exception {
     public JobProcessingException(String s) {
