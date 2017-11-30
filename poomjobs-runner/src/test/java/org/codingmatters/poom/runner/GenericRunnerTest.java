@@ -187,6 +187,7 @@ public class GenericRunnerTest {
     }
 
     public void tearDownRunner() throws Exception {
+        this.runner.stop();
         this.jobWorker.shutdownNow();
     }
 
