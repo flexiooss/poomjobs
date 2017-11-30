@@ -28,6 +28,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -159,7 +160,7 @@ public class GenericRunnerTest {
     }
 
     public void tearDownRunnerRegistry() throws Exception {
-        this.runnerRegistryPool.shutdownNow();
+        this.stopExecutorService(this.runnerRegistryPool);
     }
 
     public void setUpRunner() throws Exception {
@@ -188,7 +189,19 @@ public class GenericRunnerTest {
 
     public void tearDownRunner() throws Exception {
         this.runner.stop();
-        this.jobWorker.shutdownNow();
+        this.stopExecutorService(this.jobWorker);
+    }
+
+    private void stopExecutorService(ExecutorService executorService) {
+        executorService.shutdown();
+        try {
+            executorService.awaitTermination(5000L, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        if(! executorService.isTerminated()) {
+            executorService.shutdownNow();
+        }
     }
 
     private Entity<JobValue> createPendingJob() throws org.codingmatters.poom.services.domain.exceptions.RepositoryException {
