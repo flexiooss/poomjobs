@@ -1,9 +1,8 @@
 package org.codingmatters.poom.runner;
 
-import org.codingmatters.poom.client.PoomjobsJobRegistryAPIClient;
-import org.codingmatters.poom.client.PoomjobsJobRegistryAPIHandlersClient;
-import org.codingmatters.poom.client.PoomjobsRunnerRegistryAPIClient;
-import org.codingmatters.poom.client.PoomjobsRunnerRegistryAPIHandlersClient;
+import com.fasterxml.jackson.core.JsonFactory;
+import okhttp3.OkHttpClient;
+import org.codingmatters.poom.client.*;
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.RunnerRepository;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
@@ -13,13 +12,17 @@ import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Runtime;
 import org.codingmatters.poom.runner.configuration.RunnerConfiguration;
+import org.codingmatters.poom.runner.tests.ClientListener;
 import org.codingmatters.poom.runner.tests.Eventually;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.RunnerCollectionGetRequest;
+import org.codingmatters.poomjobs.api.RunningJobPutResponse;
+import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.Runner;
 import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
 import org.codingmatters.poomjobs.service.PoomjobsRunnerRegistryAPI;
+import org.codingmatters.rest.api.client.okhttp.OkHttpRequesterFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class GenericRunnerTest {
@@ -48,6 +52,8 @@ public class GenericRunnerTest {
 
     private Repository<RunnerValue, RunnerQuery> runnerRepository = RunnerRepository.createInMemory();
     private ExecutorService runnerRegistryPool;
+    private RunnerConfiguration runnerConfiguration;
+    private PoomjobsRunnerAPIClient runnerEndpointClient;
 
     @Test
     public void runnerInitialization() throws Exception {
@@ -124,11 +130,68 @@ public class GenericRunnerTest {
         );
     }
 
+    @Test
+    public void whenJobIsSubmitted_andStatusIsRunning__thenReturnsAStatus409() throws Exception {
+        this.createPendingJob();
+        this.runner.start();
+
+        Eventually.assertThat(() -> this.runnerRepository.all(0, 0).total(), is(1L));
+        Entity<RunnerValue> registered = this.runnerRepository.retrieve(this.runner.id());
+        assertThat(registered.value().runtime().status(), is(Runtime.Status.RUNNING));
+
+
+        Entity<JobValue> entity = this.createPendingJob();
+        Job job = this.jobRegistry.jobCollection().jobResource().get(req -> req.jobId(entity.id())).status200().payload();
+
+        RunningJobPutResponse resp = this.runnerEndpointClient.runningJob().put(req ->
+                req
+                        .jobId(entity.id())
+                        .payload(job)
+        );
+
+        System.out.println(resp);
+        assertThat(resp.status409(), is(notNullValue()));
+    }
+
+    @Test
+    public void whenJobIsSubmitted_andStatusIsIdle__thenReturnsAStatus201_andJobIsProcessed() throws Exception {
+        this.runner.start();
+
+        Eventually.assertThat(() -> this.runnerRepository.all(0, 0).total(), is(1L));
+        Entity<RunnerValue> registered = this.runnerRepository.retrieve(this.runner.id());
+        assertThat(registered.value().runtime().status(), is(Runtime.Status.IDLE));
+
+
+        Entity<JobValue> entity = this.createPendingJob();
+        Job job = this.jobRegistry.jobCollection().jobResource().get(req -> req.jobId(entity.id())).status200().payload();
+
+        RunningJobPutResponse resp = this.runnerEndpointClient.runningJob().put(req ->
+                req
+                        .jobId(entity.id())
+                        .payload(job)
+        );
+
+        System.out.println(resp);
+        assertThat(resp.status201(), is(notNullValue()));
+
+        Thread.sleep(4 * 1000L);
+
+        Eventually.assertThat(
+                () -> this.jobRepository.retrieve(entity.id()).value().status(),
+                is(Status.builder()
+                        .run(Status.Run.DONE)
+                        .exit(Status.Exit.SUCCESS)
+                        .build()
+                )
+        );
+    }
+
     @Before
     public void setUp() throws Exception {
         this.setUpJobRegistry();
         this.setUpRunnerRegistry();
         this.setUpRunner();
+        this.setupRunnerEndpointClient();
     }
 
     @After
@@ -173,7 +236,7 @@ public class GenericRunnerTest {
 
 
         this.jobWorker = Executors.newFixedThreadPool(5);
-        this.runner = new GenericRunner(RunnerConfiguration.builder()
+        this.runnerConfiguration = RunnerConfiguration.builder()
                 .jobWorker(this.jobWorker)
                 .jobRegistryAPIClient(this.jobRegistry)
                 .runnerRegistryAPIClient(this.runnerRegistry)
@@ -195,7 +258,27 @@ public class GenericRunnerTest {
                 .jobRegistryUrl("http://localhost/fake/root")
                 .endpointHost("localhost")
                 .endpointPort(port)
-                .build());
+                .build();
+        this.runner = new GenericRunner(this.runnerConfiguration);
+    }
+
+    private void setupRunnerEndpointClient() {
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .eventListener(new ClientListener())
+                .build();
+
+
+        JsonFactory jsonFactory = new JsonFactory();
+
+        this.runnerEndpointClient = new PoomjobsRunnerAPIRequesterClient(
+                new OkHttpRequesterFactory(client),
+                jsonFactory,
+                String.format("http://%s:%s",
+                        this.runnerConfiguration.endpointHost(),
+                        this.runnerConfiguration.endpointPort()
+                )
+        );
     }
 
     public void tearDownRunner() throws Exception {
