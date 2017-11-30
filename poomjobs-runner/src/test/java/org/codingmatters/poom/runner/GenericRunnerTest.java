@@ -24,6 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.net.ServerSocket;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
@@ -164,6 +165,13 @@ public class GenericRunnerTest {
     }
 
     public void setUpRunner() throws Exception {
+
+        int port;
+        try(ServerSocket socket = new ServerSocket(0)) {
+            port = socket.getLocalPort();
+        }
+
+
         this.jobWorker = Executors.newFixedThreadPool(5);
         this.runner = new GenericRunner(RunnerConfiguration.builder()
                 .jobWorker(this.jobWorker)
@@ -184,6 +192,9 @@ public class GenericRunnerTest {
                             .withExit(org.codingmatters.poomjobs.api.types.job.Status.Exit.SUCCESS)
                     ));
                 })
+                .jobRegistryUrl("http://localhost/fake/root")
+                .endpointHost("localhost")
+                .endpointPort(port)
                 .build());
     }
 

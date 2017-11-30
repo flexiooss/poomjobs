@@ -5,6 +5,7 @@ import org.codingmatters.poom.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poom.runner.configuration.RunnerConfiguration;
 import org.codingmatters.poom.runner.exception.RunnerInitializationException;
 import org.codingmatters.poom.runner.internal.JobManager;
+import org.codingmatters.poom.runner.internal.RunnerEndpoint;
 import org.codingmatters.poom.runner.internal.StatusManager;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
 import org.codingmatters.poomjobs.api.RunnerCollectionPostResponse;
@@ -36,12 +37,17 @@ public class GenericRunner {
     private final String jobName;
     private final JobProcessor.Factory processorFactory;
 
+    private final String jobRegistryUrl;
+    private final String endpointHost;
+    private final int endpointPort;
+
     private final ScheduledExecutorService updateWorker = Executors.newSingleThreadScheduledExecutor();
 
     private String id;
 
     private StatusManager statusManager;
     private JobManager jobManager;
+    private RunnerEndpoint endpoint;
 
     public GenericRunner(RunnerConfiguration configuration) {
         this.jobRegistryAPIClient = configuration.jobRegistryAPIClient();
@@ -52,6 +58,9 @@ public class GenericRunner {
         this.jobCategory = configuration.jobCategory();
         this.jobName = configuration.jobName();
         this.processorFactory = configuration.processorFactory();
+        this.jobRegistryUrl = configuration.jobRegistryUrl();
+        this.endpointHost = configuration.endpointHost();
+        this.endpointPort = configuration.endpointPort();
     }
 
     public void start() throws RunnerInitializationException {
@@ -93,6 +102,15 @@ public class GenericRunner {
                     this.processorFactory
             );
 
+            this.endpoint = new RunnerEndpoint(
+                    this.statusManager,
+                    this.jobManager,
+                    this.jobRegistryUrl,
+                    this.endpointHost,
+                    this.endpointPort
+            );
+            this.endpoint.start();
+
             this.processPendingJobs();
         } catch (IOException e) {
             log.error("cannot connect to runner registry", e);
@@ -101,6 +119,7 @@ public class GenericRunner {
     }
 
     public void stop() {
+        this.endpoint.stop();
         this.updateWorker.shutdown();
         try {
             this.updateWorker.awaitTermination(1000L, TimeUnit.MILLISECONDS);

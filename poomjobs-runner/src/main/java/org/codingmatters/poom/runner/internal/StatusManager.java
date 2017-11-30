@@ -68,4 +68,8 @@ public class StatusManager {
                 Duration.between(LocalDateTime.now(), nextNotification).toMillis(), TimeUnit.MILLISECONDS
         );
     }
+
+    public RunnerStatusData.Status status() {
+        return this.currentStatus.get();
+    }
 }
