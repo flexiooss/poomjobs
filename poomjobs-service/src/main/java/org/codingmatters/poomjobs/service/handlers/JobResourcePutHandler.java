@@ -16,6 +16,7 @@ import org.codingmatters.poomjobs.api.jobresourcepatchresponse.Status404;
 import org.codingmatters.poomjobs.api.jobresourcepatchresponse.Status500;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.service.JobEntityTransformation;
+import org.codingmatters.poomjobs.service.PoomjobsJobRepositoryListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,9 +29,15 @@ public class JobResourcePutHandler implements ResourcePutProtocol<JobValue, JobQ
     static private final Logger log = LoggerFactory.getLogger(JobResourcePutHandler.class);
 
     private final Repository<JobValue, JobQuery> repository;
+    private final PoomjobsJobRepositoryListener jobRepositoryListener;
 
     public JobResourcePutHandler(Repository<JobValue, JobQuery> repository) {
-        this.repository = repository;
+        this(repository, PoomjobsJobRepositoryListener.NOOP);
+    }
+
+    public JobResourcePutHandler(Repository<JobValue, JobQuery> jobRepository, PoomjobsJobRepositoryListener jobRepositoryListener) {
+        this.repository = jobRepository;
+        this.jobRepositoryListener = jobRepositoryListener;
     }
 
     @Override
@@ -57,6 +64,7 @@ public class JobResourcePutHandler implements ResourcePutProtocol<JobValue, JobQ
 
     @Override
     public JobResourcePatchResponse entityUpdated(Entity<JobValue> entity) {
+        this.jobRepositoryListener.jobUpdated(entity);
         return JobResourcePatchResponse.builder()
                 .status200(Status200.builder()
                         .payload(JobEntityTransformation.transform(entity).asJob())

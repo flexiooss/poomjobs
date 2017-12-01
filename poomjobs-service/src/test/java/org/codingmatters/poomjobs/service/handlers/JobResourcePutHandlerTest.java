@@ -15,10 +15,11 @@ import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 import org.codingmatters.poomjobs.service.JobEntityTransformation;
 import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
+import org.codingmatters.poomjobs.service.handlers.test.TestJobRepositoryListener;
+import org.junit.Rule;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -27,7 +28,11 @@ import static org.junit.Assert.assertThat;
 public class JobResourcePutHandlerTest {
 
     private Repository<JobValue, JobQuery> repository = JobRepository.createInMemory();
-    private JobResourcePutHandler handler = (JobResourcePutHandler) new PoomjobsJobRegistryAPI(this.repository).handlers().jobResourcePatchHandler();
+
+    @Rule
+    public TestJobRepositoryListener listener = new TestJobRepositoryListener();
+
+    private JobResourcePutHandler handler = (JobResourcePutHandler) new PoomjobsJobRegistryAPI(this.repository, this.listener).handlers().jobResourcePatchHandler();
 
 
     @Test
@@ -85,6 +90,15 @@ public class JobResourcePutHandlerTest {
 
         assertThat(response.status200(), is(notNullValue()));
         assertThat(response.status200().payload(), is(JobEntityTransformation.transform(entity).asJob()));
+    }
+
+    @Test
+    public void whenEntityUpdated__thenListenerIsNotified() throws Exception {
+        Entity<JobValue> entity = this.repository.create(JobValue.builder().build());
+        this.handler.entityUpdated(entity);
+
+        assertThat(this.listener.updated(), is(entity));
+        assertThat(this.listener.created(), is(nullValue()));
     }
 
     @Test

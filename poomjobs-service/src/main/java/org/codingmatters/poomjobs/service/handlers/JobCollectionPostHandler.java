@@ -16,6 +16,7 @@ import org.codingmatters.poomjobs.api.jobcollectionpostresponse.Status400;
 import org.codingmatters.poomjobs.api.jobcollectionpostresponse.Status500;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.service.JobValueMerger;
+import org.codingmatters.poomjobs.service.PoomjobsJobRepositoryListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,9 +27,15 @@ public class JobCollectionPostHandler implements CollectionPostProtocol<JobValue
     static private final Logger log = LoggerFactory.getLogger(JobCollectionPostHandler.class);
 
     private final Repository<JobValue, JobQuery> repository;
+    private final PoomjobsJobRepositoryListener jobRepositoryListener;
 
     public JobCollectionPostHandler(Repository<JobValue, JobQuery> repository) {
+        this(repository, PoomjobsJobRepositoryListener.NOOP);
+    }
+
+    public JobCollectionPostHandler(Repository<JobValue, JobQuery> repository, PoomjobsJobRepositoryListener jobRepositoryListener) {
         this.repository = repository;
+        this.jobRepositoryListener = jobRepositoryListener;
     }
 
     @Override
@@ -54,6 +61,7 @@ public class JobCollectionPostHandler implements CollectionPostProtocol<JobValue
 
     @Override
     public JobCollectionPostResponse entityCreated(Change<JobValue> creation, Entity<JobValue> entity) {
+        this.jobRepositoryListener.jobCreated(entity);
         return JobCollectionPostResponse.builder()
                 .status201(Status201.builder()
                         .location("%API_PATH%/jobs/" + entity.id())

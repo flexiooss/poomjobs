@@ -13,6 +13,8 @@ import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
+import org.codingmatters.poomjobs.service.handlers.test.TestJobRepositoryListener;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
@@ -24,7 +26,11 @@ import static org.junit.Assert.assertThat;
 public class JobCollectionPostHandlerTest {
 
     private Repository<JobValue, JobQuery> repository = JobRepository.createInMemory();
-    private JobCollectionPostHandler handler = (JobCollectionPostHandler) new PoomjobsJobRegistryAPI(this.repository).handlers().jobCollectionPostHandler();
+
+    @Rule
+    public TestJobRepositoryListener listener = new TestJobRepositoryListener();
+
+    private JobCollectionPostHandler handler = (JobCollectionPostHandler) new PoomjobsJobRegistryAPI(this.repository, this.listener).handlers().jobCollectionPostHandler();
 
     @Test
     public void log() throws Exception {
@@ -64,6 +70,19 @@ public class JobCollectionPostHandlerTest {
 
         assertThat(response.status201(), is(notNullValue()));
         assertThat(response.status201().location(), is("%API_PATH%/jobs/" + entity.id()));
+    }
+
+
+
+    @Test
+    public void whenEntityCreated__thenListenerIsNotified() throws Exception {
+        JobValueCreation creation = JobValueCreation.with(JobValue.builder().build());
+        Entity<JobValue> entity = this.repository.create(creation.applied());
+
+        this.handler.entityCreated(creation, entity);
+
+        assertThat(this.listener.created(), is(entity));
+        assertThat(this.listener.updated(), is(nullValue()));
     }
 
     @Test

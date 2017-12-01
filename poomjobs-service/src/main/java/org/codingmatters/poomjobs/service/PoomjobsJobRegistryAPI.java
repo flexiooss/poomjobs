@@ -16,13 +16,17 @@ public class PoomjobsJobRegistryAPI {
     private final PoomjobsJobRegistryAPIHandlers handlers;
 
     public PoomjobsJobRegistryAPI(
-            Repository<JobValue, JobQuery> jobRepository
-    ) {
+            Repository<JobValue, JobQuery> jobRepository) {
+        this(jobRepository, PoomjobsJobRepositoryListener.NOOP);
+    }
+    public PoomjobsJobRegistryAPI(
+            Repository<JobValue, JobQuery> jobRepository,
+            PoomjobsJobRepositoryListener jobRepositoryListener) {
         this.handlers = new PoomjobsJobRegistryAPIHandlers.Builder()
                 .jobCollectionGetHandler(new JobCollectionGetHandler(jobRepository))
-                .jobCollectionPostHandler(new JobCollectionPostHandler(jobRepository))
+                .jobCollectionPostHandler(new JobCollectionPostHandler(jobRepository, jobRepositoryListener))
                 .jobResourceGetHandler(new JobResourceGetHandler(jobRepository))
-                .jobResourcePatchHandler(new JobResourcePutHandler(jobRepository))
+                .jobResourcePatchHandler(new JobResourcePutHandler(jobRepository, jobRepositoryListener))
                 .build();
     }
 
