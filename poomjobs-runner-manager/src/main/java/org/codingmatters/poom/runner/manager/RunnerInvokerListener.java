@@ -37,6 +37,13 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
         this.findRunnerAndDeleguateJob(entity);
     }
 
+    @Override
+    public void jobUpdated(Entity<JobValue> entity) {
+        if(Status.Run.PENDING.equals(entity.value().opt().status().run().orElse(Status.Run.DONE))) {
+            this.findRunnerAndDeleguateJob(entity);
+        }
+    }
+
     private void findRunnerAndDeleguateJob(Entity<JobValue> entity) {
         try {
             RunnerCollectionGetResponse response = this.runnerRegistry.runnerCollection().get(req -> req
@@ -69,13 +76,6 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
             }
         } catch (IOException e) {
             log.error("problem occurred while looking up runner for job " + entity.id(), e);
-        }
-    }
-
-    @Override
-    public void jobUpdated(Entity<JobValue> entity) {
-        if(entity.value().opt().status().run().orElse(Status.Run.DONE).equals(Status.Run.PENDING)) {
-            this.findRunnerAndDeleguateJob(entity);
         }
     }
 

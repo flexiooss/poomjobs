@@ -8,6 +8,7 @@ import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.RunnerRepository;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Runtime;
@@ -34,6 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class RunnerInvokerListenerTest {
@@ -125,5 +127,68 @@ public class RunnerInvokerListenerTest {
         this.runnerInvokerListener.jobCreated(jobEntity);
 
         assertThat(runnerRequestJob.get().id(), is(jobEntity.id()));
+    }
+
+    @Test
+    public void givenRunnerExists__whenJobUpdatedForRunnerCompetenciesWithPendingStatus__thenRunnerGetsDelegatedTheJob() throws Exception {
+        this.runnerRepository.create(RunnerValue.builder()
+                .callback(this.undertow.baseUrl())
+                .competencies(competencies -> competencies.categories("TEST").names("TEST"))
+                .timeToLive(20000L)
+                .runtime(runtime -> runtime
+                        .status(Runtime.Status.IDLE)
+                        .created(LocalDateTime.now())
+                        .lastPing(LocalDateTime.now())
+                )
+                .build());
+
+        AtomicReference<Job> runnerRequestJob = new AtomicReference<>();
+
+        this.runnerPutResponder = request -> {
+            Job job = request.payload();
+            runnerRequestJob.set(job);
+            return RunningJobPutResponse.builder()
+                    .status201(status -> status.location("http://fake.job.repo/jobs/" + job.id())).build();
+        };
+
+        Entity<JobValue> jobEntity = this.jobRepository.create(JobValue.builder()
+                .category("TEST")
+                .name("TEST")
+                .status(status -> status.run(Status.Run.PENDING))
+                .build());
+        this.runnerInvokerListener.jobUpdated(jobEntity);
+
+        assertThat(runnerRequestJob.get().id(), is(jobEntity.id()));
+    }
+    @Test
+    public void givenRunnerExists__whenJobUpdatedForRunnerCompetenciesWithNotPendingStatus__thenRunnerIsNotDelegatedTheJob() throws Exception {
+        this.runnerRepository.create(RunnerValue.builder()
+                .callback(this.undertow.baseUrl())
+                .competencies(competencies -> competencies.categories("TEST").names("TEST"))
+                .timeToLive(20000L)
+                .runtime(runtime -> runtime
+                        .status(Runtime.Status.IDLE)
+                        .created(LocalDateTime.now())
+                        .lastPing(LocalDateTime.now())
+                )
+                .build());
+
+        AtomicReference<Job> runnerRequestJob = new AtomicReference<>();
+
+        this.runnerPutResponder = request -> {
+            Job job = request.payload();
+            runnerRequestJob.set(job);
+            return RunningJobPutResponse.builder()
+                    .status201(status -> status.location("http://fake.job.repo/jobs/" + job.id())).build();
+        };
+
+        Entity<JobValue> jobEntity = this.jobRepository.create(JobValue.builder()
+                .category("TEST")
+                .name("TEST")
+                .status(status -> status.run(Status.Run.RUNNING))
+                .build());
+        this.runnerInvokerListener.jobUpdated(jobEntity);
+
+        assertThat(runnerRequestJob.get(), is(nullValue()));
     }
 }
