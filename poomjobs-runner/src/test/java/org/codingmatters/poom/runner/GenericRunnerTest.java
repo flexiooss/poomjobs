@@ -52,6 +52,7 @@ public class GenericRunnerTest {
 
     private Repository<RunnerValue, RunnerQuery> runnerRepository = RunnerRepository.createInMemory();
     private ExecutorService runnerRegistryPool;
+
     private RunnerConfiguration runnerConfiguration;
     private PoomjobsRunnerAPIClient runnerEndpointClient;
 

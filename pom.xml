@@ -27,5 +27,6 @@
         <module>poomjobs-service</module>
         <module>poomjobs-clients</module>
         <module>poomjobs-runner</module>
+        <module>poomjobs-runner-manager</module>
     </modules>
 </project>
