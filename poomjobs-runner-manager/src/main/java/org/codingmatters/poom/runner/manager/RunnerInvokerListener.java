@@ -27,9 +27,11 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
     static private final Logger log = LoggerFactory.getLogger(RunnerInvokerListener.class);
 
     private final PoomjobsRunnerRegistryAPIClient runnerRegistry;
+    private final OkHttpClient client;
 
     public RunnerInvokerListener(PoomjobsRunnerRegistryAPIClient runnerRegistry) {
         this.runnerRegistry = runnerRegistry;
+        this.client = new OkHttpClient.Builder().build();
     }
 
     @Override
@@ -80,10 +82,9 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
     }
 
     private PoomjobsRunnerAPIClient runnerClient(Runner runner) {
-        OkHttpClient client = new OkHttpClient.Builder().build();
         JsonFactory jsonFactory = new JsonFactory();
         PoomjobsRunnerAPIClient result = new PoomjobsRunnerAPIRequesterClient(
-                new OkHttpRequesterFactory(client),
+                new OkHttpRequesterFactory(this.client),
                 jsonFactory,
                 runner.callback());
         return result;
