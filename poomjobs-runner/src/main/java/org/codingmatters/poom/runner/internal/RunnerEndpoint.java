@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class RunnerEndpoint {
     static private final Logger log = LoggerFactory.getLogger(RunnerEndpoint.class);
@@ -25,6 +27,8 @@ public class RunnerEndpoint {
     private final int port;
 
     private final PoomjobsRunnerAPIHandlers handlers;
+
+    private final ExecutorService deleguate = Executors.newFixedThreadPool(1);
 
     private Undertow server;
 
@@ -75,7 +79,8 @@ public class RunnerEndpoint {
             this.statusManager.updateStatus(RunnerStatusData.Status.RUNNING);
         }
         Job job = request.payload();
-        this.jobManager.processJob(job);
+
+        this.deleguate.submit(() -> this.jobManager.processJob(job));
 
         return RunningJobPutResponse.builder().status201(status ->
                 status.location(this.jobRegistryUrl + "/jobs/" + job.id()))

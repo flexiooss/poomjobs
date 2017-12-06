@@ -7,10 +7,7 @@ import org.codingmatters.poom.runner.exception.RunnerInitializationException;
 import org.codingmatters.poom.runner.internal.JobManager;
 import org.codingmatters.poom.runner.internal.RunnerEndpoint;
 import org.codingmatters.poom.runner.internal.StatusManager;
-import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
 import org.codingmatters.poomjobs.api.RunnerCollectionPostResponse;
-import org.codingmatters.poomjobs.api.ValueList;
-import org.codingmatters.poomjobs.api.types.Job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +39,7 @@ public class GenericRunner {
     private final int endpointPort;
 
     private final ScheduledExecutorService updateWorker = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService boostrapPool = Executors.newSingleThreadScheduledExecutor();
 
     private String id;
 
@@ -99,8 +97,9 @@ public class GenericRunner {
                     this.statusManager,
                     this.jobRegistryAPIClient,
                     this.jobWorker,
-                    this.processorFactory
-            );
+                    this.processorFactory,
+                    this.jobCategory,
+                    this.jobName);
 
             this.endpoint = new RunnerEndpoint(
                     this.statusManager,
@@ -111,56 +110,41 @@ public class GenericRunner {
             );
             this.endpoint.start();
 
-            this.processPendingJobs();
+            this.bootstrap();
         } catch (IOException e) {
             log.error("cannot connect to runner registry", e);
             throw new RunnerInitializationException("cannot connect to runner registry", e);
         }
     }
 
+    private void bootstrap() {
+        this.boostrapPool.submit(() -> this.jobManager.processPendingJobs());
+    }
+
     public void stop() {
         this.endpoint.stop();
-        this.updateWorker.shutdown();
-        try {
-            this.updateWorker.awaitTermination(1000L, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            log.error("failed waiting for update worker clean shutdown");
-        }
-        if(!this.updateWorker.isTerminated()) {
-            int stoppedJobCount = this.updateWorker.shutdownNow().size();
-            log.warn("couldn't cleanly stop update worker, forcing shutdown, {} jobs have been cancelled.");
-        }
+        this.shutdownPool(this.updateWorker, "update worker");
+        this.shutdownPool(this.boostrapPool, "bootstrap pool");
         this.statusManager = null;
         this.jobManager = null;
+    }
+
+    private void shutdownPool(ExecutorService pool, String name) {
+        pool.shutdown();
+        try {
+            pool.awaitTermination(1000L, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            log.error("failed waiting for {} clean shutdown", name);
+        }
+        if(!pool.isTerminated()) {
+            int stoppedJobCount = pool.shutdownNow().size();
+            log.warn("couldn't cleanly stop {}, forcing shutdown, {} jobs have been cancelled.", name, stoppedJobCount);
+        }
     }
 
     public String id() {
         return this.id;
     }
 
-    private void processPendingJobs() {
-        try {
-            JobCollectionGetResponse response = this.jobRegistryAPIClient.jobCollection().get(request ->
-                    request
-                            .category(this.jobCategory)
-                            .name(this.jobName)
-                            .runStatus("PENDING")
-                            .range("0-1")
-            );
-
-            ValueList<Job> jobs = response.opt().status200().payload()
-                    .orElseGet(() ->
-                            response.opt().status206().payload()
-                                    .orElse(new ValueList.Builder<Job>().build())
-                    );
-
-            if (!jobs.isEmpty()) {
-                this.jobManager.processJob(jobs.get(0));
-                this.processPendingJobs();
-            }
-        } catch (IOException e) {
-            log.error("error retrieving jobs from repository", e);
-        }
-    }
 
 }

@@ -3,7 +3,9 @@ package org.codingmatters.poom.runner.internal;
 import org.codingmatters.poom.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
+import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
 import org.codingmatters.poomjobs.api.JobResourcePatchResponse;
+import org.codingmatters.poomjobs.api.ValueList;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.RunnerStatusData;
 import org.codingmatters.poomjobs.api.types.jobupdatedata.Status;
@@ -11,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
 public class JobManager {
@@ -21,12 +24,20 @@ public class JobManager {
     private final PoomjobsJobRegistryAPIClient jobRegistryAPIClient;
     private final ExecutorService jobWorker;
     private final JobProcessor.Factory processorFactory;
+    private final String jobCategory;
+    private final String jobName;
 
-    public JobManager(StatusManager statusManager, PoomjobsJobRegistryAPIClient jobRegistryAPIClient, ExecutorService jobWorker, JobProcessor.Factory processorFactory) {
+    public JobManager(
+            StatusManager statusManager,
+            PoomjobsJobRegistryAPIClient jobRegistryAPIClient,
+            ExecutorService jobWorker,
+            JobProcessor.Factory processorFactory, String jobCategory, String jobName) {
         this.statusManager = statusManager;
         this.jobRegistryAPIClient = jobRegistryAPIClient;
         this.jobWorker = jobWorker;
         this.processorFactory = processorFactory;
+        this.jobCategory = jobCategory;
+        this.jobName = jobName;
     }
 
 
@@ -45,7 +56,12 @@ public class JobManager {
                     )
             );
             if (response.opt().status200().isPresent()) {
-                this.jobWorker.submit(this.jobProcessor(job));
+                try {
+                    this.jobWorker.submit(this.jobProcessor(job)).get();
+                    this.processPendingJobs();
+                } catch (InterruptedException | ExecutionException e) {
+                    log.error("error running job " + job, e);
+                }
             } else {
                 log.warn("job repository refused our RUNNING update on job : {}", job);
                 this.statusManager.updateStatus(RunnerStatusData.Status.IDLE);
@@ -56,6 +72,35 @@ public class JobManager {
 
     }
 
+    public void processPendingJobs() {
+        try {
+            JobCollectionGetResponse response = this.jobRegistryAPIClient.jobCollection().get(request ->
+                    request
+                            .category(this.jobCategory)
+                            .name(this.jobName)
+                            .runStatus("PENDING")
+                            .range("0-1")
+            );
+
+            ValueList<Job> jobs = response.opt().status200().payload()
+                    .orElseGet(() ->
+                            response.opt().status206().payload()
+                                    .orElse(new ValueList.Builder<Job>().build())
+                    );
+
+            if (!jobs.isEmpty()) {
+                log.info("running job {}", jobs.get(0).id());
+                this.processJob(jobs.get(0));
+                log.info("job finished {}", jobs.get(0).id());
+                this.processPendingJobs();
+            } else {
+                log.info("no job to process, setting status to IDLE");
+                this.statusManager.updateStatus(RunnerStatusData.Status.IDLE);
+            }
+        } catch (IOException e) {
+            log.error("error retrieving jobs from repository", e);
+        }
+    }
     private Runnable jobProcessor(Job job) {
         JobProcessor processor = this.processorFactory.createFor(job);
         return () -> process(processor);

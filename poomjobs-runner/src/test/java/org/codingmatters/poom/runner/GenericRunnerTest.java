@@ -33,6 +33,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -55,6 +56,8 @@ public class GenericRunnerTest {
 
     private RunnerConfiguration runnerConfiguration;
     private PoomjobsRunnerAPIClient runnerEndpointClient;
+
+    private AtomicLong runnerSleepTime = new AtomicLong(1 * 1000L);
 
     @Test
     public void runnerInitialization() throws Exception {
@@ -95,11 +98,11 @@ public class GenericRunnerTest {
         Entity<JobValue> entity = this.createPendingJob();
 
         this.runner.start();
-        Eventually.assertThat(() -> this.runnerRepository.all(0, 0).total(), is(1L));
 
-        Entity<RunnerValue> registered = this.runnerRepository.retrieve(this.runner.id());
-
-        assertThat(registered.value().runtime().status(), is(Runtime.Status.RUNNING));
+        Eventually.assertThat(
+                () -> this.runnerRepository.retrieve(this.runner.id()).value().runtime().status(),
+                is(Runtime.Status.RUNNING)
+        );
     }
 
     @Test
@@ -109,11 +112,14 @@ public class GenericRunnerTest {
         this.runner.start();
         Eventually.assertThat(() -> this.runnerRepository.all(0, 0).total(), is(1L));
 
-        assertThat(this.jobRepository.retrieve(entity.id()).value().status().run(), is(Status.Run.RUNNING));
+        Eventually.assertThat(
+                () -> this.jobRepository.retrieve(entity.id()).value().status().run(),
+                is(Status.Run.RUNNING)
+        );
     }
 
     @Test
-    public void whenJobHasBeenProcessed__thenJobStatusIsDone() throws Exception {
+    public void whenJobHasBeenProcessed__thenJobStatusIsDone_AndRunnerStatusIsIdle() throws Exception {
         Entity<JobValue> entity = this.createPendingJob();
 
         this.runner.start();
@@ -129,6 +135,12 @@ public class GenericRunnerTest {
                         .build()
                 )
         );
+
+        Eventually.assertThat(
+                () -> this.runnerRepository.retrieve(this.runner.id()).value().runtime().status(),
+                is(Runtime.Status.IDLE)
+        );
+
     }
 
     @Test
@@ -137,9 +149,7 @@ public class GenericRunnerTest {
         this.runner.start();
 
         Eventually.assertThat(() -> this.runnerRepository.all(0, 0).total(), is(1L));
-        Entity<RunnerValue> registered = this.runnerRepository.retrieve(this.runner.id());
-        assertThat(registered.value().runtime().status(), is(Runtime.Status.RUNNING));
-
+        Eventually.assertThat(() -> this.runnerRepository.all(0, 0).get(0).value().runtime().status(), is(Runtime.Status.RUNNING));
 
         Entity<JobValue> entity = this.createPendingJob();
         Job job = this.jobRegistry.jobCollection().jobResource().get(req -> req.jobId(entity.id())).status200().payload();
@@ -150,7 +160,6 @@ public class GenericRunnerTest {
                         .payload(job)
         );
 
-        System.out.println(resp);
         assertThat(resp.status409(), is(notNullValue()));
     }
 
@@ -159,23 +168,18 @@ public class GenericRunnerTest {
         this.runner.start();
 
         Eventually.assertThat(() -> this.runnerRepository.all(0, 0).total(), is(1L));
-        Entity<RunnerValue> registered = this.runnerRepository.retrieve(this.runner.id());
-        assertThat(registered.value().runtime().status(), is(Runtime.Status.IDLE));
+        Eventually.assertThat(() -> this.runnerRepository.all(0, 0).get(0).value().runtime().status(), is(Runtime.Status.IDLE));
 
 
         Entity<JobValue> entity = this.createPendingJob();
         Job job = this.jobRegistry.jobCollection().jobResource().get(req -> req.jobId(entity.id())).status200().payload();
 
-        RunningJobPutResponse resp = this.runnerEndpointClient.runningJob().put(req ->
-                req
-                        .jobId(entity.id())
-                        .payload(job)
+        Thread.sleep(this.runnerSleepTime.get());
+
+        Eventually.assertThat(
+                () -> this.runnerEndpointClient.runningJob().put(req -> req.jobId(entity.id()).payload(job)).status201(),
+                is(notNullValue())
         );
-
-        System.out.println(resp);
-        assertThat(resp.status201(), is(notNullValue()));
-
-        Thread.sleep(4 * 1000L);
 
         Eventually.assertThat(
                 () -> this.jobRepository.retrieve(entity.id()).value().status(),
@@ -235,7 +239,6 @@ public class GenericRunnerTest {
             port = socket.getLocalPort();
         }
 
-
         this.jobWorker = Executors.newFixedThreadPool(5);
         this.runnerConfiguration = RunnerConfiguration.builder()
                 .jobWorker(this.jobWorker)
@@ -246,11 +249,13 @@ public class GenericRunnerTest {
                 .jobCategory("TEST")
                 .jobName("TEST")
                 .processorFactory(job -> () -> {
+                    System.out.println("job started : " + job.id());
                     try {
-                        Thread.sleep(3 * 1000L);
+                        Thread.sleep(this.runnerSleepTime.get());
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+                    System.out.println("job done : " + job.id());
                     return job.changed(builder -> builder.status(job.status()
                             .withRun(org.codingmatters.poomjobs.api.types.job.Status.Run.DONE)
                             .withExit(org.codingmatters.poomjobs.api.types.job.Status.Exit.SUCCESS)

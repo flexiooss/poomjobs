@@ -4,11 +4,10 @@ import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Supplier;
 
 public class Eventually {
 
-    static private AtomicLong timeout = new AtomicLong(2 * 000L);
+    static private AtomicLong timeout = new AtomicLong(2 * 1000L);
 
     public static void timeout(long t) {
         timeout.set(t);
