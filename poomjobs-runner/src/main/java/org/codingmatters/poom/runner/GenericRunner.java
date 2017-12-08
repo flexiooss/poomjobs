@@ -62,6 +62,7 @@ public class GenericRunner {
     }
 
     public void start() throws RunnerInitializationException {
+        log.info("starting runner by registering to runners service");
         RunnerCollectionPostResponse response = null;
         try {
             LocalDateTime firstPing = LocalDateTime.now();
@@ -78,6 +79,7 @@ public class GenericRunner {
                                             )
                             )
                             .build());
+            log.debug("runners service responded : {}", response);
             if (response.status201() != null) {
                 String[] splitted = response.status201().location().split("/");
                 this.id = splitted[splitted.length - 1];
