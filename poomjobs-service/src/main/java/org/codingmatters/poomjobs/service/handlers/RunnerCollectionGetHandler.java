@@ -45,7 +45,7 @@ public class RunnerCollectionGetHandler implements CollectionGetProtocol<RunnerV
     }
 
     @Override
-    public Repository<RunnerValue, RunnerQuery> repository() {
+    public Repository<RunnerValue, RunnerQuery> repository(RunnerCollectionGetRequest request) {
         return this.repository;
     }
 

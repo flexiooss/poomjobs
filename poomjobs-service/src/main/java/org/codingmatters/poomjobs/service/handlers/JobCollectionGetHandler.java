@@ -55,7 +55,7 @@ public class JobCollectionGetHandler implements CollectionGetProtocol<JobValue, 
     }
 
     @Override
-    public Repository<JobValue, JobQuery> repository() {
+    public Repository<JobValue, JobQuery> repository(JobCollectionGetRequest request) {
         return this.repository;
     }
 
