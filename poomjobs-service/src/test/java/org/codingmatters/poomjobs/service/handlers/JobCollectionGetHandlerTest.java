@@ -2,8 +2,10 @@ package org.codingmatters.poomjobs.service.handlers;
 
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobCriteria;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
+import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.support.paging.Rfc7233Pager;
 import org.codingmatters.poomjobs.api.JobCollectionGetRequest;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
@@ -19,7 +21,8 @@ import static org.junit.Assert.assertThat;
  */
 public class JobCollectionGetHandlerTest {
 
-    private PoomjobsJobRegistryAPI api = new PoomjobsJobRegistryAPI(JobRepository.createInMemory());
+    private final Repository<JobValue, JobQuery> repository = JobRepository.createInMemory();
+    private PoomjobsJobRegistryAPI api = new PoomjobsJobRegistryAPI(repository);
     private JobCollectionGetHandler handler = (JobCollectionGetHandler) this.api.handlers().jobCollectionGetHandler();
 
     @Test
@@ -61,13 +64,13 @@ public class JobCollectionGetHandlerTest {
     @Test
     public void partialJobList() throws Exception {
         for(int i = 0 ; i < 15 ; i++) {
-            this.handler.repository().create(JobValue.builder().name("name-" + i).build());
+            this.repository.create(JobValue.builder().name("name-" + i).build());
         }
 
         Rfc7233Pager.Page<JobValue> page = Rfc7233Pager.forRequestedRange("5-9")
                 .unit("String")
                 .maxPageSize(10)
-                .pager(this.handler.repository())
+                .pager(this.repository)
                 .page();
 
         JobCollectionGetResponse response = this.handler.partialList(page);
@@ -80,13 +83,13 @@ public class JobCollectionGetHandlerTest {
     @Test
     public void completeList() throws Exception {
         for(int i = 0 ; i < 10 ; i++) {
-            this.handler.repository().create(JobValue.builder().name("name-" + i).build());
+            this.repository.create(JobValue.builder().name("name-" + i).build());
         }
 
         Rfc7233Pager.Page<JobValue> page = Rfc7233Pager.forRequestedRange("0-9")
                 .unit("String")
                 .maxPageSize(10)
-                .pager(this.handler.repository())
+                .pager(this.repository)
                 .page();
 
         JobCollectionGetResponse response = this.handler.completeList(page);
@@ -99,13 +102,13 @@ public class JobCollectionGetHandlerTest {
     @Test
     public void invalidRangeQuery() throws Exception {
         for(int i = 0 ; i < 10 ; i++) {
-            this.handler.repository().create(JobValue.builder().name("name-" + i).build());
+            this.repository.create(JobValue.builder().name("name-" + i).build());
         }
 
         Rfc7233Pager.Page<JobValue> page = Rfc7233Pager.forRequestedRange("10-9")
                 .unit("String")
                 .maxPageSize(10)
-                .pager(this.handler.repository())
+                .pager(this.repository)
                 .page();
 
         JobCollectionGetResponse response = this.handler.invalidRangeQuery(page, "error-token");

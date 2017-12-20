@@ -2,8 +2,10 @@ package org.codingmatters.poomjobs.service.handlers;
 
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.RunnerRepository;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerCriteria;
+import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
+import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.support.paging.Rfc7233Pager;
 import org.codingmatters.poomjobs.api.RunnerCollectionGetRequest;
 import org.codingmatters.poomjobs.api.RunnerCollectionGetResponse;
@@ -18,7 +20,8 @@ import static org.junit.Assert.assertThat;
  * Created by nelt on 7/12/17.
  */
 public class RunnerCollectionGetHandlerTest {
-    private PoomjobsRunnerRegistryAPI api = new PoomjobsRunnerRegistryAPI(RunnerRepository.createInMemory());
+    private final Repository<RunnerValue, RunnerQuery> repository = RunnerRepository.createInMemory();
+    private PoomjobsRunnerRegistryAPI api = new PoomjobsRunnerRegistryAPI(repository);
     private RunnerCollectionGetHandler handler = (RunnerCollectionGetHandler) this.api.handlers().runnerCollectionGetHandler();
 
     @Test
@@ -58,13 +61,13 @@ public class RunnerCollectionGetHandlerTest {
     @Test
     public void partialJobList() throws Exception {
         for(int i = 0 ; i < 15 ; i++) {
-            this.handler.repository().create(RunnerValue.builder().build());
+            this.repository.create(RunnerValue.builder().build());
         }
 
         Rfc7233Pager.Page<RunnerValue> page = Rfc7233Pager.forRequestedRange("5-9")
                 .unit("String")
                 .maxPageSize(10)
-                .pager(this.handler.repository())
+                .pager(this.repository)
                 .page();
 
         RunnerCollectionGetResponse response = this.handler.partialList(page);
@@ -77,13 +80,13 @@ public class RunnerCollectionGetHandlerTest {
     @Test
     public void completeList() throws Exception {
         for(int i = 0 ; i < 10 ; i++) {
-            this.handler.repository().create(RunnerValue.builder().build());
+            this.repository.create(RunnerValue.builder().build());
         }
 
         Rfc7233Pager.Page<RunnerValue> page = Rfc7233Pager.forRequestedRange("0-9")
                 .unit("String")
                 .maxPageSize(10)
-                .pager(this.handler.repository())
+                .pager(this.repository)
                 .page();
 
         RunnerCollectionGetResponse response = this.handler.completeList(page);
@@ -96,13 +99,13 @@ public class RunnerCollectionGetHandlerTest {
     @Test
     public void invalidRangeQuery() throws Exception {
         for(int i = 0 ; i < 10 ; i++) {
-            this.handler.repository().create(RunnerValue.builder().build());
+            this.repository.create(RunnerValue.builder().build());
         }
 
         Rfc7233Pager.Page<RunnerValue> page = Rfc7233Pager.forRequestedRange("10-9")
                 .unit("String")
                 .maxPageSize(10)
-                .pager(this.handler.repository())
+                .pager(this.repository)
                 .page();
 
         RunnerCollectionGetResponse response = this.handler.invalidRangeQuery(page, "error-token");
