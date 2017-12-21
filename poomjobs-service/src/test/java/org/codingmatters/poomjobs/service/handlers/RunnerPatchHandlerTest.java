@@ -35,7 +35,7 @@ public class RunnerPatchHandlerTest {
 
     @Test
     public void repository() throws Exception {
-        assertThat(this.handler.repository(), is(this.repository));
+        assertThat(this.handler.repository(null), is(this.repository));
     }
 
     @Test

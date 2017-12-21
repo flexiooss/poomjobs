@@ -34,7 +34,7 @@ public class JobResourceGetHandler implements ResourceGetProtocol<JobValue, JobQ
     }
 
     @Override
-    public Repository<JobValue, JobQuery> repository() {
+    public Repository<JobValue, JobQuery> repository(JobResourceGetRequest request) {
         return this.repository;
     }
 

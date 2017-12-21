@@ -51,7 +51,7 @@ public class JobResourcePutHandler implements ResourcePutProtocol<JobValue, JobQ
     }
 
     @Override
-    public Repository<JobValue, JobQuery> repository() {
+    public Repository<JobValue, JobQuery> repository(JobResourcePatchRequest request) {
         return repository;
     }
 

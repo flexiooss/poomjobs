@@ -33,7 +33,7 @@ public class RunnerGetHandler implements ResourceGetProtocol<RunnerValue, Runner
     }
 
     @Override
-    public Repository<RunnerValue, RunnerQuery> repository() {
+    public Repository<RunnerValue, RunnerQuery> repository(RunnerGetRequest request) {
         return this.repository;
     }
 

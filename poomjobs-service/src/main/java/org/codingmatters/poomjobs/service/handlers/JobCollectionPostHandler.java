@@ -44,7 +44,7 @@ public class JobCollectionPostHandler implements CollectionPostProtocol<JobValue
     }
 
     @Override
-    public Repository<JobValue, JobQuery> repository() {
+    public Repository<JobValue, JobQuery> repository(JobCollectionPostRequest jobCollectionPostRequest) {
         return this.repository;
     }
 

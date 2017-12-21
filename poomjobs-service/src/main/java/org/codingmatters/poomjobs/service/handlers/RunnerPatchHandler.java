@@ -38,7 +38,7 @@ public class RunnerPatchHandler implements ResourcePutProtocol<RunnerValue, Runn
     }
 
     @Override
-    public Repository<RunnerValue, RunnerQuery> repository() {
+    public Repository<RunnerValue, RunnerQuery> repository(RunnerPatchRequest request) {
         return this.repository;
     }
 

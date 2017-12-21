@@ -33,7 +33,7 @@ public class RunnerCollectionPostHandler implements CollectionPostProtocol<Runne
     }
 
     @Override
-    public Repository<RunnerValue, RunnerQuery> repository() {
+    public Repository<RunnerValue, RunnerQuery> repository(RunnerCollectionPostRequest request) {
         return this.repository;
     }
 
