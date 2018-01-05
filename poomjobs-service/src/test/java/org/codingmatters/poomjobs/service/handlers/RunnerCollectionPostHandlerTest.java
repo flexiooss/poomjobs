@@ -61,7 +61,7 @@ public class RunnerCollectionPostHandlerTest {
         RunnerValueCreation creation = RunnerValueCreation.with(RunnerValue.builder().build());
         Entity<RunnerValue> entity = this.repository.create(creation.applied());
 
-        RunnerCollectionPostResponse response = this.handler.entityCreated(creation, entity);
+        RunnerCollectionPostResponse response = this.handler.entityCreated(null, creation, entity);
 
         assertThat(response.status201(), is(notNullValue()));
         assertThat(response.status201().location(), is("%API_PATH%/runners/" + entity.id()));

@@ -60,7 +60,7 @@ public class JobCollectionPostHandler implements CollectionPostProtocol<JobValue
     }
 
     @Override
-    public JobCollectionPostResponse entityCreated(Change<JobValue> creation, Entity<JobValue> entity) {
+    public JobCollectionPostResponse entityCreated(JobCollectionPostRequest request, Change<JobValue> creation, Entity<JobValue> entity) {
         this.jobRepositoryListener.jobCreated(entity);
         return JobCollectionPostResponse.builder()
                 .status201(Status201.builder()

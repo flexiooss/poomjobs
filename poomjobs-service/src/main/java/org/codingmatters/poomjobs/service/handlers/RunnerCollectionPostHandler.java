@@ -43,7 +43,7 @@ public class RunnerCollectionPostHandler implements CollectionPostProtocol<Runne
     }
 
     @Override
-    public RunnerCollectionPostResponse entityCreated(Change<RunnerValue> creation, Entity<RunnerValue> entity) {
+    public RunnerCollectionPostResponse entityCreated(RunnerCollectionPostRequest request, Change<RunnerValue> creation, Entity<RunnerValue> entity) {
         return RunnerCollectionPostResponse.builder()
                 .status201(Status201.builder()
                         .location("%API_PATH%/runners/" + entity.id())

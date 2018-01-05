@@ -66,7 +66,7 @@ public class JobCollectionPostHandlerTest {
         JobValueCreation creation = JobValueCreation.with(JobValue.builder().build());
         Entity<JobValue> entity = this.repository.create(creation.applied());
 
-        JobCollectionPostResponse response = this.handler.entityCreated(creation, entity);
+        JobCollectionPostResponse response = this.handler.entityCreated(null, creation, entity);
 
         assertThat(response.status201(), is(notNullValue()));
         assertThat(response.status201().location(), is("%API_PATH%/jobs/" + entity.id()));
@@ -79,7 +79,7 @@ public class JobCollectionPostHandlerTest {
         JobValueCreation creation = JobValueCreation.with(JobValue.builder().build());
         Entity<JobValue> entity = this.repository.create(creation.applied());
 
-        this.handler.entityCreated(creation, entity);
+        this.handler.entityCreated(null, creation, entity);
 
         assertThat(this.listener.created(), is(entity));
         assertThat(this.listener.updated(), is(nullValue()));
