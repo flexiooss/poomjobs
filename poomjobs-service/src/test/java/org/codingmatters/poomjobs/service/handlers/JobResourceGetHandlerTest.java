@@ -58,7 +58,7 @@ public class JobResourceGetHandlerTest {
                         .build())
                 .build());
 
-        JobResourceGetResponse response = this.handler.entityFound(entity);
+        JobResourceGetResponse response = this.handler.entityFound(null, entity);
 
         assertThat(response.status200(), is(notNullValue()));
         assertThat(

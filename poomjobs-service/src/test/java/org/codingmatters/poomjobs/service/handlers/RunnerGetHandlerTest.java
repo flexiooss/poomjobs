@@ -60,7 +60,7 @@ public class RunnerGetHandlerTest {
                         .status(Runtime.Status.RUNNING)
                         .build())
                 .build());
-        RunnerGetResponse response = this.handler.entityFound(entity);
+        RunnerGetResponse response = this.handler.entityFound(null, entity);
 
         assertThat(response.status200(), is(notNullValue()));
         assertThat(response.status200().payload().competencies().names(), contains("n1", "n2"));

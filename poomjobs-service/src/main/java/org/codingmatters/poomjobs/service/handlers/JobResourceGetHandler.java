@@ -44,7 +44,7 @@ public class JobResourceGetHandler implements ResourceGetProtocol<JobValue, JobQ
     }
 
     @Override
-    public JobResourceGetResponse entityFound(Entity<JobValue> entity) {
+    public JobResourceGetResponse entityFound(JobResourceGetRequest request, Entity<JobValue> entity) {
         return JobResourceGetResponse.builder()
                 .status200(Status200.builder()
                         .payload(transform(entity).asJob())

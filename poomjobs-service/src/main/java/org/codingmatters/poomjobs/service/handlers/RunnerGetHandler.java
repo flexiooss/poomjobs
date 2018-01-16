@@ -43,7 +43,7 @@ public class RunnerGetHandler implements ResourceGetProtocol<RunnerValue, Runner
     }
 
     @Override
-    public RunnerGetResponse entityFound(Entity<RunnerValue> entity) {
+    public RunnerGetResponse entityFound(RunnerGetRequest request, Entity<RunnerValue> entity) {
         return RunnerGetResponse.builder()
                 .status200(Status200.builder()
                         .payload(RunnerEntityTransformation.transform(entity).asRunner())
