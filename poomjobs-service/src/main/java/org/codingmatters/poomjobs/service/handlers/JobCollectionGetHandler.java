@@ -97,7 +97,7 @@ public class JobCollectionGetHandler implements CollectionGetProtocol<JobValue, 
     }
 
     @Override
-    public JobCollectionGetResponse partialList(Rfc7233Pager.Page page) {
+    public JobCollectionGetResponse partialList(Rfc7233Pager.Page page, JobCollectionGetRequest request) {
         Collection<Job> jobs = this.resultList(page.list());
         return JobCollectionGetResponse.builder()
                 .status206(Status206.builder()
@@ -109,7 +109,7 @@ public class JobCollectionGetHandler implements CollectionGetProtocol<JobValue, 
     }
 
     @Override
-    public JobCollectionGetResponse completeList(Rfc7233Pager.Page page) {
+    public JobCollectionGetResponse completeList(Rfc7233Pager.Page page, JobCollectionGetRequest request) {
         Collection<Job> jobs = this.resultList(page.list());
         return JobCollectionGetResponse.builder()
                 .status200(Status200.builder()
@@ -121,7 +121,7 @@ public class JobCollectionGetHandler implements CollectionGetProtocol<JobValue, 
     }
 
     @Override
-    public JobCollectionGetResponse invalidRangeQuery(Rfc7233Pager.Page page, String errorToken) {
+    public JobCollectionGetResponse invalidRangeQuery(Rfc7233Pager.Page page, String errorToken, JobCollectionGetRequest request) {
         return JobCollectionGetResponse.builder()
                 .status416(Status416.builder()
                         .contentRange(page.contentRange())

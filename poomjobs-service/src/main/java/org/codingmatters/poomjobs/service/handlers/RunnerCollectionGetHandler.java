@@ -90,7 +90,7 @@ public class RunnerCollectionGetHandler implements CollectionGetProtocol<RunnerV
     }
 
     @Override
-    public RunnerCollectionGetResponse partialList(Rfc7233Pager.Page page) {
+    public RunnerCollectionGetResponse partialList(Rfc7233Pager.Page page, RunnerCollectionGetRequest request) {
         return RunnerCollectionGetResponse.builder()
                 .status206(Status206.builder()
                         .acceptRange(page.acceptRange())
@@ -101,7 +101,7 @@ public class RunnerCollectionGetHandler implements CollectionGetProtocol<RunnerV
     }
 
     @Override
-    public RunnerCollectionGetResponse completeList(Rfc7233Pager.Page page) {
+    public RunnerCollectionGetResponse completeList(Rfc7233Pager.Page page, RunnerCollectionGetRequest request) {
         return RunnerCollectionGetResponse.builder()
                 .status200(Status200.builder()
                         .acceptRange(page.acceptRange())
@@ -122,7 +122,7 @@ public class RunnerCollectionGetHandler implements CollectionGetProtocol<RunnerV
     }
 
     @Override
-    public RunnerCollectionGetResponse invalidRangeQuery(Rfc7233Pager.Page page, String errorToken) {
+    public RunnerCollectionGetResponse invalidRangeQuery(Rfc7233Pager.Page page, String errorToken, RunnerCollectionGetRequest request) {
         return RunnerCollectionGetResponse.builder()
                 .status416(Status416.builder()
                         .acceptRange(page.acceptRange())

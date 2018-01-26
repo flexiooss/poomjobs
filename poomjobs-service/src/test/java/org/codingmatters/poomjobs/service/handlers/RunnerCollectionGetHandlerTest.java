@@ -70,7 +70,7 @@ public class RunnerCollectionGetHandlerTest {
                 .pager(this.repository)
                 .page();
 
-        RunnerCollectionGetResponse response = this.handler.partialList(page);
+        RunnerCollectionGetResponse response = this.handler.partialList(page, null);
         assertThat(response.status206(), is(notNullValue()));
         assertThat(response.status206().payload().size(), is(5));
         assertThat(response.status206().acceptRange(), is(page.acceptRange()));
@@ -89,7 +89,7 @@ public class RunnerCollectionGetHandlerTest {
                 .pager(this.repository)
                 .page();
 
-        RunnerCollectionGetResponse response = this.handler.completeList(page);
+        RunnerCollectionGetResponse response = this.handler.completeList(page, null);
         assertThat(response.status200(), is(notNullValue()));
         assertThat(response.status200().payload().size(), is(10));
         assertThat(response.status200().contentRange(), is(page.contentRange()));
@@ -108,7 +108,7 @@ public class RunnerCollectionGetHandlerTest {
                 .pager(this.repository)
                 .page();
 
-        RunnerCollectionGetResponse response = this.handler.invalidRangeQuery(page, "error-token");
+        RunnerCollectionGetResponse response = this.handler.invalidRangeQuery(page, "error-token", null);
         assertThat(response.status416(), is(notNullValue()));
         assertThat(
                 response.status416().payload(),
