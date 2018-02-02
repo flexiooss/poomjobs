@@ -10,6 +10,8 @@ types:
 /jobs:
     displayName: JobCollection
     get:
+        headers:
+            account-id: string
         queryParameters:
             range: string
 
@@ -73,6 +75,8 @@ types:
                 type: string
                 required: true
         get:
+            headers:
+                account-id: string
             description: |
                 If a job with the given jobId, returns the full description of the job.
             responses:
