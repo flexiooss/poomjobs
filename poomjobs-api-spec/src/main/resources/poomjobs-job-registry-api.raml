@@ -30,6 +30,9 @@ types:
                     Content-Range: string
                     Accept-Range: string
                 body: Job[]
+            404:
+                description: RESOURCE_NOT_FOUND.
+                body: Error
             416:
                 description: the specified range is not acceptable. Error code is ILLEGAL_RANGE_SPEC.
                 headers:
@@ -56,6 +59,9 @@ types:
                     Location: string
             400:
                 description: request is not acceptable. Code ILLEGAL_JOB_SPEC.
+                body: Error
+            404:
+                description: RESOURCE_NOT_FOUND.
                 body: Error
             500:
                 description: UNEXPECTED_ERROR.
