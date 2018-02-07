@@ -3,6 +3,7 @@ package org.codingmatters.poom.runner.internal;
 import org.codingmatters.poom.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
+import org.codingmatters.poomjobs.api.JobCollectionGetRequest;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
 import org.codingmatters.poomjobs.api.JobResourcePatchResponse;
 import org.codingmatters.poomjobs.api.ValueList;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
 public class JobManager {
 
@@ -26,18 +28,24 @@ public class JobManager {
     private final JobProcessor.Factory processorFactory;
     private final String jobCategory;
     private final String jobName;
+    private final String runnerId;
 
     public JobManager(
             StatusManager statusManager,
             PoomjobsJobRegistryAPIClient jobRegistryAPIClient,
             ExecutorService jobWorker,
-            JobProcessor.Factory processorFactory, String jobCategory, String jobName) {
+            JobProcessor.Factory processorFactory,
+            String jobCategory,
+            String jobName,
+            String runnerId
+    ) {
         this.statusManager = statusManager;
         this.jobRegistryAPIClient = jobRegistryAPIClient;
         this.jobWorker = jobWorker;
         this.processorFactory = processorFactory;
         this.jobCategory = jobCategory;
         this.jobName = jobName;
+        this.runnerId = runnerId;
     }
 
 
@@ -54,6 +62,7 @@ public class JobManager {
                                             .run(Status.Run.RUNNING)
                                             .build())
                     )
+                            .accountId(this.runnerId)
             );
             if (response.opt().status200().isPresent()) {
                 try {
@@ -74,14 +83,18 @@ public class JobManager {
 
     public void processPendingJobs() {
         try {
-            JobCollectionGetResponse response = this.jobRegistryAPIClient.jobCollection().get(request ->
-                    request
-                            .category(this.jobCategory)
-                            .name(this.jobName)
-                            .runStatus("PENDING")
-                            .range("0-1")
-            );
+            JobCollectionGetRequest getPendingJobs = JobCollectionGetRequest.builder()
+                    .category(this.jobCategory)
+                    .name(this.jobName)
+                    .runStatus("PENDING")
+                    .range("0-1")
+                    .accountId(this.runnerId)
+                    .build();
 
+            JobCollectionGetResponse response = this.jobRegistryAPIClient.jobCollection().get(
+                    getPendingJobs
+            );
+            log.info("Jobs: " + response.status200().payload().size());
             ValueList<Job> jobs = response.opt().status200().payload()
                     .orElseGet(() ->
                             response.opt().status206().payload()
@@ -101,6 +114,7 @@ public class JobManager {
             log.error("error retrieving jobs from repository", e);
         }
     }
+
     private Runnable jobProcessor(Job job) {
         JobProcessor processor = this.processorFactory.createFor(job);
         return () -> process(processor);
@@ -111,7 +125,7 @@ public class JobManager {
             Job job = processor.process();
             try {
                 this.jobRegistryAPIClient.jobCollection().jobResource().patch(req -> req
-                        .jobId(job.id()).payload(payload -> payload.status(this.patchStatus(job.status())))
+                        .jobId(job.id()).payload(payload -> payload.status(this.patchStatus(job.status()))).accountId(this.runnerId)
                 );
             } catch (IOException e) {
                 log.error("GRAVE : failed to update job status for job " + job.id(), e);

@@ -101,7 +101,9 @@ public class GenericRunner {
                     this.jobWorker,
                     this.processorFactory,
                     this.jobCategory,
-                    this.jobName);
+                    this.jobName,
+                    this.id
+            );
 
             this.endpoint = new RunnerEndpoint(
                     this.statusManager,
