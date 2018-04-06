@@ -43,6 +43,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.codingmatters.poom</groupId>
+            <artifactId>poom-services-logging</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <scope>test</scope>
