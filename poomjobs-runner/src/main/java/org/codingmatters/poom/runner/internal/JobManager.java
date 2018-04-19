@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
 
 public class JobManager {
 
@@ -27,7 +26,7 @@ public class JobManager {
     private final ExecutorService jobWorker;
     private final JobProcessor.Factory processorFactory;
     private final String jobCategory;
-    private final String jobName;
+    private final String[] jobNames;
     private final String runnerId;
 
     public JobManager(
@@ -36,7 +35,7 @@ public class JobManager {
             ExecutorService jobWorker,
             JobProcessor.Factory processorFactory,
             String jobCategory,
-            String jobName,
+            String[] jobNames,
             String runnerId
     ) {
         this.statusManager = statusManager;
@@ -44,7 +43,7 @@ public class JobManager {
         this.jobWorker = jobWorker;
         this.processorFactory = processorFactory;
         this.jobCategory = jobCategory;
-        this.jobName = jobName;
+        this.jobNames = jobNames;
         this.runnerId = runnerId;
     }
 
@@ -85,7 +84,7 @@ public class JobManager {
         try {
             JobCollectionGetRequest getPendingJobs = JobCollectionGetRequest.builder()
                     .category(this.jobCategory)
-                    .name(this.jobName)
+                    .names(this.jobNames)
                     .runStatus("PENDING")
                     .range("0-1")
                     .accountId(this.runnerId)

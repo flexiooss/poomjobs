@@ -8,7 +8,8 @@ RunnerConfiguration:
   callbackBaseUrl: string
   ttl: long
   jobCategory: string
-  jobName: string
+  jobName:
+    $list: string
   processorFactory:
     $type: org.codingmatters.poom.runner.JobProcessor.Factory
   jobRegistryUrl: string

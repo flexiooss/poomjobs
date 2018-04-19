@@ -77,18 +77,18 @@ public class JobCollectionGetHandler implements CollectionGetProtocol<JobValue, 
     @Override
     public JobQuery parseQuery(JobCollectionGetRequest request) {
         JobQuery query = null;
-        if(request.name() != null || request.category() != null || request.runStatus() != null || request.exitStatus() != null) {
+        if(request.opt().names().isPresent() || request.opt().category().isPresent() || request.opt().runStatus().isPresent() || request.opt().exitStatus().isPresent()) {
             List<JobCriteria> criteria = new LinkedList<>();
-            if(request.name() != null) {
-                criteria.add(JobCriteria.builder().name(request.name()).build());
+            if(request.opt().names().isPresent()) {
+                criteria.add(JobCriteria.builder().names(request.names().toArray(new String[request.names().size()])).build());
             }
-            if(request.category() != null) {
+            if(request.opt().category().isPresent()) {
                 criteria.add(JobCriteria.builder().category(request.category()).build());
             }
-            if(request.runStatus() != null) {
+            if(request.opt().runStatus().isPresent()) {
                 criteria.add(JobCriteria.builder().runStatus(request.runStatus()).build());
             }
-            if(request.exitStatus() != null) {
+            if(request.opt().exitStatus().isPresent()) {
                 criteria.add(JobCriteria.builder().exitStatus(request.exitStatus()).build());
             }
             query = JobQuery.builder().criteria(criteria).build();

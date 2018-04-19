@@ -40,7 +40,7 @@ public class JobRepositoryTest {
         }
 
         PagedEntityList<JobValue> list = this.repository.search(JobQuery.builder().criteria(
-                JobCriteria.builder().name("NAME-2").build()
+                JobCriteria.builder().names("NAME-2").build()
         ).build(), 0, 100);
 
         assertThat(list, hasSize(3));

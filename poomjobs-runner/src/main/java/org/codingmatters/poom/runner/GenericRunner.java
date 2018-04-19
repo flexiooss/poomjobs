@@ -31,7 +31,7 @@ public class GenericRunner {
     private final String callbackBaseUrl;
     private final Long ttl;
     private final String jobCategory;
-    private final String jobName;
+    private final String[] jobNames;
     private final JobProcessor.Factory processorFactory;
 
     private final String jobRegistryUrl;
@@ -54,7 +54,7 @@ public class GenericRunner {
         this.callbackBaseUrl = configuration.callbackBaseUrl();
         this.ttl = Math.max(MIN_TTL, configuration.ttl());
         this.jobCategory = configuration.jobCategory();
-        this.jobName = configuration.jobName();
+        this.jobNames = configuration.jobName().toArray(new String[configuration.jobName().size()]);
         this.processorFactory = configuration.processorFactory();
         this.jobRegistryUrl = configuration.jobRegistryUrl();
         this.endpointHost = configuration.endpointHost();
@@ -75,7 +75,7 @@ public class GenericRunner {
                                             .competencies(competencies ->
                                                     competencies
                                                             .categories(this.jobCategory)
-                                                            .names(this.jobName)
+                                                            .names(this.jobNames)
                                             )
                             )
                             .build());
@@ -101,7 +101,7 @@ public class GenericRunner {
                     this.jobWorker,
                     this.processorFactory,
                     this.jobCategory,
-                    this.jobName,
+                    this.jobNames,
                     this.id
             );
 

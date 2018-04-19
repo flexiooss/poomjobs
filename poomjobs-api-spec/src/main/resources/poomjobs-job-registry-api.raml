@@ -15,7 +15,10 @@ types:
         queryParameters:
             range: string
 
-            name: string
+            names:
+               type: array
+               items: string
+
             category: string
             runStatus: string
             exitStatus: string

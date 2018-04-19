@@ -43,13 +43,13 @@ public class JobCollectionGetHandlerTest {
     @Test
     public void whenNameCategoryExitStatusAndRunStatusNonNull__thenJobQuery() throws Exception {
         assertThat(this.handler.parseQuery(JobCollectionGetRequest.builder()
-                        .name("name")
+                        .names("name")
                         .category("category")
                         .exitStatus("FAILED")
                         .runStatus("DONE")
                         .build()).criteria(),
                 containsInAnyOrder(
-                        JobCriteria.builder().name("name").build(),
+                        JobCriteria.builder().names("name").build(),
                         JobCriteria.builder().category("category").build(),
                         JobCriteria.builder().exitStatus("FAILED").build(),
                         JobCriteria.builder().runStatus("DONE").build()

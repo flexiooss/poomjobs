@@ -29,9 +29,9 @@ public class InMemoryJobRepository extends InMemoryRepository<JobValue, JobQuery
                     jobValueEntity.value().opt().category().filter(s -> s.matches(jobCriteria.category())).isPresent()
             );
         }
-        if (jobCriteria.opt().name().isPresent()) {
+        if (jobCriteria.opt().names().isPresent()) {
             filtered = filtered.filter(jobValueEntity ->
-                    jobValueEntity.value().opt().name().filter(s -> s.matches(jobCriteria.name())).isPresent()
+                    jobValueEntity.value().opt().name().filter(name -> jobCriteria.names().stream().anyMatch(s -> name.matches(s))).isPresent()
             );
         }
         if (jobCriteria.opt().runStatus().isPresent()) {
