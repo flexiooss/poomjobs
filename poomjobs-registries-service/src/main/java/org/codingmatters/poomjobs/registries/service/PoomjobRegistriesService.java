@@ -1,7 +1,6 @@
 package org.codingmatters.poomjobs.registries.service;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import io.undertow.Handlers;
 import io.undertow.Undertow;
 import org.codingmatters.poom.client.PoomjobsRunnerRegistryAPIHandlersClient;
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
@@ -18,6 +17,8 @@ import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
 import org.codingmatters.poomjobs.service.PoomjobsRunnerRegistryAPI;
 import org.codingmatters.poomjobs.service.api.PoomjobsJobRegistryAPIProcessor;
 import org.codingmatters.poomjobs.service.api.PoomjobsRunnerRegistryAPIProcessor;
+import org.codingmatters.rest.api.Processor;
+import org.codingmatters.rest.api.processors.MatchingPathProcessor;
 import org.codingmatters.rest.undertow.CdmHttpUndertowHandler;
 
 import java.util.concurrent.ExecutorService;
@@ -89,20 +90,23 @@ public class PoomjobRegistriesService {
     }
 
     public void start() {
+        Processor processor = MatchingPathProcessor
+                .whenMatching("/poomjobs-jobs/v1/.*", new PoomjobsJobRegistryAPIProcessor(
+                        "/poomjobs-jobs/v1",
+                        this.jsonFactory,
+                        this.jobRegistryAPI.handlers()
+                ))
+                .whenMatching("/poomjobs-runners/v1/.*", new PoomjobsRunnerRegistryAPIProcessor(
+                        "/poomjobs-runners/v1",
+                        this.jsonFactory,
+                        this.runnerRegistryAPI.handlers()
+                )).whenNoMatch((requestDelegate, responseDelegate) ->
+                        responseDelegate.status(404).contenType("text/plain").payload("nothing here..." + requestDelegate.path(), "UTF-8")
+                );
+
         this.server = Undertow.builder()
                 .addHttpListener(this.port, this.host)
-                .setHandler(Handlers.path()
-                        .addPrefixPath("/jobs", new CdmHttpUndertowHandler(new PoomjobsJobRegistryAPIProcessor(
-                                "",
-                                this.jsonFactory,
-                                this.jobRegistryAPI.handlers()
-                        )))
-                        .addPrefixPath("/runners", new CdmHttpUndertowHandler(new PoomjobsRunnerRegistryAPIProcessor(
-                                "",
-                                this.jsonFactory,
-                                this.runnerRegistryAPI.handlers()
-                        )))
-                )
+                .setHandler(new CdmHttpUndertowHandler(processor))
                 .build();
         this.server.start();
     }
