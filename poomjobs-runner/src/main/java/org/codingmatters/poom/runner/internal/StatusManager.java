@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -62,10 +63,16 @@ public class StatusManager {
 
 
     public void scheduleNextStatusUpdate(LocalDateTime lastPing) {
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC.normalized());
         LocalDateTime nextNotification = lastPing.plus(this.ttl, ChronoUnit.MILLIS);
+        long nextPingWithin = Duration.between(now, nextNotification).toMillis();
+
+        log.debug("now      : {}", now);
+        log.debug("nextPing : {}", nextNotification);
+        log.debug("next status update in {} ms.", nextPingWithin);
         this.updateWorker.schedule(
                 () -> this.updateStatus(),
-                Duration.between(LocalDateTime.now(), nextNotification).toMillis(), TimeUnit.MILLISECONDS
+                nextPingWithin, TimeUnit.MILLISECONDS
         );
     }
 

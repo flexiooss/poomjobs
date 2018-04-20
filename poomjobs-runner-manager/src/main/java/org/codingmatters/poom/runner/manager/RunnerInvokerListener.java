@@ -50,7 +50,7 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
         try {
             RunnerCollectionGetResponse response = this.runnerRegistry.runnerCollection().get(req -> req
                     .categoryCompetency(entity.value().category())
-                    .nameCompetency(entity.value().category())
+                    .nameCompetency(entity.value().name())
                     .runtimeStatus(Runtime.Status.IDLE.name())
                     .range("0-10")
             );

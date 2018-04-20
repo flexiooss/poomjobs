@@ -6,6 +6,7 @@ import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Competencies;
 import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Runtime;
 import org.codingmatters.poom.services.domain.repositories.Repository;
+import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poom.servives.domain.entities.PagedEntityList;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,5 +83,31 @@ public class RunnerRepositoryTest {
                 0, 9
         );
         assertThat(list, hasSize(4));
+    }
+
+    @Test
+    public void multipleCriteriaFilter() throws Exception {
+
+        for (Entity<RunnerValue> runnerValueEntity : this.repository.all(0, 100)) {
+            System.out.println(runnerValueEntity.value());
+        }
+
+
+        PagedEntityList<RunnerValue> list = this.repository.search(RunnerQuery.builder()
+                        .criteria(
+                                RunnerCriteria.builder()
+                                        .nameCompetency("NAME-1")
+                                        .build(),
+                                RunnerCriteria.builder()
+                                        .categoryCompetency("CATEG-1")
+                                        .build(),
+                                RunnerCriteria.builder()
+                                        .runtimeStatus(Runtime.Status.RUNNING.name())
+                                        .build()
+                        )
+                        .build(),
+                0, 9
+        );
+        assertThat(list, hasSize(3));
     }
 }
