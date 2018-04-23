@@ -18,7 +18,6 @@ import org.codingmatters.poomjobs.service.PoomjobsRunnerRegistryAPI;
 import org.codingmatters.poomjobs.service.RunnerEntityTransformation;
 import org.junit.Test;
 
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 import static org.hamcrest.Matchers.*;
@@ -49,8 +48,8 @@ public class RunnerPatchHandlerTest {
         Entity<RunnerValue> entity = this.repository.create(RunnerValue.builder()
                 .callback("http://call.me/up")
                 .runtime(Runtime.builder()
-                        .created(LocalDateTime.now().minus(1, ChronoUnit.HOURS))
-                        .lastPing(LocalDateTime.now().minus(1, ChronoUnit.HOURS))
+                        .created(UTC.now().minus(1, ChronoUnit.HOURS))
+                        .lastPing(UTC.now().minus(1, ChronoUnit.HOURS))
                         .status(Runtime.Status.IDLE)
                         .build())
                 .build());
