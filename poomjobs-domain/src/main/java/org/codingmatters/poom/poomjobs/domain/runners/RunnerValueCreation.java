@@ -4,8 +4,7 @@ import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Runtime;
 import org.codingmatters.poom.services.domain.change.Change;
 import org.codingmatters.poom.services.domain.change.Validation;
-
-import java.time.LocalDateTime;
+import org.codingmatters.poom.services.support.date.UTC;
 
 /**
  * Created by nelt on 7/11/17.
@@ -51,8 +50,8 @@ public class RunnerValueCreation extends Change<RunnerValue> {
         }
         result = result.withRuntime(result.runtime()
                 .withStatus(result.runtime().status() != null ? result.runtime().status() : Runtime.Status.IDLE)
-                .withCreated(LocalDateTime.now())
-                .withLastPing(LocalDateTime.now())
+                .withCreated(UTC.now())
+                .withLastPing(UTC.now())
         );
         return result;
     }

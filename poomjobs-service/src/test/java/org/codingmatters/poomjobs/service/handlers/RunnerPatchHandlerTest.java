@@ -8,6 +8,7 @@ import org.codingmatters.poom.services.domain.change.Change;
 import org.codingmatters.poom.services.domain.change.Validation;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.repositories.Repository;
+import org.codingmatters.poom.services.support.date.UTC;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.RunnerPatchRequest;
 import org.codingmatters.poomjobs.api.RunnerPatchResponse;
@@ -63,7 +64,7 @@ public class RunnerPatchHandlerTest {
 
         assertThat(update.currentValue(), is(entity.value()));
         assertThat(update.newValue().runtime().status(), is(Runtime.Status.RUNNING));
-        assertThat(update.newValue().runtime().lastPing(), is(greaterThan(LocalDateTime.now().minus(1, ChronoUnit.MINUTES))));
+        assertThat(update.newValue().runtime().lastPing(), is(greaterThan(UTC.now().minus(1, ChronoUnit.MINUTES))));
     }
 
     @Test

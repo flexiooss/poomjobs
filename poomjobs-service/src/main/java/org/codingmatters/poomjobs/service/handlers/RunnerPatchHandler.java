@@ -7,6 +7,7 @@ import org.codingmatters.poom.services.domain.change.Change;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.rest.protocol.ResourcePutProtocol;
+import org.codingmatters.poom.services.support.date.UTC;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.RunnerPatchRequest;
 import org.codingmatters.poomjobs.api.RunnerPatchResponse;
@@ -19,8 +20,6 @@ import org.codingmatters.poomjobs.service.RunnerEntityTransformation;
 import org.codingmatters.poomjobs.service.RunnerValueMerger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.time.LocalDateTime;
 
 public class RunnerPatchHandler implements ResourcePutProtocol<RunnerValue, RunnerQuery, RunnerPatchRequest, RunnerPatchResponse> {
 
@@ -51,7 +50,7 @@ public class RunnerPatchHandler implements ResourcePutProtocol<RunnerValue, Runn
     public Change<RunnerValue> valueUpdate(RunnerPatchRequest request, Entity<RunnerValue> entity) {
         RunnerValue current = entity.value();
         RunnerValue newValue = RunnerValueMerger.merge(current).with(request.payload());
-        newValue = newValue.withRuntime(newValue.runtime().withLastPing(LocalDateTime.now()));
+        newValue = newValue.withRuntime(newValue.runtime().withLastPing(UTC.now()));
         return RunnerValueChange.from(current).to(newValue);
     }
 

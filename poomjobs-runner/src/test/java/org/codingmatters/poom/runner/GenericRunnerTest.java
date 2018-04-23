@@ -15,6 +15,7 @@ import org.codingmatters.poom.runner.configuration.RunnerConfiguration;
 import org.codingmatters.poom.runner.tests.ClientListener;
 import org.codingmatters.poom.runner.tests.Eventually;
 import org.codingmatters.poom.services.domain.repositories.Repository;
+import org.codingmatters.poom.services.support.date.UTC;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.RunnerCollectionGetRequest;
 import org.codingmatters.poomjobs.api.RunningJobPutResponse;
@@ -82,14 +83,16 @@ public class GenericRunnerTest {
         this.runner.start();
         Eventually.assertThat(() -> this.runnerRepository.all(0, 0).total(), is(1L));
 
-        LocalDateTime ttlExpiration = LocalDateTime.now().plus(TTL, ChronoUnit.MILLIS);
-        LocalDateTime nextTtlExpiration = LocalDateTime.now().plus(2 * TTL, ChronoUnit.MILLIS);
+        LocalDateTime ttlExpiration = UTC.now().plus(TTL, ChronoUnit.MILLIS);
+        LocalDateTime nextTtlExpiration = UTC.now().plus(2 * TTL, ChronoUnit.MILLIS);
         Thread.sleep(2 * TTL);
 
         Runtime actualRuntime = this.runnerRepository.retrieve(this.runner.id()).value().runtime();
 
         assertThat(actualRuntime.status(), is(Runtime.Status.IDLE));
         assertThat(actualRuntime.lastPing().isAfter(ttlExpiration), is(true));
+        System.out.println(actualRuntime.lastPing());
+        System.out.println(nextTtlExpiration);
         assertThat(actualRuntime.lastPing().isBefore(nextTtlExpiration), is(true));
     }
 

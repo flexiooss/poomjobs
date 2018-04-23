@@ -7,6 +7,7 @@ import org.codingmatters.poom.runner.exception.RunnerInitializationException;
 import org.codingmatters.poom.runner.internal.JobManager;
 import org.codingmatters.poom.runner.internal.RunnerEndpoint;
 import org.codingmatters.poom.runner.internal.StatusManager;
+import org.codingmatters.poom.services.support.date.UTC;
 import org.codingmatters.poomjobs.api.RunnerCollectionPostResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public class GenericRunner {
         log.info("starting runner by registering to runners service");
         RunnerCollectionPostResponse response = null;
         try {
-            LocalDateTime firstPing = LocalDateTime.now();
+            LocalDateTime firstPing = UTC.now();
             response = this.runnerRegistryAPIClient.runnerCollection().post(request ->
                     request
                             .payload(payload ->
