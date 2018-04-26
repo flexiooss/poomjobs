@@ -78,9 +78,7 @@ public class StatusManager {
         LocalDateTime nextNotification = lastPing.plus(this.ttl, ChronoUnit.MILLIS);
         long nextPingWithin = Duration.between(now, nextNotification).toMillis();
 
-        log.debug("now      : {}", now);
-        log.debug("nextPing : {}", nextNotification);
-        log.debug("next status update in {} ms.", nextPingWithin);
+        log.debug("next status update at {}", nextNotification);
         ScheduledFuture<?> scheduled = this.updateWorker.schedule(
                 () -> {
                     this.nextUpdate.set(null);
