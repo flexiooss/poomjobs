@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -23,6 +24,8 @@ public class StatusManager {
     private final PoomjobsRunnerRegistryAPIClient runnerRegistryAPIClient;
     private final Long ttl;
     private final ScheduledExecutorService updateWorker;
+
+    private final AtomicReference<ScheduledFuture> nextUpdate = new AtomicReference<>(null);
 
     public StatusManager(String id, PoomjobsRunnerRegistryAPIClient runnerRegistryAPIClient, Long ttl, ScheduledExecutorService updateWorker) {
         this.id = id;
@@ -39,6 +42,13 @@ public class StatusManager {
 
 
     private void updateStatus() {
+        this.nextUpdate.getAndUpdate(scheduledFuture -> {
+            if(scheduledFuture != null && ! scheduledFuture.isCancelled()) {
+                scheduledFuture.cancel(true);
+            }
+            return scheduledFuture;
+        });
+
         try {
             RunnerStatusData.Status status = this.currentStatus.get();
             RunnerPatchResponse response = this.runnerRegistryAPIClient.runnerCollection().runner().patch(request ->
@@ -62,6 +72,7 @@ public class StatusManager {
     }
 
 
+
     public void scheduleNextStatusUpdate(LocalDateTime lastPing) {
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC.normalized());
         LocalDateTime nextNotification = lastPing.plus(this.ttl, ChronoUnit.MILLIS);
@@ -70,10 +81,14 @@ public class StatusManager {
         log.debug("now      : {}", now);
         log.debug("nextPing : {}", nextNotification);
         log.debug("next status update in {} ms.", nextPingWithin);
-        this.updateWorker.schedule(
-                () -> this.updateStatus(),
+        ScheduledFuture<?> scheduled = this.updateWorker.schedule(
+                () -> {
+                    this.nextUpdate.set(null);
+                    this.updateStatus();
+                },
                 nextPingWithin, TimeUnit.MILLISECONDS
         );
+        this.nextUpdate.set(scheduled);
     }
 
     public RunnerStatusData.Status status() {
