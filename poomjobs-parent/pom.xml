@@ -8,7 +8,6 @@
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poom-services-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../../poom-services-parent</relativePath>
     </parent>
 
     <artifactId>poomjobs-parent</artifactId>
