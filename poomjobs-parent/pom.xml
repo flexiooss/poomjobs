@@ -5,17 +5,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.codingmatters.poom</groupId>
-        <artifactId>poom-services-parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+	<groupId>org.codingmatters.poom</groupId>
+	<artifactId>poom-services-parent</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>poomjobs-parent</artifactId>
     <packaging>pom</packaging>
     <name>${project.groupId}:${project.artifactId}</name>
 
-    <dependencies>
-    </dependencies>
     <dependencyManagement>
         <dependencies>
             <dependency>
