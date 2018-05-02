@@ -8,15 +8,64 @@
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poom-services</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../</relativePath>
     </parent>
+
     <groupId>org.codingmatters.poom</groupId>
     <artifactId>poomjobs</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-    <name>${project.groupId}:${project.artifactId}</name>
-
+    <name>Poom Jobs</name>
+    <description>Distributed Job Queue framework</description>
     <packaging>pom</packaging>
+    <url>https://github.com/flexiooss/poomjobs</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Nel Taurisson</name>
+            <email>nel@flexio.fr</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:flexiooss/poomjobs</connection>
+        <developerConnection>scm:git:git@github.com:flexiooss/poomjobs.git</developerConnection>
+        <url>git@github.com:flexiooss/poomjobs.git</url>
+    </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>oss-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases><enabled>false</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>oss-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases><enabled>false</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 
     <modules>
         <module>poomjobs-bom</module>
