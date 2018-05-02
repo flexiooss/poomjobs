@@ -14,7 +14,7 @@
     <artifactId>poomjobs</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-    <name>Poom Jobs</name>
+    <name>Poor Man's Jobs</name>
     <description>Distributed Job Queue framework</description>
     <packaging>pom</packaging>
     <url>https://github.com/flexiooss/poomjobs</url>
