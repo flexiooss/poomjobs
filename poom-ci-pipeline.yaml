@@ -8,19 +8,19 @@ stages:
       - mkdir -p $WORKSPACE/.m2
 
   - name: build
-    timeout: 15
+    timeout: 10
     exec:
       - $NOTIFY --data-urlencode "status=2" --data-urlencode "current-stage=$STAGE"
       - $MVN clean install
 
   - name: deploy
-    timeout: 15
+    timeout: 10
     exec:
       - $NOTIFY --data-urlencode "status=2" --data-urlencode "current-stage=$STAGE"
       - $MVN deploy -DskipTests
 
   - name: build-an-deploy-docker-images
-    timeout: 15
+    timeout: 10
     exec:
       - $NOTIFY --data-urlencode "status=2" --data-urlencode "current-stage=$STAGE"
       - $DOCKER_BUILD $SRC build
