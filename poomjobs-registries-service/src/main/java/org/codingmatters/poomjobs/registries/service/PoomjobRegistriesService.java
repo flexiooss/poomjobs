@@ -32,9 +32,9 @@ public class PoomjobRegistriesService {
     static public final String CLIENT_POOL_SIZE = "CLIENT_POOL_SIZE";
 
     public static void main(String[] args) {
-        String host = Env.mandatory(Env.SERVICE_HOST);
-        int port = Integer.parseInt(Env.mandatory(Env.SERVICE_PORT));
-        int clientPoolSize = Integer.parseInt(Env.optional(CLIENT_POOL_SIZE).orElse("5"));
+        String host = Env.mandatory(Env.SERVICE_HOST).asString();
+        int port = Integer.parseInt(Env.mandatory(Env.SERVICE_PORT).asString());
+        int clientPoolSize = Env.optional(CLIENT_POOL_SIZE).orElse(new Env.Var("5")).asInteger();
         
         AtomicInteger threadIndex = new AtomicInteger(1);
         ExecutorService clientPool = Executors.newFixedThreadPool(clientPoolSize, runnable -> new Thread(runnable, "client-pool-thread-" + threadIndex.getAndIncrement()));
