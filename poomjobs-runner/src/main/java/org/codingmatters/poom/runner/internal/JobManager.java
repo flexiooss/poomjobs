@@ -86,19 +86,19 @@ public class JobManager {
                     .category(this.jobCategory)
                     .names(this.jobNames)
                     .runStatus("PENDING")
-                    .range("0-1")
+                    .range("0-0")
                     .accountId(this.runnerId)
                     .build();
 
             JobCollectionGetResponse response = this.jobRegistryAPIClient.jobCollection().get(
                     getPendingJobs
             );
-            log.info("Jobs: " + response.status200().payload().size());
             ValueList<Job> jobs = response.opt().status200().payload()
                     .orElseGet(() ->
                             response.opt().status206().payload()
                                     .orElse(new ValueList.Builder<Job>().build())
                     );
+            log.info("Jobs: " + jobs.size());
 
             if (!jobs.isEmpty()) {
                 log.info("running job {}", jobs.get(0).id());
