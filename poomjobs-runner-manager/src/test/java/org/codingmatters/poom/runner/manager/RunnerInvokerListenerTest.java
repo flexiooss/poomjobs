@@ -160,6 +160,7 @@ public class RunnerInvokerListenerTest {
 
         assertThat(runnerRequestJob.get().id(), is(jobEntity.id()));
     }
+
     @Test
     public void givenRunnerExists__whenJobUpdatedForRunnerCompetenciesWithNotPendingStatus__thenRunnerIsNotDelegatedTheJob() throws Exception {
         this.runnerRepository.create(RunnerValue.builder()
