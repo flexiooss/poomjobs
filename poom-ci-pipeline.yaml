@@ -33,7 +33,7 @@ stages:
 onSuccess:
   - name: metadata
     exec:
-      - $UPLOAD_PROJECT_METADATA $DEPENDENCIES_URL $SRC
+      - $UPLOAD_PROJECT_METADATA
   - name: notify-flexio
     exec:
       - $NOTIFY --data-urlencode "status=0" --data-urlencode "current-stage="
