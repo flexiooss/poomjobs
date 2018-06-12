@@ -51,7 +51,6 @@ cleanup:
     exec:
       - $MVN -q clean
 
-
 env:
   - FLEXIO_SCRIPTS: git@github.com:Flexio-corp/flexio-ci-scripts.git
   - FLEXIO_SCRIPTS_BRANCH: master
