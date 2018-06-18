@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
@@ -47,11 +48,28 @@ public class JobManager {
         this.runnerId = runnerId;
     }
 
+    public void processIncommingJob(Job job) {
+        this.processJob(job);
+        this.processPendingJobs();
+    }
 
-    public void processJob(Job job) {
+    public void processPendingJobs() {
+        try {
+            for(Optional<Job> job = this.nextJob(); job.isPresent() ; job = this.nextJob()) {
+                log.info("running job {}", job.get().id());
+                this.processJob(job.get());
+                log.info("job finished {}", job.get().id());
+            }
+            log.info("no job to process, setting status to IDLE");
+            this.statusManager.updateStatus(RunnerStatusData.Status.IDLE);
+        } catch (IOException e) {
+            log.error("error retrieving jobs from repository", e);
+        }
+    }
+
+    private void processJob(Job job) {
         log.info("will process job {}", job);
         this.statusManager.updateStatus(RunnerStatusData.Status.RUNNING);
-
         try {
             JobResourcePatchResponse response = this.jobRegistryAPIClient.jobCollection().jobResource().patch(request ->
                     request
@@ -66,7 +84,6 @@ public class JobManager {
             if (response.opt().status200().isPresent()) {
                 try {
                     this.jobWorker.submit(this.jobProcessor(job)).get();
-                    this.processPendingJobs();
                 } catch (InterruptedException | ExecutionException e) {
                     log.error("error running job " + job, e);
                 }
@@ -80,37 +97,29 @@ public class JobManager {
 
     }
 
-    public void processPendingJobs() {
-        try {
-            JobCollectionGetRequest getPendingJobs = JobCollectionGetRequest.builder()
-                    .category(this.jobCategory)
-                    .names(this.jobNames)
-                    .runStatus("PENDING")
-                    .range("0-0")
-                    .accountId(this.runnerId)
-                    .build();
+    private Optional<Job> nextJob() throws IOException {
+        JobCollectionGetRequest getPendingJobs = JobCollectionGetRequest.builder()
+                .category(this.jobCategory)
+                .names(this.jobNames)
+                .runStatus("PENDING")
+                .range("0-0")
+                .accountId(this.runnerId)
+                .build();
 
-            JobCollectionGetResponse response = this.jobRegistryAPIClient.jobCollection().get(
-                    getPendingJobs
-            );
-            ValueList<Job> jobs = response.opt().status200().payload()
-                    .orElseGet(() ->
-                            response.opt().status206().payload()
-                                    .orElse(new ValueList.Builder<Job>().build())
-                    );
-            log.info("Jobs: " + jobs.size());
+        JobCollectionGetResponse response = this.jobRegistryAPIClient.jobCollection().get(
+                getPendingJobs
+        );
+        ValueList<Job> jobs = response.opt().status200().payload()
+                .orElseGet(() ->
+                        response.opt().status206().payload()
+                                .orElse(new ValueList.Builder<Job>().build())
+                );
+        log.info("Jobs: " + jobs.size());
 
-            if (!jobs.isEmpty()) {
-                log.info("running job {}", jobs.get(0).id());
-                this.processJob(jobs.get(0));
-                log.info("job finished {}", jobs.get(0).id());
-                this.processPendingJobs();
-            } else {
-                log.info("no job to process, setting status to IDLE");
-                this.statusManager.updateStatus(RunnerStatusData.Status.IDLE);
-            }
-        } catch (IOException e) {
-            log.error("error retrieving jobs from repository", e);
+        if(! jobs.isEmpty()) {
+            return Optional.of(jobs.get(0));
+        } else {
+            return Optional.empty();
         }
     }
 
