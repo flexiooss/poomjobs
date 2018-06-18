@@ -1,7 +1,11 @@
 package org.codingmatters.poom.runner.internal;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import io.flexio.services.metrics.HealthCheckProcessor;
+import io.flexio.services.support.metrics.MetricRegistryHelper;
+import io.undertow.Handlers;
 import io.undertow.Undertow;
+import io.undertow.server.handlers.PathHandler;
 import org.codingmatters.poomjobs.api.PoomjobsRunnerAPIHandlers;
 import org.codingmatters.poomjobs.api.RunningJobPutRequest;
 import org.codingmatters.poomjobs.api.RunningJobPutResponse;
@@ -45,13 +49,16 @@ public class RunnerEndpoint {
     }
 
     public void start() {
+        PathHandler pathHandlers = Handlers.path();
+        pathHandlers.addPrefixPath( "/health", new CdmHttpUndertowHandler( HealthCheckProcessor.defaultHealthProcessor( new MetricRegistryHelper()::getMetricsAsObjectValue ) ) );
+        pathHandlers.addPrefixPath( "/", new CdmHttpUndertowHandler( new PoomjobsRunnerAPIProcessor(
+                "",
+                new JsonFactory(),
+                this.handlers
+        )));
         this.server = Undertow.builder()
                 .addHttpListener(this.port, this.host)
-                .setHandler(new CdmHttpUndertowHandler(new PoomjobsRunnerAPIProcessor(
-                        "",
-                        new JsonFactory(),
-                        this.handlers
-                )))
+                .setHandler(pathHandlers)
                 .build();
         this.server.start();
         log.info("started runner endpoint at host={} ; port={}", this.host, this.port);
