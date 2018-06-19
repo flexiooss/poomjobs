@@ -48,34 +48,50 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
 
     private void findRunnerAndDeleguateJob(Entity<JobValue> entity) {
         try {
-            RunnerCollectionGetResponse response = this.runnerRegistry.runnerCollection().get(req -> req
-                    .categoryCompetency(entity.value().category())
-                    .nameCompetency(entity.value().name())
-                    .runtimeStatus(Runtime.Status.IDLE.name())
-                    .range("0-10")
-            );
-            ValueList<Runner> candidates = response.opt().status200().payload()
-                    .orElse(response.opt().status206().payload()
-                            .orElse(new ValueList.Builder<Runner>().build()))
-                    ;
-            log.debug("runner candidates: {}", candidates);
-            if(! candidates.isEmpty()) {
-                for (Runner candidate : candidates) {
-                    log.debug("trying candidate: {}", candidate);
-                    PoomjobsRunnerAPIClient runner = this.runnerClient(candidate);
-                    RunningJobPutResponse resp = runner.runningJob().put(req -> req
-                            .jobId(entity.id())
-                            .payload(this.createJobRequest(entity)));
-                    if(resp.opt().status201().isPresent()) {
-                        log.info("delegated job to runner {} at {}", candidate.id(), candidate.callback());
-                        return;
-                    } else {
-                        log.info("runner refused the job with response: {}", resp);
+            int start = 0;
+            int step = 10;
+            RunnerCollectionGetResponse response;
+            do {
+                String range = String.format("%s-%s", start, start + step - 1);
+                start = start + step;
+
+                response = this.runnerRegistry.runnerCollection().get(req -> req
+                        .categoryCompetency(entity.value().category())
+                        .nameCompetency(entity.value().name())
+                        .runtimeStatus(Runtime.Status.IDLE.name())
+                        .range(range)
+                );
+                ValueList<Runner> candidates = response.opt().status200().payload()
+                        .orElse(response.opt().status206().payload()
+                                .orElse(new ValueList.Builder<Runner>().build()))
+                        ;
+                log.debug("runner candidates: {}", candidates);
+                if(! candidates.isEmpty()) {
+                    for (Runner candidate : candidates) {
+                        log.debug("trying candidate: {}", candidate);
+                        PoomjobsRunnerAPIClient runner = this.runnerClient(candidate);
+                        try {
+                            RunningJobPutResponse resp = runner.runningJob().put(req -> req
+                                    .jobId(entity.id())
+                                    .payload(this.createJobRequest(entity)));
+                            if (resp.opt().status201().isPresent()) {
+                                log.info("delegated job to runner {} at {}", candidate.id(), candidate.callback());
+                                return;
+                            } else {
+                                log.info("runner refused the job with response: {}", resp);
+                            }
+                        } catch(IOException e) {
+                            log.info(
+                                    String.format("runner with id %s at %s seem to be down, will try another one",
+                                            candidate.id(),
+                                            candidate.callback()),
+                                    e);
+                        }
                     }
+                } else {
+                    log.info("no runner ready for job {}", entity.id());
                 }
-            } else {
-                log.info("no runner ready for job {}", entity.id());
-            }
+            } while (! response.opt().status200().isPresent());
         } catch (IOException e) {
             log.error("problem occurred while looking up runner for job " + entity.id(), e);
         }

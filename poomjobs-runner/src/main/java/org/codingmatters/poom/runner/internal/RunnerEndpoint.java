@@ -87,7 +87,7 @@ public class RunnerEndpoint {
         }
         Job job = request.payload();
 
-        this.deleguate.submit(() -> this.jobManager.processJob(job));
+        this.deleguate.submit(() -> this.jobManager.processIncommingJob(job));
 
         return RunningJobPutResponse.builder().status201(status ->
                 status.location(this.jobRegistryUrl + "/jobs/" + job.id()))

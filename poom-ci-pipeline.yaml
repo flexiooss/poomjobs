@@ -8,7 +8,7 @@ stages:
       - mkdir -p $WORKSPACE/.m2
 
   - name: build
-    timeout: 10
+    timeout: 11
     exec:
       - $NOTIFY --data-urlencode "status=2" --data-urlencode "current-stage=$STAGE"
       - $MVN clean install
@@ -18,6 +18,8 @@ stages:
     exec:
       - $NOTIFY --data-urlencode "status=2" --data-urlencode "current-stage=$STAGE"
       - $MVN deploy -DskipTests
+    onlyWhen:
+      - branch in (master, develop)
 
   - name: build-an-deploy-docker-images
     timeout: 10
@@ -25,8 +27,15 @@ stages:
       - $NOTIFY --data-urlencode "status=2" --data-urlencode "current-stage=$STAGE"
       - $DOCKER_BUILD $SRC build
       - $DOCKER_BUILD $SRC push
+    onlyWhen:
+      - branch in (master, develop)
 
 onSuccess:
+  - name: metadata-management
+    exec:
+      - $NOTIFY --data-urlencode "status=2" --data-urlencode "current-stage=$STAGE"
+      - $UPLOAD_PROJECT_METADATA
+      - $TRIGGER_DOWNSTREAM
   - name: notify-flexio
     exec:
       - $NOTIFY --data-urlencode "status=0" --data-urlencode "current-stage="
@@ -37,15 +46,23 @@ onError:
     exec:
       - $NOTIFY --data-urlencode "status=1" --data-urlencode "current-stage="
 
-
+cleanup:
+  - name: maven-clean
+    exec:
+      - $MVN -q clean
 
 env:
-  - SETTING_FILE: /home/nel/Documents/POOM-CI/settings-oss.xml
   - FLEXIO_SCRIPTS: git@github.com:Flexio-corp/flexio-ci-scripts.git
   - FLEXIO_SCRIPTS_BRANCH: master
+
+  - PIPELINES_URL: http://master.ci.flexio.io:6545/pipelines
+  - DEPENDENCIES_URL: http://master.ci.flexio.io:6545/dependencies
   - CI_TOOLS_IMAGE: codingmatters/ci-tools:0.0.1-SNAPSHOT
   - MVN_OPTS: -B -Dcodingmatters.docker.namespace=codingmatters
-  - MVN: docker run --rm -v $SRC:/src -v $WORKSPACE/.m2:/root/.m2 -v $WORKSPACE/secrets/settings.xml:/root/.m2/settings.xml $CI_TOOLS_IMAGE mvn $MVN_OPTS
+  - MVN: docker run --rm --env REPOSITORY_ID="$REPOSITORY_ID" --env REPOSITORY="$REPOSITORY" --env CHECKOUT_SPEC="$CHECKOUT_SPEC" -v $SRC:/src -v $WORKSPACE/.m2:/root/.m2 -v $WORKSPACE/secrets/settings.xml:/root/.m2/settings.xml $CI_TOOLS_IMAGE mvn $MVN_OPTS
+  - UPLOAD_PROJECT_METADATA: docker run --rm --env REPOSITORY_ID="$REPOSITORY_ID" --env REPOSITORY="$REPOSITORY" --env CHECKOUT_SPEC="$CHECKOUT_SPEC" -v $SRC:/src -v $WORKSPACE/.m2:/root/.m2 -v $WORKSPACE/secrets/settings.xml:/root/.m2/settings.xml $CI_TOOLS_IMAGE /usr/local/bin/upload-project-metadata.sh $DEPENDENCIES_URL /src
+  - TRIGGER_DOWNSTREAM: docker run --rm --env REPOSITORY_ID="$REPOSITORY_ID" --env REPOSITORY="$REPOSITORY" --env CHECKOUT_SPEC="$CHECKOUT_SPEC" -v $SRC:/src -v $WORKSPACE/.m2:/root/.m2 -v $WORKSPACE/secrets/settings.xml:/root/.m2/settings.xml $CI_TOOLS_IMAGE /usr/local/bin/trigger-downstream.sh $PIPELINES_URL $DEPENDENCIES_URL $REPOSITORY_ID "$REPOSITORY" "$CHECKOUT_SPEC"
+
   - NOTIFY: curl -G "https://my.flexio.io/channelApi/flexHttpInOut/59d3a0105d443519843d0496/5adf40aededdbb452368cfca" --data-urlencode "repository=$REPOSITORY" --data-urlencode "branch=$BRANCH" --data-urlencode "pipeline-id=$PIPELINE_ID"
   - DOCKER_BUILD: $WORKSPACE/flexio-ci-scripts/bin/docker-compose-build.sh
 
