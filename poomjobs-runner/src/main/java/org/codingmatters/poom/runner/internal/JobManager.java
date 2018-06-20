@@ -133,7 +133,12 @@ public class JobManager {
             Job job = processor.process();
             try {
                 this.jobRegistryAPIClient.jobCollection().jobResource().patch(req -> req
-                        .jobId(job.id()).payload(payload -> payload.status(this.patchStatus(job.status()))).accountId(this.runnerId)
+                        .jobId(job.id())
+                        .accountId(this.runnerId)
+                        .payload(payload -> payload
+                                .status(this.patchStatus(job.status()))
+                                .result(job.result())
+                        )
                 );
             } catch (IOException e) {
                 log.error("GRAVE : failed to update job status for job " + job.id(), e);
