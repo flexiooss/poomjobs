@@ -51,7 +51,9 @@ public class RunnerEndpoint {
 
     public void start() {
         PathHandler pathHandlers = Handlers.path();
-        pathHandlers.addPrefixPath( "/health", new CdmHttpUndertowHandler( healthProcessor ) );
+        if( this.healthProcessor != null ) {
+            pathHandlers.addPrefixPath( "/health", new CdmHttpUndertowHandler( healthProcessor ) );
+        }
         pathHandlers.addPrefixPath( "/", new CdmHttpUndertowHandler( new PoomjobsRunnerAPIProcessor(
                 "",
                 new JsonFactory(),
