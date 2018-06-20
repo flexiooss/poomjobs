@@ -43,10 +43,6 @@
             <artifactId>okhttp</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>io.flexio.services.registry</groupId>
-            <artifactId>flexio-metrics-service</artifactId>
-        </dependency>
     </dependencies>
 
 

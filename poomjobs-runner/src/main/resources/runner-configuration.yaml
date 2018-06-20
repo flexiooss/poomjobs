@@ -15,3 +15,5 @@ RunnerConfiguration:
   jobRegistryUrl: string
   endpointHost: string
   endpointPort: int
+  healthCheckProcessor:
+    $type: org.codingmatters.rest.api.Processor

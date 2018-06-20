@@ -9,6 +9,7 @@ import org.codingmatters.poom.runner.internal.RunnerEndpoint;
 import org.codingmatters.poom.runner.internal.StatusManager;
 import org.codingmatters.poom.services.support.date.UTC;
 import org.codingmatters.poomjobs.api.RunnerCollectionPostResponse;
+import org.codingmatters.rest.api.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +42,7 @@ public class GenericRunner {
 
     private final ScheduledExecutorService updateWorker = Executors.newSingleThreadScheduledExecutor();
     private final ScheduledExecutorService boostrapPool = Executors.newSingleThreadScheduledExecutor();
+    private final Processor healthCheckProcessor;
 
     private String id;
 
@@ -60,6 +62,7 @@ public class GenericRunner {
         this.jobRegistryUrl = configuration.jobRegistryUrl();
         this.endpointHost = configuration.endpointHost();
         this.endpointPort = configuration.endpointPort();
+        this.healthCheckProcessor = configuration.healthCheckProcessor();
     }
 
     public void start() throws RunnerInitializationException {
@@ -109,6 +112,7 @@ public class GenericRunner {
             this.endpoint = new RunnerEndpoint(
                     this.statusManager,
                     this.jobManager,
+                    this.healthCheckProcessor,
                     this.jobRegistryUrl,
                     this.endpointHost,
                     this.endpointPort
