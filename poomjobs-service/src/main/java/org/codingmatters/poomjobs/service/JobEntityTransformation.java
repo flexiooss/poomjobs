@@ -33,6 +33,7 @@ public class JobEntityTransformation {
                 .status(this.jobStatusFrom(value.status()))
                 .accounting(this.jobAccountingFrom(value.accounting()))
                 .processing(this.jobProcessingFrom(value.processing()))
+                .result(value.result())
                 .build();
     }
 
