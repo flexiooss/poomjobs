@@ -76,9 +76,13 @@ public class StatusManager {
     public void scheduleNextStatusUpdate(LocalDateTime lastPing) {
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC.normalized());
         LocalDateTime nextNotification = lastPing.plus(this.ttl, ChronoUnit.MILLIS);
+        if(nextNotification.isBefore(now)) {
+            nextNotification = now.plus(this.ttl, ChronoUnit.MILLIS);
+        }
+        log.debug("next status update at {}", nextNotification);
+
         long nextPingWithin = Duration.between(now, nextNotification).toMillis();
 
-        log.debug("next status update at {}", nextNotification);
         ScheduledFuture<?> scheduled = this.updateWorker.schedule(
                 () -> {
                     this.nextUpdate.set(null);
