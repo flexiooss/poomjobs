@@ -1,7 +1,9 @@
 package org.codingmatters.poom.runner.internal;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import io.undertow.Handlers;
 import io.undertow.Undertow;
+import io.undertow.server.handlers.PathHandler;
 import org.codingmatters.poomjobs.api.PoomjobsRunnerAPIHandlers;
 import org.codingmatters.poomjobs.api.RunningJobPutRequest;
 import org.codingmatters.poomjobs.api.RunningJobPutResponse;
@@ -9,6 +11,7 @@ import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.RunnerStatusData;
 import org.codingmatters.poomjobs.service.api.PoomjobsRunnerAPIProcessor;
+import org.codingmatters.rest.api.Processor;
 import org.codingmatters.rest.undertow.CdmHttpUndertowHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +25,7 @@ public class RunnerEndpoint {
 
     private final StatusManager statusManager;
     private final JobManager jobManager;
+    private final Processor healthProcessor;
     private final String jobRegistryUrl;
     private final String host;
     private final int port;
@@ -32,9 +36,10 @@ public class RunnerEndpoint {
 
     private Undertow server;
 
-    public RunnerEndpoint(StatusManager statusManager, JobManager jobManager, String jobRegistryUrl, String endpointHost, int endpointPort) {
+    public RunnerEndpoint(StatusManager statusManager, JobManager jobManager, Processor healthProcessor, String jobRegistryUrl, String endpointHost, int endpointPort) {
         this.statusManager = statusManager;
         this.jobManager = jobManager;
+        this.healthProcessor = healthProcessor;
         this.jobRegistryUrl = jobRegistryUrl;
         this.host = endpointHost;
         this.port = endpointPort;
@@ -45,13 +50,18 @@ public class RunnerEndpoint {
     }
 
     public void start() {
+        PathHandler pathHandlers = Handlers.path();
+        if( this.healthProcessor != null ) {
+            pathHandlers.addPrefixPath( "/health", new CdmHttpUndertowHandler( healthProcessor ) );
+        }
+        pathHandlers.addPrefixPath( "/", new CdmHttpUndertowHandler( new PoomjobsRunnerAPIProcessor(
+                "",
+                new JsonFactory(),
+                this.handlers
+        )));
         this.server = Undertow.builder()
                 .addHttpListener(this.port, this.host)
-                .setHandler(new CdmHttpUndertowHandler(new PoomjobsRunnerAPIProcessor(
-                        "",
-                        new JsonFactory(),
-                        this.handlers
-                )))
+                .setHandler(pathHandlers)
                 .build();
         this.server.start();
         log.info("started runner endpoint at host={} ; port={}", this.host, this.port);
