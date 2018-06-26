@@ -1,22 +1,20 @@
 package org.codingmatters.poom.runner.manager;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import okhttp3.OkHttpClient;
 import org.codingmatters.poom.client.PoomjobsRunnerAPIClient;
-import org.codingmatters.poom.client.PoomjobsRunnerAPIRequesterClient;
 import org.codingmatters.poom.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Runtime;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.RunnerCollectionGetResponse;
+import org.codingmatters.poomjobs.api.RunnerPatchResponse;
 import org.codingmatters.poomjobs.api.RunningJobPutResponse;
 import org.codingmatters.poomjobs.api.ValueList;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.Runner;
+import org.codingmatters.poomjobs.api.types.RunnerStatusData;
 import org.codingmatters.poomjobs.service.JobEntityTransformation;
 import org.codingmatters.poomjobs.service.PoomjobsJobRepositoryListener;
-import org.codingmatters.rest.api.client.okhttp.OkHttpRequesterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,11 +25,11 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
     static private final Logger log = LoggerFactory.getLogger(RunnerInvokerListener.class);
 
     private final PoomjobsRunnerRegistryAPIClient runnerRegistry;
-    private final OkHttpClient client;
+    private final RunnerClientFactory runnerClientFactory;
 
-    public RunnerInvokerListener(PoomjobsRunnerRegistryAPIClient runnerRegistry) {
+    public RunnerInvokerListener(PoomjobsRunnerRegistryAPIClient runnerRegistry, RunnerClientFactory runnerClientFactory) {
         this.runnerRegistry = runnerRegistry;
-        this.client = new OkHttpClient.Builder().build();
+        this.runnerClientFactory = runnerClientFactory;
     }
 
     @Override
@@ -81,11 +79,7 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
                                 log.info("runner refused the job with response: {}", resp);
                             }
                         } catch(IOException e) {
-                            log.info(
-                                    String.format("runner with id %s at %s seem to be down, will try another one",
-                                            candidate.id(),
-                                            candidate.callback()),
-                                    e);
+                            this.disconnectRunner(candidate, e);
                         }
                     }
                 } else {
@@ -97,13 +91,27 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
         }
     }
 
+    private void disconnectRunner(Runner candidate, IOException e) {
+        log.info(
+                String.format("runner with id %s at %s seem to be down, setting as disconnected",
+                        candidate.id(),
+                        candidate.callback()),
+                e);
+        try {
+            RunnerPatchResponse response = this.runnerRegistry.runnerCollection().runner().patch(req -> req
+                    .runnerId(candidate.id())
+                    .payload(status -> status.status(RunnerStatusData.Status.DISCONNECTED))
+            );
+            if(! response.opt().status200().isPresent()) {
+                log.error("runner {} update refused with response : {}", candidate.id(), response);
+            }
+        } catch (IOException e1) {
+            log.error(String.format("error updating runner %s status", candidate.id()), e1);
+        }
+    }
+
     private PoomjobsRunnerAPIClient runnerClient(Runner runner) {
-        JsonFactory jsonFactory = new JsonFactory();
-        PoomjobsRunnerAPIClient result = new PoomjobsRunnerAPIRequesterClient(
-                new OkHttpRequesterFactory(this.client),
-                jsonFactory,
-                runner.callback());
-        return result;
+        return this.runnerClientFactory.runnerClient(runner);
     }
 
     private Job createJobRequest(Entity<JobValue> entity) {

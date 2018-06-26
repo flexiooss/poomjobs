@@ -12,6 +12,7 @@ import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Runtime;
+import org.codingmatters.poom.runner.manager.harness.TestRunnerClientFactory;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.PoomjobsRunnerAPIHandlers;
@@ -20,6 +21,7 @@ import org.codingmatters.poomjobs.api.RunningJobPutResponse;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.service.PoomjobsRunnerRegistryAPI;
 import org.codingmatters.poomjobs.service.api.PoomjobsRunnerAPIProcessor;
+import org.codingmatters.rest.api.client.okhttp.OkHttpClientWrapper;
 import org.codingmatters.rest.undertow.CdmHttpUndertowHandler;
 import org.codingmatters.rest.undertow.support.UndertowResource;
 import org.junit.After;
@@ -59,12 +61,17 @@ public class RunnerInvokerListenerTest {
                 .runningJobPutHandler(req -> this.runnerPutResponder.apply(req))
                 .build()
     )));
+    private TestRunnerClientFactory testRunnerClientFactory;
 
     @Before
     public void setUp() throws Exception {
         this.setUpRunnerRegistry();
 
-        this.runnerInvokerListener = new RunnerInvokerListener(this.runnerRegistry);
+        this.testRunnerClientFactory = new TestRunnerClientFactory(new DefaultRunnerClientFactory(new JsonFactory(), OkHttpClientWrapper.build()));
+        this.runnerInvokerListener = new RunnerInvokerListener(
+                this.runnerRegistry,
+                testRunnerClientFactory
+        );
     }
 
     @After
@@ -191,5 +198,34 @@ public class RunnerInvokerListenerTest {
         this.runnerInvokerListener.jobUpdated(jobEntity);
 
         assertThat(runnerRequestJob.get(), is(nullValue()));
+    }
+
+
+    @Test
+    public void givenRunnerIsDown__whenJobCreatedForRunnerCompetencies__thenRunnerIsUpdatedToDisconnectedStatus() throws Exception {
+        String runnerId = this.runnerRepository.create(RunnerValue.builder()
+                .callback(this.undertow.baseUrl())
+                .competencies(competencies -> competencies.categories("TEST").names("TEST"))
+                .timeToLive(20000L)
+                .runtime(runtime -> runtime
+                        .status(Runtime.Status.IDLE)
+                        .created(LocalDateTime.now())
+                        .lastPing(LocalDateTime.now())
+                )
+                .build()).id();
+
+        this.testRunnerClientFactory.nextCallWillFail(true);
+
+        this.runnerPutResponder = request -> {
+            throw new AssertionError("runner should be unreachable");
+        };
+
+        Entity<JobValue> jobEntity = this.jobRepository.create(JobValue.builder()
+                .category("TEST")
+                .name("TEST")
+                .build());
+        this.runnerInvokerListener.jobCreated(jobEntity);
+
+        assertThat(this.runnerRepository.retrieve(runnerId).value().runtime().status(), is(Runtime.Status.DISCONNECTED));
     }
 }
