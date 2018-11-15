@@ -4,15 +4,15 @@ import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.client.PoomjobsRunnerAPIClient;
 import org.codingmatters.poom.client.PoomjobsRunnerAPIRequesterClient;
 import org.codingmatters.poomjobs.api.types.Runner;
-import org.codingmatters.rest.api.client.okhttp.OkHttpClientWrapper;
+import org.codingmatters.rest.api.client.okhttp.HttpClientWrapper;
 import org.codingmatters.rest.api.client.okhttp.OkHttpRequesterFactory;
 
 public class DefaultRunnerClientFactory implements RunnerClientFactory {
 
     private final JsonFactory jsonFactory;
-    private final OkHttpClientWrapper client;
+    private final HttpClientWrapper client;
 
-    public DefaultRunnerClientFactory(JsonFactory jsonFactory, OkHttpClientWrapper client) {
+    public DefaultRunnerClientFactory(JsonFactory jsonFactory, HttpClientWrapper client) {
         this.jsonFactory = jsonFactory;
         this.client = client;
     }
