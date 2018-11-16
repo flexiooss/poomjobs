@@ -1,7 +1,6 @@
 package org.codingmatters.poom.client;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import okhttp3.OkHttpClient;
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
@@ -12,6 +11,8 @@ import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
 import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
 import org.codingmatters.poomjobs.service.api.PoomjobsJobRegistryAPIProcessor;
+import org.codingmatters.rest.api.client.okhttp.HttpClientWrapper;
+import org.codingmatters.rest.api.client.okhttp.OkHttpClientWrapper;
 import org.codingmatters.rest.api.client.okhttp.OkHttpRequesterFactory;
 import org.codingmatters.rest.undertow.CdmHttpUndertowHandler;
 import org.codingmatters.rest.undertow.support.UndertowResource;
@@ -53,7 +54,7 @@ public class PoomjobsJobRegistryAPIRequesterClientTest {
                 .category("categ")
                 .build());
 
-        OkHttpClient client = new OkHttpClient();
+        HttpClientWrapper client = OkHttpClientWrapper.build();
         JsonFactory jsonFactory = new JsonFactory();
 
         this.apiClient = new PoomjobsJobRegistryAPIRequesterClient(

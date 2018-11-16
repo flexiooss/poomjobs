@@ -1,7 +1,6 @@
 package org.codingmatters.poom.runner;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import okhttp3.OkHttpClient;
 import org.codingmatters.poom.client.*;
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.RunnerRepository;
@@ -12,7 +11,6 @@ import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Runtime;
 import org.codingmatters.poom.runner.configuration.RunnerConfiguration;
-import org.codingmatters.poom.runner.tests.ClientListener;
 import org.codingmatters.poom.runner.tests.Eventually;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.support.date.UTC;
@@ -23,6 +21,8 @@ import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.Runner;
 import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
 import org.codingmatters.poomjobs.service.PoomjobsRunnerRegistryAPI;
+import org.codingmatters.rest.api.client.okhttp.HttpClientWrapper;
+import org.codingmatters.rest.api.client.okhttp.OkHttpClientWrapper;
 import org.codingmatters.rest.api.client.okhttp.OkHttpRequesterFactory;
 import org.junit.After;
 import org.junit.Before;
@@ -273,11 +273,7 @@ public class GenericRunnerTest {
 
     private void setupRunnerEndpointClient() {
 
-        OkHttpClient client = new OkHttpClient.Builder()
-                .eventListener(new ClientListener())
-                .build();
-
-
+        HttpClientWrapper client = OkHttpClientWrapper.build();
         JsonFactory jsonFactory = new JsonFactory();
 
         this.runnerEndpointClient = new PoomjobsRunnerAPIRequesterClient(
