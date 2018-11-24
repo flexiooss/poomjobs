@@ -277,7 +277,10 @@ public class GenericRunnerTest {
         JsonFactory jsonFactory = new JsonFactory();
 
         this.runnerEndpointClient = new PoomjobsRunnerAPIRequesterClient(
-                new OkHttpRequesterFactory(client),
+                new OkHttpRequesterFactory(client, () ->String.format("http://%s:%s",
+                        this.runnerConfiguration.endpointHost(),
+                        this.runnerConfiguration.endpointPort()
+                )),
                 jsonFactory,
                 String.format("http://%s:%s",
                         this.runnerConfiguration.endpointHost(),

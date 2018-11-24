@@ -20,7 +20,7 @@ public class DefaultRunnerClientFactory implements RunnerClientFactory {
     @Override
     public PoomjobsRunnerAPIClient runnerClient(Runner runner) {
         PoomjobsRunnerAPIClient result = new PoomjobsRunnerAPIRequesterClient(
-                new OkHttpRequesterFactory(this.client),
+                new OkHttpRequesterFactory(this.client, () -> runner.callback()),
                 this.jsonFactory,
                 runner.callback());
         return result;

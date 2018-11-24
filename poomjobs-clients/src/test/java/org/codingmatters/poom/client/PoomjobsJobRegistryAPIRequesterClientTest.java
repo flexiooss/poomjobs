@@ -58,7 +58,7 @@ public class PoomjobsJobRegistryAPIRequesterClientTest {
         JsonFactory jsonFactory = new JsonFactory();
 
         this.apiClient = new PoomjobsJobRegistryAPIRequesterClient(
-                new OkHttpRequesterFactory(client),
+                new OkHttpRequesterFactory(client, () -> this.undertow.baseUrl() + "/poom"),
                 jsonFactory,
                 this.undertow.baseUrl() + "/poom"
         );
