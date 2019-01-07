@@ -14,4 +14,45 @@
     <artifactId>poomjobs-api-spec</artifactId>
     <name>${project.groupId}:${project.artifactId}</name>
 
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codingmatters.rest</groupId>
+                <artifactId>cdm-rest-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>job-registry-api-doc-gen</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>generate-api-doc</goal>
+                        </goals>
+                        <configuration>
+                            <api-spec-file>${basedir}/src/main/resources/poomjobs-job-registry-api.raml</api-spec-file>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>poomjobs-runner-api-doc-gen</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>generate-api-doc</goal>
+                        </goals>
+                        <configuration>
+                            <api-spec-file>${basedir}/src/main/resources/poomjobs-runner-api.raml</api-spec-file>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>poomjobs-runner-registry-api-doc-gen</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>generate-api-doc</goal>
+                        </goals>
+                        <configuration>
+                            <api-spec-file>${basedir}/src/main/resources/poomjobs-runner-registry-api.raml</api-spec-file>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
