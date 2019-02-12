@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.codingmatters.poom</groupId>
-        <artifactId>poomjobs</artifactId>
+        <groupId>org.codingmatters</groupId>
+        <artifactId>codingmatters-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../</relativePath>
     </parent>
 
+    <groupId>org.codingmatters.poom</groupId>
     <artifactId>poomjobs-bom</artifactId>
     <packaging>pom</packaging>
 

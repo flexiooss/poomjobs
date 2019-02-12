@@ -69,7 +69,6 @@
 
     <modules>
         <module>poomjobs-bom</module>
-        <module>poomjobs-parent</module>
         <module>poomjobs-domain</module>
         <module>poomjobs-api-spec</module>
         <module>poomjobs-api</module>
@@ -79,4 +78,24 @@
         <module>poomjobs-runner-manager</module>
         <module>poomjobs-registries-service</module>
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.codingmatters.poom</groupId>
+            <artifactId>poom-services-test-support</artifactId>
+        </dependency>
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.codingmatters.poom</groupId>
+                <artifactId>poomjobs-bom</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 </project>
