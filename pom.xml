@@ -57,7 +57,7 @@
     </pluginRepositories>
 
     <modules>
-        <module>poomjobs-bom</module>
+        <!--<module>poomjobs-bom</module>-->
         <module>poomjobs-domain</module>
         <module>poomjobs-api-spec</module>
         <module>poomjobs-api</module>
@@ -78,13 +78,48 @@
 
     <dependencyManagement>
         <dependencies>
+            <!--BOM-->
             <dependency>
-                <groupId>org.codingmatters.poom</groupId>
-                <artifactId>poomjobs-bom</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
-                <scope>import</scope>
-                <type>pom</type>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>poomjobs-domain</artifactId>
+                <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>poomjobs-api-spec</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>poomjobs-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>poomjobs-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>poomjobs-clients</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>poomjobs-runner</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>poomjobs-runner-manager</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>poomjobs-registries-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!--// BOM-->
         </dependencies>
     </dependencyManagement>
 
