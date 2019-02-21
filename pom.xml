@@ -46,6 +46,12 @@
             <releases><enabled>false</enabled></releases>
             <snapshots><enabled>true</enabled></snapshots>
         </repository>
+        <repository>
+            <id>oss-staging</id>
+            <url>https://oss.sonatype.org/content/groups/staging</url>
+            <releases><enabled>false</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
@@ -54,10 +60,15 @@
             <releases><enabled>false</enabled></releases>
             <snapshots><enabled>true</enabled></snapshots>
         </pluginRepository>
+        <pluginRepository>
+            <id>oss-staging</id>
+            <url>https://oss.sonatype.org/content/groups/staging</url>
+            <releases><enabled>false</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </pluginRepository>
     </pluginRepositories>
 
     <modules>
-        <!--<module>poomjobs-bom</module>-->
         <module>poomjobs-domain</module>
         <module>poomjobs-api-spec</module>
         <module>poomjobs-api</module>
