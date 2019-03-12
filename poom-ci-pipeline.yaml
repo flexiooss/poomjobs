@@ -57,6 +57,7 @@ cleanup:
       - $MVN -q clean
 
   - name: m2-repository-clean
+    exec:
       - rm -rf $M2/repository/org/codingmatters
       - rm -rf $M2/repository/io/flexio
 env:

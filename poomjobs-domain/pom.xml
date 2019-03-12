@@ -31,6 +31,14 @@
             <groupId>org.codingmatters.poom</groupId>
             <artifactId>poom-services-support</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.flexio.io</groupId>
+            <artifactId>flexio-mongo-io-repository</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.flexio.io</groupId>
+            <artifactId>flexio-mongo-io-support</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -104,6 +112,74 @@
                             <sources>
                                 <source>target/generated-sources</source>
                             </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+
+            <plugin>
+                <groupId>io.flexio.io</groupId>
+                <artifactId>flexio-mongo-io-maven-plugin</artifactId>
+                <!--<dependencies>-->
+                    <!--<dependency>-->
+                        <!--<groupId>org.codingmatters.poom</groupId>-->
+                        <!--<artifactId>poomjobs-api-spec</artifactId>-->
+                        <!--<version>${poomjobs.version}</version>-->
+                    <!--</dependency>-->
+                    <!--<dependency>-->
+                        <!--<groupId>org.codingmatters.poom</groupId>-->
+                        <!--<artifactId>poomjobs-domain</artifactId>-->
+                        <!--<version>${poomjobs.version}</version>-->
+                    <!--</dependency>-->
+                <!--</dependencies>-->
+                <executions>
+                    <!--<execution>-->
+                        <!--<id>mongo-job</id>-->
+                        <!--<phase>generate-sources</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>mongo-mapping</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<destination-package>org.codingmatters.poomjobs.api.types</destination-package>-->
+                            <!--<api-spec-resource>poomjobs-job-registry-api.raml</api-spec-resource>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+                    <!--<execution>-->
+                        <!--<id>mongo-runner</id>-->
+                        <!--<phase>generate-sources</phase>-->
+                        <!--<goals>-->
+                            <!--<goal>mongo-mapping</goal>-->
+                        <!--</goals>-->
+                        <!--<configuration>-->
+                            <!--<destination-package>org.codingmatters.poomjobs.api.types</destination-package>-->
+                            <!--<api-spec-resource>poomjobs-runner-registry-api.raml</api-spec-resource>-->
+                        <!--</configuration>-->
+                    <!--</execution>-->
+
+                    <execution>
+                        <id>mongo-job-value-objects</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>mongo-mapping</goal>
+                        </goals>
+                        <configuration>
+                            <destination-package>org.codingmatters.poom.poomjobs.domain.values.jobs</destination-package>
+                            <input-spec>src/main/resources/job-value.yaml</input-spec>
+                        </configuration>
+                    </execution>
+
+
+                    <execution>
+                        <id>mongo-runner-value-objects</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>mongo-mapping</goal>
+                        </goals>
+                        <configuration>
+                            <destination-package>org.codingmatters.poom.poomjobs.domain.values.runners</destination-package>
+                            <input-spec>src/main/resources/runner-value.yaml</input-spec>
                         </configuration>
                     </execution>
                 </executions>
