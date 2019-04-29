@@ -1,7 +1,7 @@
 package org.codingmatters.poom.runner;
 
-import org.codingmatters.poom.client.PoomjobsJobRegistryAPIClient;
-import org.codingmatters.poom.client.PoomjobsRunnerRegistryAPIClient;
+import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
+import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poom.runner.configuration.RunnerConfiguration;
 import org.codingmatters.poom.runner.exception.RunnerInitializationException;
 import org.codingmatters.poom.runner.internal.JobManager;

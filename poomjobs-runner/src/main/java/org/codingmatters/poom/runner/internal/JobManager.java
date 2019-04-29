@@ -1,6 +1,6 @@
 package org.codingmatters.poom.runner.internal;
 
-import org.codingmatters.poom.client.PoomjobsJobRegistryAPIClient;
+import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poomjobs.api.JobCollectionGetRequest;

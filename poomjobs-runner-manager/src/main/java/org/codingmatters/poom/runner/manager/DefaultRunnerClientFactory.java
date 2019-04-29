@@ -1,8 +1,8 @@
 package org.codingmatters.poom.runner.manager;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import org.codingmatters.poom.client.PoomjobsRunnerAPIClient;
-import org.codingmatters.poom.client.PoomjobsRunnerAPIRequesterClient;
+import org.codingmatters.poomjobs.client.PoomjobsRunnerAPIClient;
+import org.codingmatters.poomjobs.client.PoomjobsRunnerAPIRequesterClient;
 import org.codingmatters.poomjobs.api.types.Runner;
 import org.codingmatters.rest.api.client.okhttp.HttpClientWrapper;
 import org.codingmatters.rest.api.client.okhttp.OkHttpRequesterFactory;

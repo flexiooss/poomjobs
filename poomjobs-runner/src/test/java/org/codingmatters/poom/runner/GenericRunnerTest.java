@@ -1,7 +1,7 @@
 package org.codingmatters.poom.runner;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import org.codingmatters.poom.client.*;
+import org.codingmatters.poomjobs.client.*;
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.RunnerRepository;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;

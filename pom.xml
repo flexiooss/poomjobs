@@ -7,10 +7,9 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poom-services</artifactId>
-        <version>1.3.0</version>
+        <version>1.4.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>org.codingmatters.poom</groupId>
     <artifactId>poomjobs</artifactId>
     <version>1.3.0-SNAPSHOT</version>
 
