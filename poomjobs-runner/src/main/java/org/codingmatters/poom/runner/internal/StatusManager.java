@@ -1,6 +1,6 @@
 package org.codingmatters.poom.runner.internal;
 
-import org.codingmatters.poom.client.PoomjobsRunnerRegistryAPIClient;
+import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poomjobs.api.RunnerPatchResponse;
 import org.codingmatters.poomjobs.api.types.RunnerStatusData;
 import org.slf4j.Logger;

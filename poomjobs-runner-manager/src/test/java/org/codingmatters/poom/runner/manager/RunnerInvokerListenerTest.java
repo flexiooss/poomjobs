@@ -1,9 +1,9 @@
 package org.codingmatters.poom.runner.manager;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import org.codingmatters.poom.client.PoomjobsJobRegistryAPIClient;
-import org.codingmatters.poom.client.PoomjobsRunnerRegistryAPIClient;
-import org.codingmatters.poom.client.PoomjobsRunnerRegistryAPIHandlersClient;
+import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
+import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
+import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIHandlersClient;
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.RunnerRepository;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;

@@ -8,6 +8,8 @@ import org.codingmatters.poomjobs.api.JobCollectionGetRequest;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
+import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
+import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIHandlersClient;
 import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
 import org.junit.After;
 import org.junit.Before;

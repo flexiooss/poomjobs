@@ -1,6 +1,6 @@
 package org.codingmatters.poom.runner.manager.harness;
 
-import org.codingmatters.poom.client.PoomjobsRunnerAPIClient;
+import org.codingmatters.poomjobs.client.PoomjobsRunnerAPIClient;
 import org.codingmatters.poom.runner.manager.DefaultRunnerClientFactory;
 import org.codingmatters.poom.runner.manager.RunnerClientFactory;
 import org.codingmatters.poomjobs.api.RunningJobPutRequest;

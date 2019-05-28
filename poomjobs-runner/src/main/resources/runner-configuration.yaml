@@ -1,8 +1,8 @@
 RunnerConfiguration:
   jobRegistryAPIClient:
-    $type: org.codingmatters.poom.client.PoomjobsJobRegistryAPIClient
+    $type: org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient
   runnerRegistryAPIClient:
-    $type: org.codingmatters.poom.client.PoomjobsRunnerRegistryAPIClient
+    $type: org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient
   jobWorker:
     $type: java.util.concurrent.ExecutorService
   callbackBaseUrl: string

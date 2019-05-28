@@ -1,7 +1,7 @@
 package org.codingmatters.poom.runner.manager;
 
-import org.codingmatters.poom.client.PoomjobsRunnerAPIClient;
-import org.codingmatters.poom.client.PoomjobsRunnerRegistryAPIClient;
+import org.codingmatters.poomjobs.client.PoomjobsRunnerAPIClient;
+import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Runtime;

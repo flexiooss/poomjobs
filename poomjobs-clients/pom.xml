@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poomjobs</artifactId>
-        <version>1.2.0</version>
+        <version>1.3.0</version>
         <relativePath>../</relativePath>
     </parent>
 
@@ -27,7 +27,6 @@
             <groupId>org.codingmatters.rest</groupId>
             <artifactId>cdm-rest-client-api</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.codingmatters.rest</groupId>
             <artifactId>cdm-rest-client-okhttp</artifactId>
@@ -63,7 +62,7 @@
                     <dependency>
                         <groupId>org.codingmatters.poom</groupId>
                         <artifactId>poomjobs-api-spec</artifactId>
-                        <version>1.2.0</version>
+                        <version>1.3.0</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -71,39 +70,16 @@
                         <id>job-registry-api-gen</id>
                         <phase>generate-sources</phase>
                         <goals>
-                            <goal>generate-client-side</goal>
+                            <goal>generate-all-clients</goal>
                         </goals>
                         <configuration>
-                            <destination-package>org.codingmatters.poom.client</destination-package>
-                            <api-spec-resource>poomjobs-job-registry-api.raml</api-spec-resource>
-                            <types-package>org.codingmatters.poomjobs.api.types</types-package>
-                            <api-package>org.codingmatters.poomjobs.api</api-package>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>runner-registry-api-gen</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>generate-client-side</goal>
-                        </goals>
-                        <configuration>
-                            <destination-package>org.codingmatters.poom.client</destination-package>
-                            <api-spec-resource>poomjobs-runner-registry-api.raml</api-spec-resource>
-                            <types-package>org.codingmatters.poomjobs.api.types</types-package>
-                            <api-package>org.codingmatters.poomjobs.api</api-package>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>runner-api-gen</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>generate-client-side</goal>
-                        </goals>
-                        <configuration>
-                            <destination-package>org.codingmatters.poom.client</destination-package>
-                            <api-spec-resource>poomjobs-runner-api.raml</api-spec-resource>
-                            <types-package>org.codingmatters.poomjobs.api.types</types-package>
-                            <api-package>org.codingmatters.poomjobs.api</api-package>
+                            <root-package>org.codingmatters.poomjobs</root-package>
+                            <raml-list>
+                                <raml>poomjobs-job-registry-api.raml</raml>
+                                <raml>poomjobs-runner-registry-api.raml</raml>
+                                <raml>poomjobs-runner-api.raml</raml>
+                            </raml-list>
+                            <vendor>flexio-oss</vendor>
                         </configuration>
                     </execution>
                 </executions>
@@ -127,5 +103,4 @@
             </plugin>
         </plugins>
     </build>
-    
 </project>
