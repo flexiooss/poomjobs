@@ -128,4 +128,17 @@
             <!--// BOM-->
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>io.flexio.io</groupId>
+                    <artifactId>flexio-mongo-io-maven-plugin</artifactId>
+                    <version>1.7.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
 </project>
