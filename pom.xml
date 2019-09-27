@@ -7,11 +7,11 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poom-services</artifactId>
-        <version>1.8.0</version>
+        <version>1.12.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>poomjobs</artifactId>
-    <version>1.7.0</version>
+    <version>1.8.0-SNAPSHOT</version>
 
     <name>Poor Man's Jobs</name>
     <description>Distributed Job Queue Framework</description>
@@ -40,18 +40,31 @@
 
     <repositories>
         <repository>
-            <id>oss-staging</id>
-            <url>https://oss.sonatype.org/content/groups/staging</url>
-            <releases><enabled>true</enabled></releases>
+            <id>codingmatters-snapshots</id>
+            <url>http://maven.ci.flexio.io:8080/repository/codingmatters-snapshots/</url>
+            <releases><enabled>false</enabled></releases>
             <snapshots><enabled>true</enabled></snapshots>
         </repository>
+        <repository>
+            <id>codingmatters-releases</id>
+            <url>http://maven.ci.flexio.io:8080/repository/codingmatters-releases/</url>
+            <releases><enabled>true</enabled></releases>
+            <snapshots><enabled>false</enabled></snapshots>
+        </repository>
     </repositories>
+
     <pluginRepositories>
         <pluginRepository>
-            <id>oss-staging</id>
-            <url>https://oss.sonatype.org/content/groups/staging</url>
-            <releases><enabled>true</enabled></releases>
+            <id>codingmatters-snapshots</id>
+            <url>http://maven.ci.flexio.io:8080/repository/codingmatters-snapshots/</url>
+            <releases><enabled>false</enabled></releases>
             <snapshots><enabled>true</enabled></snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>codingmatters-releases</id>
+            <url>http://maven.ci.flexio.io:8080/repository/codingmatters-releases/</url>
+            <releases><enabled>true</enabled></releases>
+            <snapshots><enabled>false</enabled></snapshots>
         </pluginRepository>
     </pluginRepositories>
 
@@ -79,7 +92,7 @@
             <dependency>
                 <groupId>io.flexio.commons</groupId>
                 <artifactId>flexio-commons</artifactId>
-                <version>1.8.0</version>
+                <version>1.9.0-SNAPSHOT</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -88,42 +101,42 @@
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-domain</artifactId>
-                <version>1.7.0</version>
+                <version>1.8.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-api-spec</artifactId>
-                <version>1.7.0</version>
+                <version>1.8.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-api</artifactId>
-                <version>1.7.0</version>
+                <version>1.8.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-service</artifactId>
-                <version>1.7.0</version>
+                <version>1.8.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-clients</artifactId>
-                <version>1.7.0</version>
+                <version>1.8.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-runner</artifactId>
-                <version>1.7.0</version>
+                <version>1.8.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-runner-manager</artifactId>
-                <version>1.7.0</version>
+                <version>1.8.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-registries-service</artifactId>
-                <version>1.7.0</version>
+                <version>1.8.0-SNAPSHOT</version>
             </dependency>
             <!--// BOM-->
         </dependencies>
@@ -135,7 +148,7 @@
                 <plugin>
                     <groupId>io.flexio.io</groupId>
                     <artifactId>flexio-mongo-io-maven-plugin</artifactId>
-                    <version>1.8.0</version>
+                    <version>1.9.0-SNAPSHOT</version>
                 </plugin>
             </plugins>
         </pluginManagement>
