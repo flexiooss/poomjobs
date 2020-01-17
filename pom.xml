@@ -7,11 +7,11 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poom-services</artifactId>
-        <version>1.19.0</version>
+        <version>1.20.0</version>
     </parent>
 
     <artifactId>poomjobs</artifactId>
-    <version>1.16.0</version>
+    <version>1.17.0</version>
 
     <name>Poor Man's Jobs</name>
     <description>Distributed Job Queue Framework</description>
@@ -87,12 +87,16 @@
         </dependency>
     </dependencies>
 
+    <properties>
+        <flexio-commons.version>1.16.0</flexio-commons.version>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>io.flexio.commons</groupId>
                 <artifactId>flexio-commons</artifactId>
-                <version>1.15.0</version>
+                <version>${flexio-commons.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -101,42 +105,42 @@
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-domain</artifactId>
-                <version>1.16.0</version>
+                <version>1.17.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-api-spec</artifactId>
-                <version>1.16.0</version>
+                <version>1.17.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-api</artifactId>
-                <version>1.16.0</version>
+                <version>1.17.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-service</artifactId>
-                <version>1.16.0</version>
+                <version>1.17.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-clients</artifactId>
-                <version>1.16.0</version>
+                <version>1.17.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-runner</artifactId>
-                <version>1.16.0</version>
+                <version>1.17.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-runner-manager</artifactId>
-                <version>1.16.0</version>
+                <version>1.17.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-registries-service</artifactId>
-                <version>1.16.0</version>
+                <version>1.17.0</version>
             </dependency>
             <!--// BOM-->
         </dependencies>
@@ -148,7 +152,7 @@
                 <plugin>
                     <groupId>io.flexio.io</groupId>
                     <artifactId>flexio-mongo-io-maven-plugin</artifactId>
-                    <version>1.15.0</version>
+                    <version>${flexio-commons.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
