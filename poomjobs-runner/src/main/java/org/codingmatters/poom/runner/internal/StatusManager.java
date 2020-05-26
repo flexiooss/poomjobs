@@ -1,18 +1,13 @@
 package org.codingmatters.poom.runner.internal;
 
-import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poomjobs.api.RunnerPatchResponse;
 import org.codingmatters.poomjobs.api.types.RunnerStatusData;
+import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -24,8 +19,7 @@ public class StatusManager {
     private final PoomjobsRunnerRegistryAPIClient runnerRegistryAPIClient;
     private final Long ttl;
     private final ScheduledExecutorService updateWorker;
-
-    private final AtomicReference<ScheduledFuture> nextUpdate = new AtomicReference<>(null);
+    private final AtomicReference<Boolean> scheduled = new AtomicReference<>( false );
 
     public StatusManager(String id, PoomjobsRunnerRegistryAPIClient runnerRegistryAPIClient, Long ttl, ScheduledExecutorService updateWorker) {
         this.id = id;
@@ -34,21 +28,12 @@ public class StatusManager {
         this.updateWorker = updateWorker;
     }
 
-
-    public void updateStatus(RunnerStatusData.Status status) {
+    public synchronized void updateStatus(RunnerStatusData.Status status) {
         this.currentStatus.set(status);
         this.updateStatus();
     }
 
-
-    private void updateStatus() {
-        this.nextUpdate.getAndUpdate(scheduledFuture -> {
-            if(scheduledFuture != null && ! scheduledFuture.isCancelled()) {
-                scheduledFuture.cancel(true);
-            }
-            return scheduledFuture;
-        });
-
+    private synchronized void updateStatus() {
         try {
             RunnerStatusData.Status status = this.currentStatus.get();
             RunnerPatchResponse response = this.runnerRegistryAPIClient.runnerCollection().runner().patch(request ->
@@ -58,7 +43,6 @@ public class StatusManager {
             );
             if (response.status200() != null) {
                 log.debug("updated status for {} with status : {}", this.id, status);
-                this.scheduleNextStatusUpdate(response.status200().payload().runtime().lastPing());
             } else {
                 log.error("runner registry refused our status notification for runner {} with response : {}",
                         this.id,
@@ -71,26 +55,16 @@ public class StatusManager {
         }
     }
 
-
-
-    public void scheduleNextStatusUpdate(LocalDateTime lastPing) {
-        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC.normalized());
-        LocalDateTime nextNotification = lastPing.plus(this.ttl, ChronoUnit.MILLIS);
-        if(nextNotification.isBefore(now)) {
-            nextNotification = now.plus(this.ttl, ChronoUnit.MILLIS);
+    public synchronized void scheduleUpdates( ) {
+        if( !scheduled.get() ){
+            scheduled.set( true );
+            updateWorker.scheduleAtFixedRate(
+                    this::updateStatus,
+                    ttl,
+                    ttl,
+                    TimeUnit.MILLISECONDS
+            );
         }
-        log.debug("next status update at {}", nextNotification);
-
-        long nextPingWithin = Duration.between(now, nextNotification).toMillis();
-
-        ScheduledFuture<?> scheduled = this.updateWorker.schedule(
-                () -> {
-                    this.nextUpdate.set(null);
-                    this.updateStatus();
-                },
-                nextPingWithin, TimeUnit.MILLISECONDS
-        );
-        this.nextUpdate.set(scheduled);
     }
 
     public RunnerStatusData.Status status() {

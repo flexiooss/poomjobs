@@ -69,7 +69,6 @@ public class GenericRunner {
         log.info("starting runner by registering to runners service");
         RunnerCollectionPostResponse response = null;
         try {
-            LocalDateTime firstPing = UTC.now();
             response = this.runnerRegistryAPIClient.runnerCollection().post(request ->
                     request
                             .payload(payload ->
@@ -98,7 +97,7 @@ public class GenericRunner {
                     this.ttl,
                     this.updateWorker
             );
-            this.statusManager.scheduleNextStatusUpdate(firstPing);
+            this.statusManager.scheduleUpdates();
             this.jobManager = new JobManager(
                     this.statusManager,
                     this.jobRegistryAPIClient,
