@@ -86,7 +86,8 @@ public class PoomjobRegistriesService {
 
         this.jobRegistryAPI = new PoomjobsJobRegistryAPI(
                 this.jobRepository,
-                new RunnerInvokerListener(runnerRegistryClient, new DefaultRunnerClientFactory(this.jsonFactory, OkHttpClientWrapper.build()))
+                new RunnerInvokerListener(runnerRegistryClient, new DefaultRunnerClientFactory(this.jsonFactory, OkHttpClientWrapper.build())),
+                null
         );
     }
 

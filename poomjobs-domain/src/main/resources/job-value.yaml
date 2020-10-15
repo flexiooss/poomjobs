@@ -19,3 +19,6 @@ JobValue:
 
   accounting:
     accountId: string
+
+  context:
+    $value-object: org.codingmatters.value.objects.values.ObjectValue
