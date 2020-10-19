@@ -49,6 +49,7 @@ public class GenericRunner {
     private StatusManager statusManager;
     private JobManager jobManager;
     private RunnerEndpoint endpoint;
+    private JobContextSetup jobContextSetup;
 
     public GenericRunner(RunnerConfiguration configuration) {
         this.jobRegistryAPIClient = configuration.jobRegistryAPIClient();
@@ -63,6 +64,7 @@ public class GenericRunner {
         this.endpointHost = configuration.endpointHost();
         this.endpointPort = configuration.endpointPort();
         this.healthCheckProcessor = configuration.healthCheckProcessor();
+        this.jobContextSetup = configuration.opt().jobContextSetup().orElse(JobContextSetup.NOOP);
     }
 
     public void start() throws RunnerInitializationException {
@@ -105,7 +107,8 @@ public class GenericRunner {
                     this.processorFactory,
                     this.jobCategory,
                     this.jobNames,
-                    this.id
+                    this.id,
+                    this.jobContextSetup
             );
 
             this.endpoint = new RunnerEndpoint(

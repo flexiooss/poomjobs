@@ -17,3 +17,5 @@ RunnerConfiguration:
   endpointPort: int
   healthCheckProcessor:
     $type: org.codingmatters.rest.api.Processor
+  jobContextSetup:
+    $type: org.codingmatters.poom.runner.JobContextSetup

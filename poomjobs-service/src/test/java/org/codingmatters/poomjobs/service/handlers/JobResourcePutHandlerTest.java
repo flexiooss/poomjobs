@@ -32,7 +32,7 @@ public class JobResourcePutHandlerTest {
     @Rule
     public TestJobRepositoryListener listener = new TestJobRepositoryListener();
 
-    private JobResourcePutHandler handler = (JobResourcePutHandler) new PoomjobsJobRegistryAPI(this.repository, this.listener).handlers().jobResourcePatchHandler();
+    private JobResourcePutHandler handler = (JobResourcePutHandler) new PoomjobsJobRegistryAPI(this.repository, this.listener, null).handlers().jobResourcePatchHandler();
 
 
     @Test

@@ -1,5 +1,8 @@
 package org.codingmatters.poom.runner.internal;
 
+import org.codingmatters.poom.runner.JobContextSetup;
+import org.codingmatters.poom.services.logging.CategorizedLogger;
+import org.codingmatters.poom.services.support.logging.LoggingContext;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
@@ -10,8 +13,6 @@ import org.codingmatters.poomjobs.api.ValueList;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.RunnerStatusData;
 import org.codingmatters.poomjobs.api.types.jobupdatedata.Status;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -20,7 +21,7 @@ import java.util.concurrent.ExecutorService;
 
 public class JobManager {
 
-    private static Logger log = LoggerFactory.getLogger(JobManager.class);
+    private static CategorizedLogger log = CategorizedLogger.getLogger(JobManager.class);
 
     private final StatusManager statusManager;
     private final PoomjobsJobRegistryAPIClient jobRegistryAPIClient;
@@ -30,6 +31,8 @@ public class JobManager {
     private final String[] jobNames;
     private final String runnerId;
 
+    private final JobContextSetup jobContextSetup;
+
     public JobManager(
             StatusManager statusManager,
             PoomjobsJobRegistryAPIClient jobRegistryAPIClient,
@@ -37,7 +40,8 @@ public class JobManager {
             JobProcessor.Factory processorFactory,
             String jobCategory,
             String[] jobNames,
-            String runnerId
+            String runnerId,
+            JobContextSetup jobContextSetup
     ) {
         this.statusManager = statusManager;
         this.jobRegistryAPIClient = jobRegistryAPIClient;
@@ -46,6 +50,7 @@ public class JobManager {
         this.jobCategory = jobCategory;
         this.jobNames = jobNames;
         this.runnerId = runnerId;
+        this.jobContextSetup = jobContextSetup;
     }
 
     public void processIncommingJob(Job job) {
@@ -68,7 +73,6 @@ public class JobManager {
     }
 
     private void processJob(Job job) {
-        log.info("will process job {}", job);
         this.statusManager.updateStatus(RunnerStatusData.Status.RUNNING);
         try {
             JobResourcePatchResponse response = this.jobRegistryAPIClient.jobCollection().jobResource().patch(request ->
@@ -125,7 +129,15 @@ public class JobManager {
 
     private Runnable jobProcessor(Job job) {
         JobProcessor processor = this.processorFactory.createFor(job);
-        return () -> process(processor);
+        return () -> this.setupAndProcess(job, processor);
+    }
+
+    private void setupAndProcess(Job job, JobProcessor processor) {
+        try(LoggingContext loggingContext = LoggingContext.start()) {
+            this.jobContextSetup.setup(job, processor);
+            log.info("processing job {}", job);
+            this.process(processor);
+        }
     }
 
     private void process(JobProcessor processor) {
@@ -140,12 +152,12 @@ public class JobManager {
                                 .result(job.result())
                         )
                 );
+                log.info("done processing job {}", job);
             } catch (IOException e) {
                 log.error("GRAVE : failed to update job status for job " + job.id(), e);
             }
         } catch (JobProcessingException e) {
             log.error("error processing job with processor : " + processor, e);
-
         }
     }
 

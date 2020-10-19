@@ -17,8 +17,11 @@ import org.codingmatters.poomjobs.api.jobcollectionpostresponse.Status500;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.service.JobValueMerger;
 import org.codingmatters.poomjobs.service.PoomjobsJobRepositoryListener;
+import org.codingmatters.value.objects.values.ObjectValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Function;
 
 /**
  * Created by nelt on 6/15/17.
@@ -28,14 +31,15 @@ public class JobCollectionPostHandler implements CollectionPostProtocol<JobValue
 
     private final Repository<JobValue, JobQuery> repository;
     private final PoomjobsJobRepositoryListener jobRepositoryListener;
-
-    public JobCollectionPostHandler(Repository<JobValue, JobQuery> repository) {
-        this(repository, PoomjobsJobRepositoryListener.NOOP);
-    }
+    private final Function<JobCollectionPostRequest, ObjectValue> contextualizer;
 
     public JobCollectionPostHandler(Repository<JobValue, JobQuery> repository, PoomjobsJobRepositoryListener jobRepositoryListener) {
+        this(repository, jobRepositoryListener, null);
+    }
+    public JobCollectionPostHandler(Repository<JobValue, JobQuery> repository, PoomjobsJobRepositoryListener jobRepositoryListener, Function<JobCollectionPostRequest, ObjectValue> contextualizer) {
         this.repository = repository;
         this.jobRepositoryListener = jobRepositoryListener;
+        this.contextualizer = contextualizer != null ? contextualizer : request -> ObjectValue.builder().build();
     }
 
     @Override
@@ -54,9 +58,15 @@ public class JobCollectionPostHandler implements CollectionPostProtocol<JobValue
                 .with(request.payload())
                 .withAccounting(Accounting.builder()
                         .accountId(request.accountId())
-                        .build());
+                        .build())
+                .withContext(this.contextualize(request))
+                ;
 
         return JobValueCreation.with(jobValue);
+    }
+
+    private ObjectValue contextualize(JobCollectionPostRequest request) {
+        return this.contextualizer.apply(request);
     }
 
     @Override

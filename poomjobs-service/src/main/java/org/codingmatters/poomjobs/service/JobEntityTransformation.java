@@ -34,6 +34,7 @@ public class JobEntityTransformation {
                 .accounting(this.jobAccountingFrom(value.accounting()))
                 .processing(this.jobProcessingFrom(value.processing()))
                 .result(value.result())
+                .context(value.context())
                 .build();
     }
 
