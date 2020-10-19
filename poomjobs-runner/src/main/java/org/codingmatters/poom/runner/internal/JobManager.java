@@ -73,7 +73,6 @@ public class JobManager {
     }
 
     private void processJob(Job job) {
-        log.info("will process job {}", job);
         this.statusManager.updateStatus(RunnerStatusData.Status.RUNNING);
         try {
             JobResourcePatchResponse response = this.jobRegistryAPIClient.jobCollection().jobResource().patch(request ->
@@ -136,6 +135,7 @@ public class JobManager {
     private void setupAndProcess(Job job, JobProcessor processor) {
         try(LoggingContext loggingContext = LoggingContext.start()) {
             this.jobContextSetup.setup(job, processor);
+            log.info("processing job {}", job);
             this.process(processor);
         }
     }
@@ -152,12 +152,12 @@ public class JobManager {
                                 .result(job.result())
                         )
                 );
+                log.info("done processing job {}", job);
             } catch (IOException e) {
                 log.error("GRAVE : failed to update job status for job " + job.id(), e);
             }
         } catch (JobProcessingException e) {
             log.error("error processing job with processor : " + processor, e);
-
         }
     }
 
