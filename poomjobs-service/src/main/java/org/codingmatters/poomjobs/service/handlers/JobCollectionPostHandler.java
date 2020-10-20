@@ -58,6 +58,7 @@ public class JobCollectionPostHandler implements CollectionPostProtocol<JobValue
                 .with(request.payload())
                 .withAccounting(Accounting.builder()
                         .accountId(request.accountId())
+                        .extension(request.xExtension())
                         .build())
                 .withContext(this.contextualize(request))
                 ;
