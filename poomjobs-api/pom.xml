@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poomjobs</artifactId>
-        <version>1.47.0</version>
+        <version>1.48.0</version>
         <relativePath>../</relativePath>
     </parent>
 
@@ -38,7 +38,7 @@
                     <dependency>
                         <groupId>org.codingmatters.poom</groupId>
                         <artifactId>poomjobs-api-spec</artifactId>
-                        <version>1.47.0</version>
+                        <version>1.48.0</version>
                     </dependency>
                 </dependencies>
                 <executions>
