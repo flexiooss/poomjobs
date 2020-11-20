@@ -1,4 +1,4 @@
-level: stable
+level: dev
 schemes: [maven]
 topics: []
-version: 1.53.0
+version: 1.54.0
