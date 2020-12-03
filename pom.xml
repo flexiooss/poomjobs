@@ -88,7 +88,7 @@
     </dependencies>
 
     <properties>
-        <flexio-commons.version>1.53.0</flexio-commons.version>
+        <flexio-commons.version>1.54.0</flexio-commons.version>
     </properties>
 
     <dependencyManagement>
