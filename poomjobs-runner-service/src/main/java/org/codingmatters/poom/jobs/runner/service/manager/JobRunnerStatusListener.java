@@ -4,6 +4,6 @@ import org.codingmatters.poom.jobs.runner.service.manager.exception.Unregistered
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatus;
 import org.codingmatters.poomjobs.runner.domain.RunnerToken;
 
-public interface RunnerStatusListener {
+public interface JobRunnerStatusListener {
     void statusFor(RunnerToken token, RunnerStatus status) throws UnregisteredTokenException;
 }

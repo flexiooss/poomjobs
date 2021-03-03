@@ -11,7 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class RunnerStatusMonitor implements RunnerStatusListener {
+public class RunnerStatusMonitor implements JobRunnerStatusListener {
     private final CategorizedLogger log = CategorizedLogger.getLogger(RunnerStatusMonitor.class);
 
     private final List<RunnerToken> runnerTokens = new LinkedList<>();

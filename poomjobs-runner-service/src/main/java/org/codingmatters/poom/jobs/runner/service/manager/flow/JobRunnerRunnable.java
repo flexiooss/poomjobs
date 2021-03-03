@@ -1,6 +1,6 @@
 package org.codingmatters.poom.jobs.runner.service.manager.flow;
 
-import org.codingmatters.poom.jobs.runner.service.manager.RunnerStatusListener;
+import org.codingmatters.poom.jobs.runner.service.manager.JobRunnerStatusListener;
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatus;
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
@@ -22,7 +22,7 @@ public class JobRunnerRunnable implements Runnable {
 
     private final RunnerToken token;
     private final JobConsumer.NextJobSupplier jobSupplier;
-    private final RunnerStatusListener statusListener;
+    private final JobRunnerStatusListener statusListener;
     private final JobRunnerRunnableErrorListener errorListener;
 
     private JobConsumer jobConsumer;
@@ -35,7 +35,7 @@ public class JobRunnerRunnable implements Runnable {
             JobProcessorRunner.JobUpdater jobUpdater,
             JobProcessor.Factory processorFactory,
             JobConsumer.NextJobSupplier jobSupplier,
-            RunnerStatusListener statusListener,
+            JobRunnerStatusListener statusListener,
             JobRunnerRunnableErrorListener errorListener,
             JobContextSetup contextSetup
     ) {
@@ -102,7 +102,6 @@ public class JobRunnerRunnable implements Runnable {
     }
 
     private synchronized void runWhenAssigned() throws Exception {
-        log.debug("assigned?");
         synchronized (this.jobAssignement) {
             Job job = this.jobAssignement.getAndSet(null);
             if(job != null) {
@@ -124,7 +123,7 @@ public class JobRunnerRunnable implements Runnable {
     }
 
 
-    interface JobRunnerRunnableErrorListener {
+    public interface JobRunnerRunnableErrorListener {
         void unexpectedExceptionThrown(RunnerToken token, Exception e);
         void processingExceptionThrown(RunnerToken token, JobProcessingException e);
 

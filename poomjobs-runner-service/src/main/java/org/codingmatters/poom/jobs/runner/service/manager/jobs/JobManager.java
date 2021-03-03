@@ -36,7 +36,7 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
     }
 
     @Override
-    public void update(Job job) {
+    public synchronized void update(Job job) {
         int tried = 0;
         JobResourcePatchResponse response = null;
         while(tried < JOB_UPDATE_MAX_RETRIES && response == null) {
@@ -54,17 +54,17 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
         }
         if(response == null) {
             String errorToken = log.tokenized().error(
-                    "[GRAVE] failed updating job %s %s times (see previous logs). " +
+                    "[GRAVE] failed updating job {} {} times (see previous logs). " +
                             "Will not retry. " +
                             "This is not recoverable, job data is lost, failing fast.",
-                    job.id(), tried);
+                    job, tried);
             throw new RuntimeException("Unrecoverable error updating job status. See logs with token : " + errorToken);
         } else if(response.opt().status200().isEmpty()) {
             String errorToken = log.tokenized().error(
-                    "[GRAVE] failed updating job %s. got response {}" +
+                    "[GRAVE] failed updating job {}. got response {}" +
                             "Will not retry. " +
                             "This is not recoverable, job data is lost, failing fast.",
-                    job.id(), response
+                    job, response
             );
             throw new RuntimeException("Unrecoverable error updating job status. See logs with token : " + errorToken);
         }
@@ -93,27 +93,30 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
 
 
     @Override
-    public Job nextJob() {
+    public synchronized Job nextJob() {
         try {
-            JobCollectionGetResponse response = this.client.jobCollection().get(builder -> builder
-                    .accountId(this.accountId)
-                    .category(this.jobCategory)
-                    .names(this.jobNames)
-                    .runStatus(org.codingmatters.poomjobs.api.types.job.Status.Run.PENDING.name())
-                    .range("0-9")
-            );
-            if (response.opt().status200().isPresent()) {
-                Job job = this.firstRunnableJob(response.status200().payload());
-                return job;
-            } else if(response.opt().status206().isPresent()) {
-                Job job = this.firstRunnableJob(response.status206().payload());
-                return job;
-            } else {
-                log.error("failed getting candidate job list, expected 200 or 206, got : {}", response);
+            Job job = null;
+            while(job == null) {
+                JobCollectionGetResponse response = this.client.jobCollection().get(builder -> builder
+                        .accountId(this.accountId)
+                        .category(this.jobCategory)
+                        .names(this.jobNames)
+                        .runStatus(org.codingmatters.poomjobs.api.types.job.Status.Run.PENDING.name())
+                        .range("0-9")
+                );
+                if (response.opt().status200().isPresent()) {
+                    if (response.status200().payload() == null || response.status200().payload().isEmpty()) return null;
+                    job = this.firstRunnableJob(response.status200().payload());
+                } else if (response.opt().status206().isPresent()) {
+                    job = this.firstRunnableJob(response.status206().payload());
+                } else {
+                    log.error("failed getting candidate job list, expected 200 or 206, got : {}", response);
+                    return null;
+                }
             }
-            return null;
+            return job;
         } catch (IOException e) {
-            log.error("couldn't reach job registry, nothing to process");
+            log.error("couldn't reach job registry, nothing to process", e);
             return null;
         }
     }

@@ -37,6 +37,13 @@ public class JobValueChange extends Change<JobValue> {
                     String.format("when job run status changes to DONE, an exit status must be setted")
             );
         }
+        if(this.currentValue().status().run().equals(Status.Run.RUNNING)
+                && this.newValue().status().run().equals(Status.Run.RUNNING)) {
+            return new Validation(
+                    false,
+                    String.format("job already RUNNING, cannont change running statuys to RUNNING again")
+            );
+        }
         return new Validation(true, "");
     }
 

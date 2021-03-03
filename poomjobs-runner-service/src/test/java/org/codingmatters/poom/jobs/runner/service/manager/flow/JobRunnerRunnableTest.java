@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -102,6 +103,27 @@ public class JobRunnerRunnableTest {
 
         assertThat(this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE));
         assertThat(this.ranJobs, contains(job));
+        assertThat(this.jobProcessingException.get(), is(nullValue()));
+        assertThat(this.unexpectedExeption.get(), is(nullValue()));
+    }
+
+    @Test
+    public void givenManyJobsAvailable__whenStartedThenShutdown__thenStatusBUSYThenIDLE_andAllJobsAreRan_andStops() throws Exception {
+        for (int i = 0; i < 10; i++) {
+            Job job = this.runningJob("available-job-" + i);
+            this.jobQueue.add(job);
+        }
+
+        this.executor.execute(this.runnable);
+
+        this.runnable.shutdown();
+        Eventually.defaults().assertThat(() -> this.runnable.running(), is(false));
+
+        assertThat(this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE));
+        assertThat(this.ranJobs.stream().map(job -> job.id()).collect(Collectors.toList()), contains(
+                "available-job-0", "available-job-1", "available-job-2", "available-job-3", "available-job-4",
+                "available-job-5", "available-job-6", "available-job-7", "available-job-8", "available-job-9"
+        ));
         assertThat(this.jobProcessingException.get(), is(nullValue()));
         assertThat(this.unexpectedExeption.get(), is(nullValue()));
     }

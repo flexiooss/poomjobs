@@ -9,7 +9,7 @@ import org.junit.Test;
 import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Created by nelt on 6/23/17.
@@ -84,4 +84,20 @@ public class JobValueChangeValidationTest {
         );
     }
 
+    @Test
+    public void givenRunStatusIsRUNNING__whenRunStatusChangedToRUNNING__thenInvalid() throws Exception {
+        JobValue jobValue = JobValue.builder()
+                .status(Status.builder()
+                        .run(Status.Run.RUNNING)
+                        .exit(null)
+                        .build())
+                .build();
+
+        assertThat(JobValueChange
+                        .from(jobValue)
+                        .to(jobValue.withStatus(jobValue.status().withRun(Status.Run.RUNNING)))
+                        .validation(),
+                is(new Validation(false, "job already RUNNING, cannont change running statuys to RUNNING again"))
+        );
+    }
 }

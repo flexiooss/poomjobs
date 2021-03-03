@@ -13,6 +13,7 @@ import org.codingmatters.poomjobs.api.types.JobUpdateData;
 import org.codingmatters.poomjobs.api.types.jobupdatedata.Status;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIHandlersClient;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -20,6 +21,8 @@ import org.junit.rules.ExpectedException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -170,10 +173,18 @@ public class JobManagerTest {
 
     @Test
     public void givenGettingNextJob__whenJobListQueryFails__thenReturnsNull_andNoJobPatched() throws Exception {
-        this.jobsGet.nextResponse(request -> JobCollectionGetResponse.builder()
-                .status200(Status200.builder().contentRange("Job 0-0/1").acceptRange("Job 100").payload(
-                        Job.builder().id("pending-job").build()
-                ).build()).build()
+        AtomicBoolean firstPage = new AtomicBoolean(true);
+        this.jobsGet.nextResponse(request -> {
+                    if(firstPage.getAndSet(false)) {
+                        return JobCollectionGetResponse.builder()
+                                .status200(Status200.builder().contentRange("Job 0-0/1").acceptRange("Job 100").payload(
+                                        Job.builder().id("pending-job").build()
+                                ).build()).build();
+                    } else {
+                        return JobCollectionGetResponse.builder()
+                                .status200(Status200.builder().contentRange("Job 0-0/0").acceptRange("Job 100").payload().build()).build();
+                    }
+                }
         );
         this.jobPatch.nextResponse(request -> JobResourcePatchResponse.builder().status500(status -> status.payload(error -> error
                 .code(Error.Code.UNEXPECTED_ERROR)
@@ -183,5 +194,68 @@ public class JobManagerTest {
 
         assertThat(this.manager.nextJob(), is(nullValue()));
         assertThat(this.jobPatch.lastRequest(), is(notNullValue()));
+    }
+
+    @Test
+    public void givenGettingNextJob__whenJobsOnFirstPageFailsToPatch_andJobOnSecondPageSucceedToPatch__thenJobOnSecondPageReturned() throws Exception {
+        AtomicInteger page = new AtomicInteger(0);
+        this.jobsGet.nextResponse(request -> {
+            if(page.incrementAndGet() == 1) {
+                return JobCollectionGetResponse.builder()
+                        .status200(status -> status.contentRange("Job 0-0/1").payload(
+                                Job.builder().id("unreservable").build()
+                        ))
+                        .build();
+            } else {
+                return JobCollectionGetResponse.builder()
+                        .status200(status -> status.contentRange("Job 0-0/1").payload(
+                                Job.builder().id("reservable").build()
+                        ))
+                        .build();
+            }
+        });
+        this.jobPatch.nextResponse(request -> {
+            if(request.jobId().equals("reservable")) {
+                return JobResourcePatchResponse.builder().status200(status -> status.payload(Job.builder().id(request.jobId()).build())).build();
+            } else {
+                return JobResourcePatchResponse.builder().status400(status -> status.payload(error -> error.code(Error.Code.ILLEGAL_JOB_CHANGE))).build();
+            }
+        });
+
+        Job actual = this.manager.nextJob();
+
+        assertThat(page.get(), is(2));
+        assertThat(actual.id(), is("reservable"));
+    }
+
+
+    @Test
+    public void givenGettingNextJob__whenJobsOnTwoFirstPagesFailsToPatch_andThirdPageIsEmpty__thenNoJobReturned() throws Exception {
+        AtomicInteger page = new AtomicInteger(0);
+        this.jobsGet.nextResponse(request -> {
+            if(page.incrementAndGet() <= 2) {
+                return JobCollectionGetResponse.builder()
+                        .status200(status -> status.contentRange("Job 0-0/1").payload(
+                                Job.builder().id("unreservable").build()
+                        ))
+                        .build();
+            } else {
+                return JobCollectionGetResponse.builder()
+                        .status200(status -> status.contentRange("Job 0-0/0").payload())
+                        .build();
+            }
+        });
+        this.jobPatch.nextResponse(request -> {
+            if(request.jobId().equals("reservable")) {
+                return JobResourcePatchResponse.builder().status200(status -> status.payload(Job.builder().id(request.jobId()).build())).build();
+            } else {
+                return JobResourcePatchResponse.builder().status400(status -> status.payload(error -> error.code(Error.Code.ILLEGAL_JOB_CHANGE))).build();
+            }
+        });
+
+        Job actual = this.manager.nextJob();
+
+        assertThat(page.get(), is(3));
+        assertThat(actual, is(nullValue()));
     }
 }
