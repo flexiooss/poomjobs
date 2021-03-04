@@ -1,6 +1,6 @@
 package org.codingmatters.poom.jobs.runner.service.manager.flow;
 
-import org.codingmatters.poom.jobs.runner.service.manager.JobRunnerStatusListener;
+import org.codingmatters.poom.jobs.runner.service.manager.JobRunnerStatusStore;
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatus;
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
@@ -22,7 +22,7 @@ public class JobRunnerRunnable implements Runnable {
 
     private final RunnerToken token;
     private final JobConsumer.NextJobSupplier jobSupplier;
-    private final JobRunnerStatusListener statusListener;
+    private final JobRunnerStatusStore statusListener;
     private final JobRunnerRunnableErrorListener errorListener;
 
     private JobConsumer jobConsumer;
@@ -35,7 +35,7 @@ public class JobRunnerRunnable implements Runnable {
             JobProcessorRunner.JobUpdater jobUpdater,
             JobProcessor.Factory processorFactory,
             JobConsumer.NextJobSupplier jobSupplier,
-            JobRunnerStatusListener statusListener,
+            JobRunnerStatusStore statusListener,
             JobRunnerRunnableErrorListener errorListener,
             JobContextSetup contextSetup
     ) {

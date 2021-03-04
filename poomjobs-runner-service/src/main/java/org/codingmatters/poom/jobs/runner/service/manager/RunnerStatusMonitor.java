@@ -11,7 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class RunnerStatusMonitor implements JobRunnerStatusListener {
+public class RunnerStatusMonitor implements JobRunnerStatusStore, RunnerStatusProvider {
     private final CategorizedLogger log = CategorizedLogger.getLogger(RunnerStatusMonitor.class);
 
     private final List<RunnerToken> runnerTokens = new LinkedList<>();
@@ -74,6 +74,7 @@ public class RunnerStatusMonitor implements JobRunnerStatusListener {
         }
     }
 
+    @Override
     public synchronized RunnerStatus status() {
         return this.status;
     }
