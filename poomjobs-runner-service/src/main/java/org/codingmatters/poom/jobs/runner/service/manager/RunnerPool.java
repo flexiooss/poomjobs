@@ -1,6 +1,6 @@
 package org.codingmatters.poom.jobs.runner.service.manager;
 
-import org.codingmatters.poom.jobs.runner.service.exception.JobNotReservedException;
+import org.codingmatters.poom.jobs.runner.service.exception.JobNotSubmitableException;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerBusyException;
 import org.codingmatters.poom.jobs.runner.service.exception.UnregisteredTokenException;
 import org.codingmatters.poom.jobs.runner.service.manager.flow.JobRunnerRunnable;
@@ -107,15 +107,15 @@ public class RunnerPool {
         return false;
     }
 
-    public void submit(Job job) throws RunnerBusyException, JobNotReservedException {
+    public void submit(Job job) throws RunnerBusyException, JobNotSubmitableException {
         if(this.pool.isShutdown()) {
             throw new RunnerBusyException("runner pool is shutting down, cannot execute job");
         }
         if(this.pool.isTerminated()) {
             throw new RunnerBusyException("runner pool is terminated, cannot execute job");
         }
-        if(! Status.Run.RUNNING.equals(job.opt().status().run().orElse(null))) {
-            throw new JobNotReservedException("job must be reserved to be submitted, satus was " + job.opt().status().run().orElse(null) + " was expecting RUNNING");
+        if(! Status.Run.PENDING.equals(job.opt().status().run().orElse(null))) {
+            throw new JobNotSubmitableException("job should be pending, cannot submit a job with status " + job.opt().status().run().orElse(null));
         }
         synchronized (this.monitor) {
             try {
@@ -124,6 +124,8 @@ public class RunnerPool {
                 } else {
                     for (Map.Entry<RunnerToken, JobRunnerRunnable> runnableEntry : this.runnables.entrySet()) {
                         if (this.monitor.status(runnableEntry.getKey()).equals(RunnerStatus.IDLE)) {
+                            job = job.withStatus(Status.builder().run(Status.Run.RUNNING).build());
+                            this.jobManager.update(job);
                             runnableEntry.getValue().assign(job);
                             log.debug("assigned job {} to {}", job, runnableEntry.getKey());
                             return;

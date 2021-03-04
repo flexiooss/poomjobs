@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import io.undertow.Handlers;
 import io.undertow.Undertow;
 import io.undertow.server.handlers.PathHandler;
-import org.codingmatters.poom.jobs.runner.service.exception.JobNotReservedException;
+import org.codingmatters.poom.jobs.runner.service.exception.JobNotSubmitableException;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerBusyException;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerServiceInitializationException;
 import org.codingmatters.poom.jobs.runner.service.manager.RunnerPool;
@@ -19,7 +19,6 @@ import org.codingmatters.poomjobs.api.*;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.RunnerData;
-import org.codingmatters.poomjobs.api.types.job.Status;
 import org.codingmatters.poomjobs.api.types.runnerdata.Competencies;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
@@ -41,19 +40,19 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
         return new Builder();
     }
 
-    interface JobSetup {
+    public interface JobSetup {
         ClientsSetup jobs(String category, String [] names, JobProcessor.Factory factory);
     }
-    interface ClientsSetup {
+    public interface ClientsSetup {
         RunnerSetup clients(PoomjobsRunnerRegistryAPIClient runnerRegistryClient, PoomjobsJobRegistryAPIClient jobRegistryClient);
     }
-    interface RunnerSetup {
+    public interface RunnerSetup {
         EndpointSetup concurrency(int concurrentJobCount);
     }
-    interface EndpointSetup {
+    public interface EndpointSetup {
         OptionsSetup endpoint(String host, int port);
     }
-    interface OptionsSetup {
+    public interface OptionsSetup {
         OptionsSetup ttl(long ttl);
         OptionsSetup contextSetup(JobContextSetup contextSetup);
         RunnerService build();
@@ -203,7 +202,9 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
     }
 
     public void stop() {
-        this.stopMonitor.notify();
+        synchronized (this.stopMonitor) {
+            this.stopMonitor.notify();
+        }
     }
 
     private void registerRunner() throws RunnerServiceInitializationException {
@@ -271,22 +272,19 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
     }
 
     private RunningJobPutResponse jobExecutionRequested(RunningJobPutRequest request) {
-        Job job = request.payload().withStatus(Status.builder().run(Status.Run.RUNNING).build());
-        this.jobManager.update(job);
-
+        Job job = request.payload();
         try {
             this.runnerPool.submit(job);
         } catch (RunnerBusyException e) {
-            this.jobManager.update(job.withStatus(null));
             return RunningJobPutResponse.builder().status409(status -> status.payload(error -> error
                     .code(Error.Code.RUNNER_IS_BUSY)
                     .token(log.tokenized().info("runner became busy", e))
                     .description("runner busy, come back later")
             )).build();
-        } catch (JobNotReservedException e) {
+        } catch (JobNotSubmitableException e) {
             return RunningJobPutResponse.builder().status409(status -> status.payload(error -> error
                     .code(Error.Code.UNEXPECTED_ERROR)
-                    .token(log.tokenized().error("problem reserving job for execution", e))
+                    .token(log.tokenized().error("problem submitting job for execution", e))
                     .description("failed taking job request")
             )).build();
         }

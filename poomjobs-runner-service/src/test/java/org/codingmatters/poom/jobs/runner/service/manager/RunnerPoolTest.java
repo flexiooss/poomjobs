@@ -1,7 +1,7 @@
 package org.codingmatters.poom.jobs.runner.service.manager;
 
 import org.codingmatters.poom.handler.HandlerResource;
-import org.codingmatters.poom.jobs.runner.service.exception.JobNotReservedException;
+import org.codingmatters.poom.jobs.runner.service.exception.JobNotSubmitableException;
 import org.codingmatters.poom.jobs.runner.service.manager.flow.JobRunnerRunnable;
 import org.codingmatters.poom.jobs.runner.service.manager.jobs.JobManager;
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatus;
@@ -149,11 +149,11 @@ public class RunnerPoolTest {
     }
 
     @Test
-    public void givenNoPendingJob__whenOneJobSubmitted_andJobStatusIsRunning__thenJobExecuted() throws Exception {
+    public void givenNoPendingJob__whenOneJobSubmitted_andJobStatusIsPending__thenJobExecuted() throws Exception {
         this.pool.start();
         this.pool.awaitReady(1L, TimeUnit.SECONDS);
 
-        this.pool.submit(Job.builder().id("submitted").status(status -> status.run(Status.Run.RUNNING)).build());
+        this.pool.submit(Job.builder().id("submitted").status(status -> status.run(Status.Run.PENDING)).build());
 
         Eventually.timeout(1, TimeUnit.SECONDS).assertThat(
                 () -> this.processedJobs.stream().map(Job::id).collect(Collectors.toList()),
@@ -161,7 +161,7 @@ public class RunnerPoolTest {
         );
     }
 
-    @Test
+    @Test(expected = JobNotSubmitableException.class)
     public void givenNoPendingJob__whenOneJobSubmitted_andJobStatusIsRunning__thenJobIsNotExecuted() throws Exception {
         this.pool.start();
         this.pool.awaitReady(1L, TimeUnit.SECONDS);
@@ -174,15 +174,20 @@ public class RunnerPoolTest {
         );
     }
 
-    @Test(expected = JobNotReservedException.class)
-    public void givenNoPendingJob__whenOneJobSubmitted_andJobStatusIsPending__thenJobIsNotExecuted() throws Exception {
+    @Test
+    public void givenNoPendingJob__whenOneJobSubmitted_andJobStatusIsPending__thenJobIsExecuted() throws Exception {
         this.pool.start();
         this.pool.awaitReady(1L, TimeUnit.SECONDS);
 
         this.pool.submit(Job.builder().id("submitted").status(status -> status.run(Status.Run.PENDING)).build());
+
+        Eventually.timeout(1, TimeUnit.SECONDS).assertThat(
+                () -> this.processedJobs.stream().map(Job::id).collect(Collectors.toList()),
+                contains("submitted")
+        );
     }
 
-    @Test(expected = JobNotReservedException.class)
+    @Test(expected = JobNotSubmitableException.class)
     public void givenNoPendingJob__whenOneJobSubmitted_andJobStatusIsDone__thenJobIsNotExecuted() throws Exception {
         this.pool.start();
         this.pool.awaitReady(1L, TimeUnit.SECONDS);
@@ -190,7 +195,7 @@ public class RunnerPoolTest {
         this.pool.submit(Job.builder().id("submitted").status(status -> status.run(Status.Run.DONE)).build());
     }
 
-    @Test(expected = JobNotReservedException.class)
+    @Test(expected = JobNotSubmitableException.class)
     public void givenNoPendingJob__whenOneJobSubmitted_andJobStatusIsNull__thenJobIsNotExecuted() throws Exception {
         this.pool.start();
         this.pool.awaitReady(1L, TimeUnit.SECONDS);
@@ -255,7 +260,7 @@ public class RunnerPoolTest {
 
         noPending.set(false);
 
-        this.pool.submit(Job.builder().id("submitted").status(status -> status.run(Status.Run.RUNNING)).build());
+        this.pool.submit(Job.builder().id("submitted").status(status -> status.run(Status.Run.PENDING)).build());
 
         Eventually.timeout(10, TimeUnit.SECONDS).assertThat(
                 () -> this.processedJobs.stream().map(Job::id).collect(Collectors.toList()),

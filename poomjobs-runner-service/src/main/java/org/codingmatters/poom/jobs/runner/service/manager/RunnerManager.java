@@ -1,6 +1,6 @@
 package org.codingmatters.poom.jobs.runner.service.manager;
 
-import org.codingmatters.poom.jobs.runner.service.exception.JobNotReservedException;
+import org.codingmatters.poom.jobs.runner.service.exception.JobNotSubmitableException;
 import org.codingmatters.poom.jobs.runner.service.exception.NotificationFailedException;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerBusyException;
 import org.codingmatters.poom.jobs.runner.service.manager.flow.JobRunnerRunnable;
@@ -47,7 +47,7 @@ public class RunnerManager implements JobRunnerRunnable.JobRunnerRunnableErrorLi
         );
     }
 
-    public void submit(Job job) throws RunnerBusyException, JobNotReservedException {
+    public void submit(Job job) throws RunnerBusyException, JobNotSubmitableException {
         this.runnerPool.submit(job);
     }
 
