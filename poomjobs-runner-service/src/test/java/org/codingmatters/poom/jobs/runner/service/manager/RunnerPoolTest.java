@@ -1,7 +1,7 @@
 package org.codingmatters.poom.jobs.runner.service.manager;
 
 import org.codingmatters.poom.handler.HandlerResource;
-import org.codingmatters.poom.jobs.runner.service.manager.exception.JobNotReservedException;
+import org.codingmatters.poom.jobs.runner.service.exception.JobNotReservedException;
 import org.codingmatters.poom.jobs.runner.service.manager.flow.JobRunnerRunnable;
 import org.codingmatters.poom.jobs.runner.service.manager.jobs.JobManager;
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatus;
@@ -102,7 +102,6 @@ public class RunnerPoolTest {
     private final int concurrentJobCount = 10;
 
     private final RunnerPool pool = new RunnerPool(
-            "test-job-pool",
             this.concurrentJobCount,
             this.jobManager,
             job -> () -> {
@@ -121,17 +120,21 @@ public class RunnerPoolTest {
                 @Override
                 public void processingExceptionThrown(RunnerToken token, JobProcessingException e) {}
             },
-            new RunnerStatusChangedListener() {
-                @Override
-                public void onIdle(RunnerStatus was) {
-                    statusChanges.add(String.format("%s to %s", was, "IDLE"));
-                }
+            new RunnerStatusMonitor(
+                    "test-job-pool",
+                    new RunnerStatusChangedListener() {
+                        @Override
+                        public void onIdle(RunnerStatus was) {
+                            statusChanges.add(String.format("%s to %s", was, "IDLE"));
+                        }
 
-                @Override
-                public void onBusy(RunnerStatus was) {
-                    statusChanges.add(String.format("%s to %s", was, "BUSY"));
-                }
-            }
+                        @Override
+                        public void onBusy(RunnerStatus was) {
+                            statusChanges.add(String.format("%s to %s", was, "BUSY"));
+                        }
+                    }
+            )
+
     );
 
     @After

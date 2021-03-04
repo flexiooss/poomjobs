@@ -1,7 +1,7 @@
 package org.codingmatters.poom.jobs.runner.service.manager.status;
 
 import org.codingmatters.poom.jobs.runner.service.manager.RunnerStatusProvider;
-import org.codingmatters.poom.jobs.runner.service.manager.exception.NotificationFailedException;
+import org.codingmatters.poom.jobs.runner.service.exception.NotificationFailedException;
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatus;
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatusChangedListener;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
@@ -16,14 +16,14 @@ public class RunnerStatusManager implements RunnerStatusChangedListener {
     private final RunnerStatusNotifier notifier;
     private final RunnerStatusProvider statusProvider;
     private final ScheduledExecutorService scheduler;
-    private final long ttl;
+    private final long tick;
     private ScheduledFuture<?> scheduledNotification;
 
-    public RunnerStatusManager(RunnerStatusNotifier notifier, RunnerStatusProvider statusProvider, ScheduledExecutorService scheduler, long ttl) {
+    public RunnerStatusManager(RunnerStatusNotifier notifier, RunnerStatusProvider statusProvider, ScheduledExecutorService scheduler, long tick) {
         this.notifier = notifier;
         this.statusProvider = statusProvider;
         this.scheduler = scheduler;
-        this.ttl = ttl;
+        this.tick = tick;
     }
 
     public void start() {
@@ -57,9 +57,9 @@ public class RunnerStatusManager implements RunnerStatusChangedListener {
         try {
             this.notifier.notify(this.statusProvider.status());
         } catch (NotificationFailedException e) {
-            log.error("runner failed to update status (will retry later in " + this.ttl + "ms", e);
+            log.error("runner failed to update status (will retry later in " + this.tick + "ms", e);
         }
-        this.scheduledNotification = this.scheduler.schedule(this::notifyAndSchedule, this.ttl, TimeUnit.MILLISECONDS);
+        this.scheduledNotification = this.scheduler.schedule(this::notifyAndSchedule, this.tick, TimeUnit.MILLISECONDS);
     }
 
 }

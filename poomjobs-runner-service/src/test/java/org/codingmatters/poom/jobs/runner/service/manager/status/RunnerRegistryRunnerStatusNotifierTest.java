@@ -1,7 +1,7 @@
 package org.codingmatters.poom.jobs.runner.service.manager.status;
 
 import org.codingmatters.poom.handler.HandlerResource;
-import org.codingmatters.poom.jobs.runner.service.manager.exception.NotificationFailedException;
+import org.codingmatters.poom.jobs.runner.service.exception.NotificationFailedException;
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatus;
 import org.codingmatters.poomjobs.api.PoomjobsRunnerRegistryAPIHandlers;
 import org.codingmatters.poomjobs.api.RunnerPatchRequest;

@@ -1,12 +1,11 @@
 package org.codingmatters.poom.jobs.runner.service.manager;
 
-import org.codingmatters.poom.jobs.runner.service.manager.exception.JobNotReservedException;
-import org.codingmatters.poom.jobs.runner.service.manager.exception.RunnerBusyException;
-import org.codingmatters.poom.jobs.runner.service.manager.exception.UnregisteredTokenException;
+import org.codingmatters.poom.jobs.runner.service.exception.JobNotReservedException;
+import org.codingmatters.poom.jobs.runner.service.exception.RunnerBusyException;
+import org.codingmatters.poom.jobs.runner.service.exception.UnregisteredTokenException;
 import org.codingmatters.poom.jobs.runner.service.manager.flow.JobRunnerRunnable;
 import org.codingmatters.poom.jobs.runner.service.manager.jobs.JobManager;
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatus;
-import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatusChangedListener;
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
@@ -37,19 +36,18 @@ public class RunnerPool {
     private AtomicBoolean running = new AtomicBoolean(false);
 
     public RunnerPool(
-            String runnerName,
             int concurrentJobCount,
             JobManager jobManager,
             JobProcessor.Factory jobProcessorFactory,
             JobContextSetup contextSetup,
             JobRunnerRunnable.JobRunnerRunnableErrorListener errorListener,
-            RunnerStatusChangedListener runnerStatusChangedListener) {
+            RunnerStatusMonitor monitor) {
         this.concurrentJobCount = concurrentJobCount;
         this.jobManager = jobManager;
         this.jobProcessorFactory = jobProcessorFactory;
         this.contextSetup = contextSetup;
         this.errorListener = errorListener;
-        this.monitor = new RunnerStatusMonitor(runnerName, runnerStatusChangedListener);
+        this.monitor = monitor;
 
         this.pool = Executors.newFixedThreadPool(this.concurrentJobCount);
         for (int i = 0; i < this.concurrentJobCount; i++) {

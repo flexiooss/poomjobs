@@ -1,4 +1,4 @@
-package org.codingmatters.poom.jobs.runner.service.manager.exception;
+package org.codingmatters.poom.jobs.runner.service.exception;
 
 public class UnregisteredTokenException extends Exception {
     public UnregisteredTokenException(String message) {

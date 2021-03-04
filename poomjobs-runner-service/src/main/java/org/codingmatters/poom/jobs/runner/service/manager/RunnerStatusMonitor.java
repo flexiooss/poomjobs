@@ -1,6 +1,6 @@
 package org.codingmatters.poom.jobs.runner.service.manager;
 
-import org.codingmatters.poom.jobs.runner.service.manager.exception.UnregisteredTokenException;
+import org.codingmatters.poom.jobs.runner.service.exception.UnregisteredTokenException;
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatus;
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatusChangedListener;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
@@ -18,13 +18,23 @@ public class RunnerStatusMonitor implements JobRunnerStatusStore, RunnerStatusPr
     private final Map<RunnerToken, RunnerStatus> runnerStatuses = new HashMap<>();
     private final String name;
 
-    private final RunnerStatusChangedListener statusChangedListener;
+    private final RunnerStatusChangedListener.Cluster statusChangedListener;
 
     private RunnerStatus status = RunnerStatus.BUSY;
 
-    public RunnerStatusMonitor(String name, RunnerStatusChangedListener statusChangedListener) {
+    public RunnerStatusMonitor(String name) {
+        this(name, null);
+    }
+    public RunnerStatusMonitor(String name, RunnerStatusChangedListener listener) {
         this.name = name;
-        this.statusChangedListener = statusChangedListener;
+        this.statusChangedListener = new RunnerStatusChangedListener.Cluster();
+        this.addRunnerStatusChangedListener(listener);
+    }
+
+    public void addRunnerStatusChangedListener(RunnerStatusChangedListener listener) {
+        if(listener != null) {
+            this.statusChangedListener.add(listener);
+        }
     }
 
     public synchronized RunnerToken addToken() {
