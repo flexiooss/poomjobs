@@ -8,46 +8,20 @@
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poomjobs</artifactId>
         <version>1.75.0</version>
-        <relativePath>../</relativePath>
     </parent>
 
-    <artifactId>poomjobs-runner</artifactId>
-    <name>${project.groupId}:${project.artifactId}</name>
+    <artifactId>poomjobs-runner-service</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>org.codingmatters.poom</groupId>
-            <artifactId>poomjobs-clients</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.codingmatters.rest</groupId>
-            <artifactId>cdm-rest-undertow</artifactId>
+            <artifactId>poomjobs-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.codingmatters.poom</groupId>
-            <artifactId>poomjobs-service</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.codingmatters.poom</groupId>
-            <artifactId>poom-services-logging</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.codingmatters.poom</groupId>
-            <artifactId>poomjobs-domain</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.codingmatters.rest</groupId>
-            <artifactId>cdm-rest-client-okhttp</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <scope>test</scope>
+            <artifactId>poomjobs-runner</artifactId>
         </dependency>
     </dependencies>
-
 
     <build>
         <plugins>
@@ -56,23 +30,26 @@
                 <artifactId>cdm-value-objects-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>runner-configuration-gen</id>
+                        <id>runner-domain</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>generate</goal>
+                            <goal>json</goal>
                         </goals>
                         <configuration>
-                            <destination-package>org.codingmatters.poom.runner.configuration</destination-package>
-                            <input-spec>src/main/resources/runner-configuration.yaml</input-spec>
+                            <destination-package>org.codingmatters.poomjobs.runner.domain</destination-package>
+                            <input-spec>src/main/resources/runner-domain.yaml</input-spec>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <executions>
                     <execution>
+                        <id>add-generated-sources</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>add-source</goal>
