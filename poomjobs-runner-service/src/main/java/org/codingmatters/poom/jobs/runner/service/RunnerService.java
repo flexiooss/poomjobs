@@ -37,6 +37,10 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
     private static final long MIN_TTL = 1000L;
     public static final long DEFAULT_TTL = 30 * 1000L;
 
+    static public JobSetup setup() {
+        return new Builder();
+    }
+
     interface JobSetup {
         ClientsSetup jobs(String category, String [] names, JobProcessor.Factory factory);
     }
@@ -53,10 +57,6 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
         OptionsSetup ttl(long ttl);
         OptionsSetup contextSetup(JobContextSetup contextSetup);
         RunnerService build();
-    }
-
-    static public JobSetup builder() {
-        return new Builder();
     }
 
     static private class Builder implements JobSetup, ClientsSetup, RunnerSetup, OptionsSetup, EndpointSetup {
