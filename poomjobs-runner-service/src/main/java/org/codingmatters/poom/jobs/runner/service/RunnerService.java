@@ -7,14 +7,17 @@ import io.undertow.server.handlers.PathHandler;
 import org.codingmatters.poom.jobs.runner.service.exception.JobNotSubmitableException;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerBusyException;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerServiceInitializationException;
+import org.codingmatters.poom.jobs.runner.service.manager.RunnerManager;
 import org.codingmatters.poom.jobs.runner.service.manager.RunnerPool;
 import org.codingmatters.poom.jobs.runner.service.manager.RunnerStatusMonitor;
 import org.codingmatters.poom.jobs.runner.service.manager.flow.JobRunnerRunnable;
 import org.codingmatters.poom.jobs.runner.service.manager.jobs.JobManager;
+import org.codingmatters.poom.jobs.runner.service.manager.status.RunnerRegistryRunnerStatusNotifier;
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
+import org.codingmatters.poom.services.support.Env;
 import org.codingmatters.poomjobs.api.*;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.Job;
@@ -27,6 +30,7 @@ import org.codingmatters.poomjobs.service.api.PoomjobsRunnerAPIProcessor;
 import org.codingmatters.rest.undertow.CdmHttpUndertowHandler;
 
 import java.io.IOException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -155,8 +159,9 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
     private final String jobRequestEndpointUrl;
 
     private RunnerStatusMonitor monitor;
-    private RunnerPool runnerPool;
     private JobManager jobManager;
+
+    private RunnerManager runnerManager;
 
     private final AtomicReference<String> errorToken = new AtomicReference<>(null);
     private Object stopMonitor = new Object();
@@ -180,7 +185,8 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
         this.contextSetup = contextSetup;
         this.jobRequestEndpointPort = jobRequestEndpointPort;
         this.jobRequestEndpointHost = jobRequestEndpointHost;
-        this.jobRequestEndpointUrl = String.format("http://%s:%s", this.jobRequestEndpointHost, this.jobRequestEndpointPort);
+//        this.jobRequestEndpointUrl = String.format("http://%s:%s", this.jobRequestEndpointHost, this.jobRequestEndpointPort);
+        this.jobRequestEndpointUrl = Env.mandatory(Env.SERVICE_URL).asString();
     }
 
     public void run() throws RunnerServiceInitializationException {
@@ -188,7 +194,7 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
         this.startJobRequestEndpoint();
         this.startMonitor();
         this.createJobManager();
-        this.startRunnerPool();
+        this.startRunnerManager();
 
         synchronized (this.stopMonitor) {
             try {
@@ -196,9 +202,26 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
             } catch (InterruptedException e) {}
         }
 
+        this.runnerManager.shutdown();
         if(this.errorToken.get() != null) {
             throw new RuntimeException("error in runner service, see logs with " + this.errorToken.get());
         }
+    }
+
+    private void startRunnerManager() {
+        this.runnerManager = new RunnerManager(
+                Executors.newSingleThreadScheduledExecutor(),
+                this.monitor,
+                new RunnerRegistryRunnerStatusNotifier(this.runnerId, this.runnerRegistryClient),
+                this.ttl,
+                this.concurrentJobCount,
+                this.jobManager,
+                this.jobProcessorFactory,
+                this.contextSetup
+        );
+        log.info("starting job manager...");
+        runnerManager.start();
+        log.info("job manager started, job runner is up and running !");
     }
 
     public void stop() {
@@ -258,23 +281,10 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
         );
     }
 
-    private void startRunnerPool() {
-        this.runnerPool = new RunnerPool(
-                this.concurrentJobCount,
-                this.jobManager,
-                this.jobProcessorFactory,
-                this.contextSetup,
-                this,
-                this.monitor
-                );
-        this.runnerPool.start();
-        this.runnerPool.awaitReady(30, TimeUnit.SECONDS);
-    }
-
     private RunningJobPutResponse jobExecutionRequested(RunningJobPutRequest request) {
         Job job = request.payload();
         try {
-            this.runnerPool.submit(job);
+            this.runnerManager.submit(job);
         } catch (RunnerBusyException e) {
             return RunningJobPutResponse.builder().status409(status -> status.payload(error -> error
                     .code(Error.Code.RUNNER_IS_BUSY)

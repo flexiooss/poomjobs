@@ -55,7 +55,9 @@ public class RunnerStatusManager implements RunnerStatusChangedListener {
 
     private synchronized void notifyAndSchedule() {
         try {
-            this.notifier.notify(this.statusProvider.status());
+            RunnerStatus status = this.statusProvider.status();
+            this.notifier.notify(status);
+            log.info("notified status {}", status);
         } catch (NotificationFailedException e) {
             log.error("runner failed to update status (will retry later in " + this.tick + "ms", e);
         }
