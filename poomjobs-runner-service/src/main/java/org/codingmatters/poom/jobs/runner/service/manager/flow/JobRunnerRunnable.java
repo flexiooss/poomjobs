@@ -101,25 +101,25 @@ public class JobRunnerRunnable implements Runnable {
         }
     }
 
-    private synchronized void runWhenAssigned() throws Exception {
-        synchronized (this.jobAssignement) {
-            Job job = this.jobAssignement.getAndSet(null);
-            if(job != null) {
-                this.statusListener.statusFor(this.token, RunnerStatus.BUSY);
-                this.jobConsumer.runWith(job);
-                this.statusListener.statusFor(this.token, RunnerStatus.IDLE);
-            } else {
+    private void runWhenAssigned() throws Exception {
+        Job job = this.jobAssignement.getAndSet(null);
+        if(job != null) {
+            this.statusListener.statusFor(this.token, RunnerStatus.BUSY);
+            this.jobConsumer.runWith(job);
+            this.statusListener.statusFor(this.token, RunnerStatus.IDLE);
+        } else {
+            this.statusListener.statusFor(this.token, RunnerStatus.IDLE);
+            synchronized (this.jobAssignement) {
                 this.jobAssignement.wait(this.waitForAssignementTime);
             }
         }
     }
 
-    private synchronized void runAvailable() throws Exception {
+    private void runAvailable() throws Exception {
         Job job = this.jobSupplier.nextJob();
         if(job != null) {
             this.jobConsumer.runWith(job);
         }
-        this.statusListener.statusFor(this.token, RunnerStatus.IDLE);
     }
 
 

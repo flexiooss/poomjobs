@@ -107,7 +107,7 @@ public class RunnerPool {
         return false;
     }
 
-    public void submit(Job job) throws RunnerBusyException, JobNotSubmitableException {
+    public synchronized void submit(Job job) throws RunnerBusyException, JobNotSubmitableException {
         if(this.pool.isShutdown()) {
             throw new RunnerBusyException("runner pool is shutting down, cannot execute job");
         }
@@ -117,7 +117,7 @@ public class RunnerPool {
         if(! Status.Run.PENDING.equals(job.opt().status().run().orElse(null))) {
             throw new JobNotSubmitableException("job should be pending, cannot submit a job with status " + job.opt().status().run().orElse(null));
         }
-        synchronized (this.monitor) {
+//        synchronized (this.monitor) {
             try {
                 if (this.monitor.status().equals(RunnerStatus.BUSY)) {
                     throw new RunnerBusyException("all runner threads are busy, cannot execute job");
@@ -137,7 +137,7 @@ public class RunnerPool {
                 log.error("job runner token not registered, this should not occur, this is not recoverable", e);
                 throw new RuntimeException("unrecoverable exception", e);
             }
-        }
+//        }
     }
 
     public boolean running() {

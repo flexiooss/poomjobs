@@ -63,37 +63,49 @@ public class MultithreadedRunnerIntegrationTest {
     }
 
     private void createAndStartRunnerServiceWithConcurrency(int concurrency) throws IOException, InterruptedException {
-        this.runnerService = RunnerService.setup()
-                .jobs(
-                        "c", new String[]{"short", "long"},
-                        new JobProcessor.Factory() {
-                            @Override
-                            public JobProcessor createFor(Job job) {
-                                return () -> {
-                                    log.info("PROCESSING TEST JOB {}", job);
-                                    try {
-                                        if (job.name().equals("short")) {
-                                            Thread.sleep(500L);
-                                        } else {
-                                            Thread.sleep(5000L);
+        int port = freePort();
+        String backup = System.getProperty("service.url");
+        System.setProperty("service.url", "http://localhost:" + port);
+        try {
+            this.runnerService = RunnerService.setup()
+                    .jobs(
+                            "c", new String[]{"short", "long"},
+                            new JobProcessor.Factory() {
+                                @Override
+                                public JobProcessor createFor(Job job) {
+                                    return () -> {
+                                        log.info("PROCESSING TEST JOB {}", job);
+                                        try {
+                                            if (job.name().equals("short")) {
+                                                Thread.sleep(500L);
+                                            } else {
+                                                Thread.sleep(5000L);
+                                            }
+                                        } catch (InterruptedException e) {
                                         }
-                                    } catch (InterruptedException e) {}
 
-                                    log.info("DONE PROCESSING TEST JOB {}", job);
-                                    return job.withStatus(Status.builder().run(Status.Run.DONE).exit(Status.Exit.SUCCESS).build());
-                                };
+                                        log.info("DONE PROCESSING TEST JOB {}", job);
+                                        return job.withStatus(Status.builder().run(Status.Run.DONE).exit(Status.Exit.SUCCESS).build());
+                                    };
+                                }
                             }
-                        }
-                )
-                .clients(
-                        this.runnerRegistryClient,
-                        this.jobRegistryClient
-                )
-                .concurrency(concurrency)
-                .endpoint("localhost", freePort())
-                .ttl(1000L)
-                .build()
-        ;
+                    )
+                    .clients(
+                            this.runnerRegistryClient,
+                            this.jobRegistryClient
+                    )
+                    .concurrency(concurrency)
+                    .endpoint("localhost", port)
+                    .ttl(1000L)
+                    .build()
+            ;
+        } finally {
+            if(backup == null) {
+                System.clearProperty("service.url");
+            } else {
+                System.setProperty("service.url", backup);
+            }
+        }
 
         new Thread(() -> {
             try {

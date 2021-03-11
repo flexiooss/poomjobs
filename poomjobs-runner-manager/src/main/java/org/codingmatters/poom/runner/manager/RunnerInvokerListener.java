@@ -73,10 +73,19 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
                                     .jobId(entity.id())
                                     .payload(this.createJobRequest(entity)));
                             if (resp.opt().status201().isPresent()) {
-                                log.info("delegated job to runner {} at {}", candidate.id(), candidate.callback());
+                                log.info("delegated job {}/{} to runner {} at {}",
+                                        entity.value().category(),
+                                        entity.value().name(),
+                                        candidate.id(),
+                                        candidate.callback());
                                 return;
                             } else {
-                                log.info("runner refused the job with response: {}", resp);
+                                log.info("runner {} refused the job {}/{} with response: {} (runner : {})",
+                                        candidate.id(),
+                                        entity.value().category(),
+                                        entity.value().name(),
+                                        resp,
+                                        candidate);
                             }
                         } catch(IOException e) {
                             this.disconnectRunner(candidate, e);

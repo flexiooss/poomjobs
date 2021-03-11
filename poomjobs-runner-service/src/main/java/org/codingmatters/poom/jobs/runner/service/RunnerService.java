@@ -185,7 +185,6 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
         this.contextSetup = contextSetup;
         this.jobRequestEndpointPort = jobRequestEndpointPort;
         this.jobRequestEndpointHost = jobRequestEndpointHost;
-//        this.jobRequestEndpointUrl = String.format("http://%s:%s", this.jobRequestEndpointHost, this.jobRequestEndpointPort);
         this.jobRequestEndpointUrl = Env.mandatory(Env.SERVICE_URL).asString();
     }
 
