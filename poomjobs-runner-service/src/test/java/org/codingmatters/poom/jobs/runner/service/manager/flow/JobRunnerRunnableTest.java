@@ -84,15 +84,14 @@ public class JobRunnerRunnableTest {
     public void givenNothingToProcess__whenStartedThenShutdown__thenStatusSetToIDLE_andStops() throws Exception {
         this.executor.execute(this.runnable);
 
-
-        Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE));
+        Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.IDLE));
         assertThat(this.ranJobs, is(empty()));
         assertThat(this.jobProcessingException.get(), is(nullValue()));
         assertThat(this.unexpectedExeption.get(), is(nullValue()));
     }
 
     @Test
-    public void givenOneJobAvailable__whenStartedThenShutdown__thenSQtatusBUSYThenIDLE_andJobIsRan_andStops() throws Exception {
+    public void givenOneJobAvailable__whenStartedThenShutdown__thenStatusBUSY_andJobIsRan_andStops() throws Exception {
         Job job = this.runningJob("available-job");
         this.jobQueue.add(job);
 
@@ -101,14 +100,14 @@ public class JobRunnerRunnableTest {
         this.runnable.shutdown();
         Eventually.defaults().assertThat(() -> this.runnable.running(), is(false));
 
-        assertThat(this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE));
+        assertThat(this.statusHistory, contains(RunnerStatus.BUSY));
         assertThat(this.ranJobs, contains(job));
         assertThat(this.jobProcessingException.get(), is(nullValue()));
         assertThat(this.unexpectedExeption.get(), is(nullValue()));
     }
 
     @Test
-    public void givenManyJobsAvailable__whenStartedThenShutdown__thenStatusBUSYThenIDLE_andAllJobsAreRan_andStops() throws Exception {
+    public void givenManyJobsAvailable__whenStartedThenShutdown__thenStatusBUSY_andAllJobsAreRan_andStops() throws Exception {
         for (int i = 0; i < 10; i++) {
             Job job = this.runningJob("available-job-" + i);
             this.jobQueue.add(job);
@@ -119,7 +118,7 @@ public class JobRunnerRunnableTest {
         this.runnable.shutdown();
         Eventually.defaults().assertThat(() -> this.runnable.running(), is(false));
 
-        assertThat(this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE));
+        assertThat(this.statusHistory, contains(RunnerStatus.BUSY));
         assertThat(this.ranJobs.stream().map(job -> job.id()).collect(Collectors.toList()), contains(
                 "available-job-0", "available-job-1", "available-job-2", "available-job-3", "available-job-4",
                 "available-job-5", "available-job-6", "available-job-7", "available-job-8", "available-job-9"
@@ -136,7 +135,8 @@ public class JobRunnerRunnableTest {
         this.runnable.assign(job);
 
 
-        Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.BUSY, RunnerStatus.IDLE));
+        Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.IDLE));
+
         assertThat(this.ranJobs, contains(job));
         assertThat(this.jobProcessingException.get(), is(nullValue()));
         assertThat(this.unexpectedExeption.get(), is(nullValue()));
@@ -149,12 +149,12 @@ public class JobRunnerRunnableTest {
 
         this.executor.execute(this.runnable);
 
-        Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE));
+        Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.IDLE));
 
         this.jobQueue.add(becameAvailableJob);
         this.runnable.assign(assigned);
 
-        Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.BUSY, RunnerStatus.IDLE));
+        Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.IDLE, RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.IDLE));
 
         assertThat(this.ranJobs, contains(assigned, becameAvailableJob));
     }

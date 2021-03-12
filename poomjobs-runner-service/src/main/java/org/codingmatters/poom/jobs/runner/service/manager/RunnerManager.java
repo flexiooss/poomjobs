@@ -24,18 +24,20 @@ public class RunnerManager implements JobRunnerRunnable.JobRunnerRunnableErrorLi
     private final RunnerStatusMonitor statusMonitor;
     private final RunnerStatusManager statusManager;
     private final RunnerPool runnerPool;
-    private final RunnerStatusNotifier notifier = null;
+    private final RunnerStatusNotifier notifier;
 
     public RunnerManager(
-            String runnerId,
             ScheduledExecutorService scheduler,
+            RunnerStatusMonitor runnerStatusMonitor,
+            RunnerStatusNotifier notifier,
             long ttl,
             int concurrentJobCount,
             JobManager jobManager,
             JobProcessor.Factory processorFactory,
             JobContextSetup contextSetup
     ) {
-        this.statusMonitor = new RunnerStatusMonitor("job-runner-" + runnerId);
+        this.statusMonitor = runnerStatusMonitor;
+        this.notifier = notifier;
         this.statusManager = new RunnerStatusManager(this.notifier, this.statusMonitor, scheduler, ttl * 9 / 10);
         this.runnerPool = new RunnerPool(
                 concurrentJobCount,
