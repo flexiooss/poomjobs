@@ -39,7 +39,7 @@ public class RunnerValueCreationTest {
     public void whenCompetenciesIsNull__validationFails() throws Exception {
         assertThat(
                 RunnerValueCreation.with(this.validValue()
-                        .withCompetencies(null)
+                        .withCompetencies((Competencies)null)
                 ).validation(),
                 is(new Validation(false, "a runner must have some competencies explicitly setted"))
         );

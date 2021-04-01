@@ -1,5 +1,4 @@
 level: stable
-schemes:
-- maven
+schemes: [maven]
 topics: []
-version: 1.79.0
+version: 1.79.1
