@@ -39,7 +39,7 @@ public class RunnerValueMerger {
                     .names(runnerData.competencies().names().toArray(new String[0]))
                     .build());
         } else {
-            result = result.withCompetencies(null);
+            result = result.withCompetencies((Competencies) null);
         }
 
         return result;
