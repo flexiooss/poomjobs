@@ -76,7 +76,7 @@ public class RunnerManager implements JobRunnerRunnable.JobRunnerRunnableErrorLi
 
     @Override
     public void unexpectedExceptionThrown(RunnerToken token, Exception e) {
-        log.error("unexpected error in runner service, unrecoverable, shutting down");
+        log.error("unexpected error in runner service, unrecoverable, shutting down", e);
         this.shutdown();
     }
 
