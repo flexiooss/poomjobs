@@ -115,7 +115,7 @@ public class RunnerPoolTest {
             JobContextSetup.NOOP,
             new JobRunnerRunnable.JobRunnerRunnableErrorListener() {
                 @Override
-                public void unexpectedExceptionThrown(RunnerToken token, Exception e) {}
+                public void unrecoverableExceptionThrown(Exception e) {}
 
                 @Override
                 public void processingExceptionThrown(RunnerToken token, JobProcessingException e) {}

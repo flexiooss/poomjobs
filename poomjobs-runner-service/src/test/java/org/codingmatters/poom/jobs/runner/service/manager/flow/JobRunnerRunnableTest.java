@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -29,8 +29,6 @@ public class JobRunnerRunnableTest {
 
     private final List<RunnerStatus> statusHistory = Collections.synchronizedList(new LinkedList<>());
 
-    private final AtomicReference<RuntimeException> nextUnexpectedExeption = new AtomicReference<>();
-    private final AtomicReference<RuntimeException> unexpectedExeption = new AtomicReference<>();
     private final AtomicReference<JobProcessingException> nextJobProcessingException = new AtomicReference<>();
     private final AtomicReference<JobProcessingException> jobProcessingException = new AtomicReference<>();
 
@@ -43,9 +41,6 @@ public class JobRunnerRunnableTest {
                 if(nextJobProcessingException.get() != null) {
                     throw nextJobProcessingException.get();
                 }
-                if(nextUnexpectedExeption.get() != null) {
-                    throw nextUnexpectedExeption.get();
-                }
                 ranJobs.add(job);
                 return job;
             },
@@ -56,10 +51,7 @@ public class JobRunnerRunnableTest {
             },
             new JobRunnerRunnable.JobRunnerRunnableErrorListener() {
                 @Override
-                public void unexpectedExceptionThrown(RunnerToken token, Exception e) {
-                    assertThat(token, is(runnerToken));
-                    unexpectedExeption.set((RuntimeException) e);
-                }
+                public void unrecoverableExceptionThrown(Exception e) {}
 
                 @Override
                 public void processingExceptionThrown(RunnerToken token, JobProcessingException e) {
@@ -87,7 +79,6 @@ public class JobRunnerRunnableTest {
         Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.IDLE));
         assertThat(this.ranJobs, is(empty()));
         assertThat(this.jobProcessingException.get(), is(nullValue()));
-        assertThat(this.unexpectedExeption.get(), is(nullValue()));
     }
 
     @Test
@@ -103,7 +94,6 @@ public class JobRunnerRunnableTest {
         assertThat(this.statusHistory, contains(RunnerStatus.BUSY));
         assertThat(this.ranJobs, contains(job));
         assertThat(this.jobProcessingException.get(), is(nullValue()));
-        assertThat(this.unexpectedExeption.get(), is(nullValue()));
     }
 
     @Test
@@ -124,7 +114,6 @@ public class JobRunnerRunnableTest {
                 "available-job-5", "available-job-6", "available-job-7", "available-job-8", "available-job-9"
         ));
         assertThat(this.jobProcessingException.get(), is(nullValue()));
-        assertThat(this.unexpectedExeption.get(), is(nullValue()));
     }
 
     @Test
@@ -139,7 +128,6 @@ public class JobRunnerRunnableTest {
 
         assertThat(this.ranJobs, contains(job));
         assertThat(this.jobProcessingException.get(), is(nullValue()));
-        assertThat(this.unexpectedExeption.get(), is(nullValue()));
     }
 
     @Test
@@ -157,30 +145,6 @@ public class JobRunnerRunnableTest {
         Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.IDLE, RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.IDLE));
 
         assertThat(this.ranJobs, contains(assigned, becameAvailableJob));
-    }
-
-    @Test
-    public void givenAvailableJob__whenUnexpectedExceptionRaised__thenStopsAndError() throws Exception {
-        this.jobQueue.add(this.runningJob("available"));
-        this.nextUnexpectedExeption.set(new RuntimeException("from test"));
-
-        this.executor.execute(this.runnable);
-
-        Eventually.defaults().assertThat(() -> this.runnable.running(), is(false));
-        assertThat(this.unexpectedExeption.get(), is(this.nextUnexpectedExeption.get()));
-        assertThat(this.runnable.error(), is(true));
-    }
-
-    @Test
-    public void givenNoAvailableJob__whenUnexpectedExceptionRaisedWhenAssigned__thenStopsAndError() throws Exception {
-        this.nextUnexpectedExeption.set(new RuntimeException("from test"));
-
-        this.executor.execute(this.runnable);
-        this.runnable.assign(this.runningJob("assign"));
-
-        Eventually.defaults().assertThat(() -> this.runnable.running(), is(false));
-        assertThat(this.unexpectedExeption.get(), is(this.nextUnexpectedExeption.get()));
-        assertThat(this.runnable.error(), is(true));
     }
 
     @Test

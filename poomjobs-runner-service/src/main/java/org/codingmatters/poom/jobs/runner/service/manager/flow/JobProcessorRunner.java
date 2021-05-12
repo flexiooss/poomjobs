@@ -26,7 +26,7 @@ public class JobProcessorRunner {
         this.contextSetup = contextSetup;
     }
 
-    public void runWith(Job job) throws JobProcessingException {
+    public void runWith(Job job) throws JobProcessingException, JobUpdateFailure {
         try(LoggingContext loggingContext = LoggingContext.start()) {
             if (!Status.Run.RUNNING.equals(job.opt().status().run().orElse(null))) {
                 throw new JobProcessingException("Job has not been reserved, will not execute. Run status should be RUNNING, was : " + job.opt().status().run().orElse(null));
@@ -55,6 +55,16 @@ public class JobProcessorRunner {
 
     @FunctionalInterface
     public interface JobUpdater {
-        void update(Job job);
+        void update(Job job) throws JobUpdateFailure;
+    }
+
+    public static class JobUpdateFailure extends Exception {
+        public JobUpdateFailure(String message) {
+            super(message);
+        }
+
+        public JobUpdateFailure(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }
