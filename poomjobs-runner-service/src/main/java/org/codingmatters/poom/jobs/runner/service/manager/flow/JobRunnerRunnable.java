@@ -1,5 +1,6 @@
 package org.codingmatters.poom.jobs.runner.service.manager.flow;
 
+import org.codingmatters.poom.jobs.runner.service.exception.UnregisteredTokenException;
 import org.codingmatters.poom.jobs.runner.service.manager.JobRunnerStatusStore;
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatus;
 import org.codingmatters.poom.runner.JobContextSetup;
@@ -70,7 +71,8 @@ public class JobRunnerRunnable implements Runnable {
         } catch (JobProcessingException e) {
             this.errorListener.processingExceptionThrown(this.token, e);
         } catch (Exception e) {
-            this.errorListener.unexpectedExceptionThrown(this.token, e);
+            log.error("unrecoverable error thrown while running available jobs by runner with token " + this.token, e);
+            this.errorListener.unrecoverableExceptionThrown(e);
             this.inError();
         }
         log.info("now processing jobs as they are assigned");
@@ -79,9 +81,10 @@ public class JobRunnerRunnable implements Runnable {
                 this.runWhenAssigned();
             } catch (JobProcessingException e) {
                 this.errorListener.processingExceptionThrown(this.token, e);
-            } catch (Exception e) {
-                this.errorListener.unexpectedExceptionThrown(this.token, e);
+            } catch (JobProcessorRunner.JobUpdateFailure | UnregisteredTokenException | InterruptedException e) {
                 this.inError();
+                log.error("unrecoverable error thrown while running assigned jobs by runner with token " + this.token, e);
+                this.errorListener.unrecoverableExceptionThrown(e);
             }
         }
         log.info("stopping job runner thread with token : {}", this.token);
@@ -101,7 +104,7 @@ public class JobRunnerRunnable implements Runnable {
         }
     }
 
-    private void runWhenAssigned() throws Exception {
+    private void runWhenAssigned() throws UnregisteredTokenException, JobProcessorRunner.JobUpdateFailure, JobProcessingException, InterruptedException {
         Job job = this.jobAssignement.getAndSet(null);
         if(job != null) {
             this.statusListener.statusFor(this.token, RunnerStatus.BUSY);
@@ -115,7 +118,7 @@ public class JobRunnerRunnable implements Runnable {
         }
     }
 
-    private void runAvailable() throws Exception {
+    private void runAvailable() throws JobProcessorRunner.JobUpdateFailure, JobProcessingException {
         Job job = this.jobSupplier.nextJob();
         if(job != null) {
             this.jobConsumer.runWith(job);
@@ -124,12 +127,12 @@ public class JobRunnerRunnable implements Runnable {
 
 
     public interface JobRunnerRunnableErrorListener {
-        void unexpectedExceptionThrown(RunnerToken token, Exception e);
+        void unrecoverableExceptionThrown(Exception e);
         void processingExceptionThrown(RunnerToken token, JobProcessingException e);
 
         JobRunnerRunnableErrorListener NOOP = new JobRunnerRunnableErrorListener() {
             @Override
-            public void unexpectedExceptionThrown(RunnerToken token, Exception e) {}
+            public void unrecoverableExceptionThrown(Exception e) {}
 
             @Override
             public void processingExceptionThrown(RunnerToken token, JobProcessingException e) {}

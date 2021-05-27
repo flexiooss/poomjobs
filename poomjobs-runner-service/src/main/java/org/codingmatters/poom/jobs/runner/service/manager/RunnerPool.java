@@ -3,6 +3,7 @@ package org.codingmatters.poom.jobs.runner.service.manager;
 import org.codingmatters.poom.jobs.runner.service.exception.JobNotSubmitableException;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerBusyException;
 import org.codingmatters.poom.jobs.runner.service.exception.UnregisteredTokenException;
+import org.codingmatters.poom.jobs.runner.service.manager.flow.JobProcessorRunner;
 import org.codingmatters.poom.jobs.runner.service.manager.flow.JobRunnerRunnable;
 import org.codingmatters.poom.jobs.runner.service.manager.jobs.JobManager;
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatus;
@@ -107,7 +108,7 @@ public class RunnerPool {
         return false;
     }
 
-    public synchronized void submit(Job job) throws RunnerBusyException, JobNotSubmitableException {
+    public synchronized void submit(Job job) throws RunnerBusyException, JobNotSubmitableException, JobProcessorRunner.JobUpdateFailure {
         if(this.pool.isShutdown()) {
             throw new RunnerBusyException("runner pool is shutting down, cannot execute job");
         }
@@ -117,27 +118,25 @@ public class RunnerPool {
         if(! Status.Run.PENDING.equals(job.opt().status().run().orElse(null))) {
             throw new JobNotSubmitableException("job should be pending, cannot submit a job with status " + job.opt().status().run().orElse(null));
         }
-//        synchronized (this.monitor) {
-            try {
-                if (this.monitor.status().equals(RunnerStatus.BUSY)) {
-                    throw new RunnerBusyException("all runner threads are busy, cannot execute job");
-                } else {
-                    for (Map.Entry<RunnerToken, JobRunnerRunnable> runnableEntry : this.runnables.entrySet()) {
-                        if (this.monitor.status(runnableEntry.getKey()).equals(RunnerStatus.IDLE)) {
-                            job = job.withStatus(Status.builder().run(Status.Run.RUNNING).build());
-                            this.jobManager.update(job);
-                            runnableEntry.getValue().assign(job);
-                            log.debug("assigned job {} to {}", job, runnableEntry.getKey());
-                            return;
-                        }
+        try {
+            if (this.monitor.status().equals(RunnerStatus.BUSY)) {
+                throw new RunnerBusyException("all runner threads are busy, cannot execute job");
+            } else {
+                for (Map.Entry<RunnerToken, JobRunnerRunnable> runnableEntry : this.runnables.entrySet()) {
+                    if (this.monitor.status(runnableEntry.getKey()).equals(RunnerStatus.IDLE)) {
+                        job = job.withStatus(Status.builder().run(Status.Run.RUNNING).build());
+                        this.jobManager.update(job);
+                        runnableEntry.getValue().assign(job);
+                        log.debug("assigned job {} to {}", job, runnableEntry.getKey());
+                        return;
                     }
-                    throw new RunnerBusyException("no runner threads accepted job, assuming busy, cannot execute job");
                 }
-            } catch (UnregisteredTokenException e) {
-                log.error("job runner token not registered, this should not occur, this is not recoverable", e);
-                throw new RuntimeException("unrecoverable exception", e);
+                throw new RunnerBusyException("no runner threads accepted job, assuming busy, cannot execute job");
             }
-//        }
+        } catch (UnregisteredTokenException e) {
+            log.error("job runner token not registered, this should not occur, this is not recoverable", e);
+            throw new RuntimeException("unrecoverable exception", e);
+        }
     }
 
     public boolean running() {

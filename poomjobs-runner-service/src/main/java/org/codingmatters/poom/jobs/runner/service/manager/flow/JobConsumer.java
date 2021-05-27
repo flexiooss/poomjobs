@@ -19,7 +19,7 @@ public class JobConsumer {
         this.nextJob = nextJob;
     }
 
-    public void runWith(Job job) throws JobProcessingException {
+    public void runWith(Job job) throws JobProcessingException, JobProcessorRunner.JobUpdateFailure {
         for(Job current = job ; current != null ; current = this.nextJob.nextJob()) {
             this.runner.runWith(current);
         }

@@ -1,6 +1,7 @@
 package org.codingmatters.poom.jobs.runner.service.manager.jobs;
 
 import org.codingmatters.poom.handler.HandlerResource;
+import org.codingmatters.poom.jobs.runner.service.manager.flow.JobProcessorRunner;
 import org.codingmatters.poomjobs.api.*;
 import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status200;
 import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status206;
@@ -88,7 +89,7 @@ public class JobManagerTest {
         for (JobResourcePatchResponse response : responses) {
             this.jobPatch.nextResponse(request -> response);
 
-            this.thrown.expect(RuntimeException.class);
+            this.thrown.expect(JobProcessorRunner.JobUpdateFailure.class);
             this.thrown.expectMessage(startsWith("Unrecoverable error updating job status. See logs with token : "));
 
             this.manager.update(Job.builder()

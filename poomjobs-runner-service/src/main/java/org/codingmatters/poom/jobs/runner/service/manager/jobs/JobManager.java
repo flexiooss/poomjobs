@@ -36,7 +36,7 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
     }
 
     @Override
-    public synchronized void update(Job job) {
+    public synchronized void update(Job job) throws JobProcessorRunner.JobUpdateFailure {
         int tried = 0;
         JobResourcePatchResponse response = null;
         while(tried < JOB_UPDATE_MAX_RETRIES && response == null) {
@@ -46,10 +46,8 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
                 tried++;
                 log.warn("error updating job " + job.id() + " will retry in " + JOB_UPDATE_RETRY_DELAY + "ms (tried " + tried + " time)", e);
                 try {
-                    Thread.sleep(JOB_UPDATE_RETRY_DELAY);
-                } catch (InterruptedException ie) {
-                    throw new RuntimeException("interrupted while waiting for job update retry, not recoverable", ie);
-                }
+                    Thread.sleep(tried * JOB_UPDATE_RETRY_DELAY);
+                } catch (InterruptedException ie) {}
             }
         }
         if(response == null) {
@@ -58,7 +56,7 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
                             "Will not retry. " +
                             "This is not recoverable, job data is lost, failing fast.",
                     job, tried);
-            throw new RuntimeException("Unrecoverable error updating job status. See logs with token : " + errorToken);
+            throw new JobProcessorRunner.JobUpdateFailure("Unrecoverable error updating job status. See logs with token : " + errorToken);
         } else if(response.opt().status200().isEmpty()) {
             String errorToken = log.tokenized().error(
                     "[GRAVE] failed updating job {}. got response {}" +
@@ -66,7 +64,7 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
                             "This is not recoverable, job data is lost, failing fast.",
                     job, response
             );
-            throw new RuntimeException("Unrecoverable error updating job status. See logs with token : " + errorToken);
+            throw new JobProcessorRunner.JobUpdateFailure("Unrecoverable error updating job status. See logs with token : " + errorToken);
         }
     }
 
