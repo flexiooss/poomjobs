@@ -7,11 +7,11 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poom-services</artifactId>
-        <version>1.84.0-SNAPSHOT</version>
+        <version>1.84.0</version>
     </parent>
 
     <artifactId>poomjobs</artifactId>
-    <version>1.89.0-SNAPSHOT</version>
+    <version>1.90.0-SNAPSHOT</version>
 
     <name>Poor Man's Jobs</name>
     <description>Distributed Job Queue Framework</description>
@@ -90,7 +90,7 @@
     </dependencies>
 
     <properties>
-        <flexio-commons.version>1.85.0-SNAPSHOT</flexio-commons.version>
+        <flexio-commons.version>1.85.0</flexio-commons.version>
     </properties>
 
     <dependencyManagement>
@@ -107,52 +107,52 @@
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-domain</artifactId>
-                <version>1.89.0-SNAPSHOT</version>
+                <version>1.90.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-api-spec</artifactId>
-                <version>1.89.0-SNAPSHOT</version>
+                <version>1.90.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-api</artifactId>
-                <version>1.89.0-SNAPSHOT</version>
+                <version>1.90.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-service</artifactId>
-                <version>1.89.0-SNAPSHOT</version>
+                <version>1.90.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-clients</artifactId>
-                <version>1.89.0-SNAPSHOT</version>
+                <version>1.90.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-runner</artifactId>
-                <version>1.89.0-SNAPSHOT</version>
+                <version>1.90.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-runner-manager</artifactId>
-                <version>1.89.0-SNAPSHOT</version>
+                <version>1.90.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-registries-service</artifactId>
-                <version>1.89.0-SNAPSHOT</version>
+                <version>1.90.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-runner-service</artifactId>
-                <version>1.89.0-SNAPSHOT</version>
+                <version>1.90.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-integration</artifactId>
-                <version>1.89.0-SNAPSHOT</version>
+                <version>1.90.0-SNAPSHOT</version>
             </dependency>
             <!--// BOM-->
         </dependencies>
