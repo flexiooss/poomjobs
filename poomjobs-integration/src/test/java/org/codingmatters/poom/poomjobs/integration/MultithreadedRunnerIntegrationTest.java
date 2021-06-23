@@ -3,7 +3,7 @@ package org.codingmatters.poom.poomjobs.integration;
 import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.jobs.runner.service.RunnerService;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerServiceInitializationException;
-import org.codingmatters.poom.runner.exception.JobProcessor;
+import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.tests.Eventually;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;

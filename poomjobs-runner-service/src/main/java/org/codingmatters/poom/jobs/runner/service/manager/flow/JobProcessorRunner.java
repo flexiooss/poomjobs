@@ -1,7 +1,7 @@
 package org.codingmatters.poom.jobs.runner.service.manager.flow;
 
 import org.codingmatters.poom.runner.JobContextSetup;
-import org.codingmatters.poom.runner.exception.JobProcessor;
+import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.logging.LoggingContext;

@@ -8,7 +8,7 @@ import org.codingmatters.poom.jobs.runner.service.manager.flow.JobRunnerRunnable
 import org.codingmatters.poom.jobs.runner.service.manager.jobs.JobManager;
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatus;
 import org.codingmatters.poom.runner.JobContextSetup;
-import org.codingmatters.poom.runner.exception.JobProcessor;
+import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.job.Status;
