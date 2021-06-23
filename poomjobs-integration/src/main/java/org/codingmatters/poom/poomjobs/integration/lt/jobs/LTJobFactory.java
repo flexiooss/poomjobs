@@ -1,6 +1,6 @@
 package org.codingmatters.poom.poomjobs.integration.lt.jobs;
 
-import org.codingmatters.poom.runner.JobProcessor;
+import org.codingmatters.poom.runner.exception.JobProcessor;
 import org.codingmatters.poom.services.support.Env;
 import org.codingmatters.poomjobs.api.types.Job;
 

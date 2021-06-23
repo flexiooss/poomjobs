@@ -1,6 +1,6 @@
 package org.codingmatters.poom.runner;
 
-import org.codingmatters.poom.services.support.logging.LoggingContext;
+import org.codingmatters.poom.runner.exception.JobProcessor;
 import org.codingmatters.poomjobs.api.types.Job;
 
 

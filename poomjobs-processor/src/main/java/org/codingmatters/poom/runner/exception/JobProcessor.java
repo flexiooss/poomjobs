@@ -1,6 +1,5 @@
-package org.codingmatters.poom.runner;
+package org.codingmatters.poom.runner.exception;
 
-import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poomjobs.api.types.Job;
 
 @FunctionalInterface

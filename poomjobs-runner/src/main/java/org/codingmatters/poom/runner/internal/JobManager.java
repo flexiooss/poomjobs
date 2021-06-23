@@ -4,7 +4,7 @@ import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.logging.LoggingContext;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
-import org.codingmatters.poom.runner.JobProcessor;
+import org.codingmatters.poom.runner.exception.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poomjobs.api.JobCollectionGetRequest;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;

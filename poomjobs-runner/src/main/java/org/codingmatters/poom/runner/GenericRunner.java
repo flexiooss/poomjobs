@@ -1,5 +1,6 @@
 package org.codingmatters.poom.runner;
 
+import org.codingmatters.poom.runner.exception.JobProcessor;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poom.runner.configuration.RunnerConfiguration;
@@ -7,14 +8,12 @@ import org.codingmatters.poom.runner.exception.RunnerInitializationException;
 import org.codingmatters.poom.runner.internal.JobManager;
 import org.codingmatters.poom.runner.internal.RunnerEndpoint;
 import org.codingmatters.poom.runner.internal.StatusManager;
-import org.codingmatters.poom.services.support.date.UTC;
 import org.codingmatters.poomjobs.api.RunnerCollectionPostResponse;
 import org.codingmatters.rest.api.Processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

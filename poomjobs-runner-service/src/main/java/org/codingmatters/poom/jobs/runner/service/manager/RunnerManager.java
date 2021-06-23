@@ -10,7 +10,7 @@ import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatus;
 import org.codingmatters.poom.jobs.runner.service.manager.status.RunnerStatusManager;
 import org.codingmatters.poom.jobs.runner.service.manager.status.RunnerStatusNotifier;
 import org.codingmatters.poom.runner.JobContextSetup;
-import org.codingmatters.poom.runner.JobProcessor;
+import org.codingmatters.poom.runner.exception.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poomjobs.api.types.Job;

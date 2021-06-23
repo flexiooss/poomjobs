@@ -14,7 +14,7 @@ import org.codingmatters.poom.jobs.runner.service.manager.flow.JobRunnerRunnable
 import org.codingmatters.poom.jobs.runner.service.manager.jobs.JobManager;
 import org.codingmatters.poom.jobs.runner.service.manager.status.RunnerRegistryRunnerStatusNotifier;
 import org.codingmatters.poom.runner.JobContextSetup;
-import org.codingmatters.poom.runner.JobProcessor;
+import org.codingmatters.poom.runner.exception.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.Env;

@@ -11,7 +11,7 @@ RunnerConfiguration:
   jobName:
     $list: string
   processorFactory:
-    $type: org.codingmatters.poom.runner.JobProcessor.Factory
+    $type: org.codingmatters.poom.runner.exception.JobProcessor.Factory
   jobRegistryUrl: string
   endpointHost: string
   endpointPort: int
