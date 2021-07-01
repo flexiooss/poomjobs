@@ -8,8 +8,6 @@ import org.codingmatters.poom.services.support.logging.LoggingContext;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.job.Status;
 
-import java.util.function.Consumer;
-
 /**
  * takes a reserved Job (status = RUNNING), executes it
  */
