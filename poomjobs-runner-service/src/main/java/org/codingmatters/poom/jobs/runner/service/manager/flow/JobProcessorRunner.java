@@ -32,8 +32,15 @@ public class JobProcessorRunner {
             JobProcessor processor = this.processorFactory.createFor(job);
             this.contextSetup.setup(job, processor);
             log.info("starting processing job {}", job);
-            Job updated = processor.process();
-            updated = this.withFinalStatus(updated);
+            Job updated;
+            try {
+                updated = processor.process();
+                updated = this.withFinalStatus(updated);
+            } catch (JobProcessingException e) {
+                throw e;
+            } catch (Exception e) {
+                updated = this.withErrorStatus(job);
+            }
 
             log.debug("job processed, will update status with {}", updated);
             this.updatedJobConsumer.update(updated);
@@ -47,6 +54,15 @@ public class JobProcessorRunner {
                 Status.builder()
                         .run(Status.Run.DONE)
                         .exit(job.opt().status().exit().orElse(Status.Exit.SUCCESS))
+                        .build()
+        );
+    }
+
+    private Job withErrorStatus(Job job) {
+        return job.withStatus(
+                Status.builder()
+                        .run(Status.Run.DONE)
+                        .exit(job.opt().status().exit().orElse(Status.Exit.FAILURE))
                         .build()
         );
     }
