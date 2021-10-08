@@ -39,6 +39,7 @@ public class JobProcessorRunner {
             } catch (JobProcessingException e) {
                 throw e;
             } catch (Exception e) {
+                log.error("[GRAVE] unexpected exception while processing job " + job, e);
                 updated = this.withErrorStatus(job);
             }
 
