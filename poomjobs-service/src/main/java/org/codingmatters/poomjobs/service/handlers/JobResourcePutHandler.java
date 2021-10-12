@@ -20,6 +20,8 @@ import org.codingmatters.poomjobs.service.PoomjobsJobRepositoryListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigInteger;
+
 import static org.codingmatters.poomjobs.service.JobValueMerger.merge;
 
 /**
@@ -59,7 +61,10 @@ public class JobResourcePutHandler implements ResourcePutProtocol<JobValue, JobQ
     public Change<JobValue> valueUpdate(JobResourcePatchRequest request, Entity<JobValue> entity) {
         JobValue currentValue = entity.value();
         JobValue newValue = merge(currentValue).with(request.payload());
-        return JobValueChange.from(currentValue).to(newValue);
+        return JobValueChange.from(
+                entity.version(),
+                request.opt().currentVersion().isPresent() && request.opt().strict().orElse(false) ? new BigInteger(request.currentVersion()) : entity.version(),
+                currentValue).to(newValue);
     }
 
     @Override

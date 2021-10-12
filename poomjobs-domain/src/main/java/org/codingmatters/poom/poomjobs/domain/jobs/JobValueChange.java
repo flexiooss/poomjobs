@@ -6,6 +6,7 @@ import org.codingmatters.poom.services.domain.change.Change;
 import org.codingmatters.poom.services.domain.change.ChangeBuilder;
 import org.codingmatters.poom.services.domain.change.Validation;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 /**
@@ -13,12 +14,28 @@ import java.time.LocalDateTime;
  */
 public class JobValueChange extends Change<JobValue> {
 
-    static public ChangeBuilder<JobValue, JobValueChange> from(JobValue current) {
-        return new ChangeBuilder<>(current, JobValueChange::new);
+    private final BigInteger currentVersion;
+    private final BigInteger fromVersion;
+
+    static public ChangeBuilder<JobValue, JobValueChange> from(BigInteger currentVersion, BigInteger fromVersion, JobValue current) {
+        return new ChangeBuilder<>(current, (currentValue, newValue) -> new JobValueChange(currentVersion, fromVersion, currentValue, newValue));
     }
 
-    private JobValueChange(JobValue currentValue, JobValue newValue) {
+    private JobValueChange(BigInteger currentVersion, BigInteger fromVersion, JobValue currentValue, JobValue newValue) {
         super(currentValue, newValue);
+        this.currentVersion = currentVersion;
+        this.fromVersion = fromVersion;
+    }
+
+    @Override
+    public Validation validation() {
+        if(this.currentVersion.compareTo(this.fromVersion) != 0) {
+            return new Validation(
+                    false,
+                    String.format("version differs, cannot validate change (current is %s, changing from %s)", this.currentVersion, this.fromVersion)
+            );
+        }
+        return super.validation();
     }
 
     @Override

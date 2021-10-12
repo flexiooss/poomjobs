@@ -125,7 +125,7 @@ public class RunnerPool {
                 for (Map.Entry<RunnerToken, JobRunnerRunnable> runnableEntry : this.runnables.entrySet()) {
                     if (this.monitor.status(runnableEntry.getKey()).equals(RunnerStatus.IDLE)) {
                         job = job.withStatus(Status.builder().run(Status.Run.RUNNING).build());
-                        this.jobManager.update(job);
+                        job = this.jobManager.update(job);
                         runnableEntry.getValue().assign(job);
                         log.debug("assigned job {} to {}", job, runnableEntry.getKey());
                         return;

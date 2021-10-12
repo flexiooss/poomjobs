@@ -36,7 +36,7 @@ public class JobRunnerRunnableTest {
 
     private JobRunnerRunnable runnable = new JobRunnerRunnable(
             runnerToken,
-            job -> {},
+            job -> job,
             job -> () -> {
                 if(nextJobProcessingException.get() != null) {
                     throw nextJobProcessingException.get();

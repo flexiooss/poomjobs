@@ -25,7 +25,10 @@ public class JobProcessorRunnerTest {
     private final AtomicReference<Job> updatedJob = new AtomicReference<>();
 
     private final JobProcessorRunner flow = new JobProcessorRunner(
-            job -> updatedJob.set(job),
+            job -> {
+                updatedJob.set(job);
+                return job;
+            },
             job -> () -> {
                 processedJob.set(job);
                 JobProcessingException exception = nextJobProcessingException.get();

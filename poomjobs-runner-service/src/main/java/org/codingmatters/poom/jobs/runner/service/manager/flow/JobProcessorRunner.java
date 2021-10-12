@@ -70,7 +70,7 @@ public class JobProcessorRunner {
 
     @FunctionalInterface
     public interface JobUpdater {
-        void update(Job job) throws JobUpdateFailure;
+        Job update(Job job) throws JobUpdateFailure;
     }
 
     public static class JobUpdateFailure extends Exception {
