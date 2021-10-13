@@ -5,12 +5,13 @@ import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Processing;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.junit.Test;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Created by nelt on 6/23/17.
@@ -30,7 +31,7 @@ public class JobValueChangeApplicationTest {
                         .build())
                 .build();
 
-        JobValue processed = JobValueChange.from(currentValue)
+        JobValue processed = JobValueChange.from(BigInteger.ONE, BigInteger.ONE, currentValue)
                 .to(currentValue.withStatus(currentValue.status().withRun(Status.Run.RUNNING)))
                 .applied();
 
@@ -54,7 +55,7 @@ public class JobValueChangeApplicationTest {
                         .build())
                 .build();
 
-        JobValue processed = JobValueChange.from(currentValue)
+        JobValue processed = JobValueChange.from(BigInteger.ONE, BigInteger.ONE, currentValue)
                 .to(currentValue.withStatus(currentValue.status().withRun(Status.Run.DONE)))
                 .applied();
 

@@ -18,7 +18,7 @@ public class JobConsumerTest {
 
     private final JobConsumer flow = new JobConsumer(
             new JobProcessorRunner(
-                    job -> {},
+                    job -> job,
                     job -> () -> {
                         executed.add(job);
                         return job;

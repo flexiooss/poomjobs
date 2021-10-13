@@ -32,8 +32,16 @@ public class JobProcessorRunner {
             JobProcessor processor = this.processorFactory.createFor(job);
             this.contextSetup.setup(job, processor);
             log.info("starting processing job {}", job);
-            Job updated = processor.process();
-            updated = this.withFinalStatus(updated);
+            Job updated;
+            try {
+                updated = processor.process();
+                updated = this.withFinalStatus(updated);
+            } catch (JobProcessingException e) {
+                throw e;
+            } catch (Exception e) {
+                log.error("[GRAVE] unexpected exception while processing job " + job, e);
+                updated = this.withErrorStatus(job);
+            }
 
             log.debug("job processed, will update status with {}", updated);
             this.updatedJobConsumer.update(updated);
@@ -51,9 +59,18 @@ public class JobProcessorRunner {
         );
     }
 
+    private Job withErrorStatus(Job job) {
+        return job.withStatus(
+                Status.builder()
+                        .run(Status.Run.DONE)
+                        .exit(job.opt().status().exit().orElse(Status.Exit.FAILURE))
+                        .build()
+        );
+    }
+
     @FunctionalInterface
     public interface JobUpdater {
-        void update(Job job) throws JobUpdateFailure;
+        Job update(Job job) throws JobUpdateFailure;
     }
 
     public static class JobUpdateFailure extends Exception {

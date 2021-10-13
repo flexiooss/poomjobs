@@ -36,7 +36,7 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
     }
 
     @Override
-    public synchronized void update(Job job) throws JobProcessorRunner.JobUpdateFailure {
+    public synchronized Job update(Job job) throws JobProcessorRunner.JobUpdateFailure {
         int tried = 0;
         JobResourcePatchResponse response = null;
         while(tried < JOB_UPDATE_MAX_RETRIES && response == null) {
@@ -65,6 +65,8 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
                     job, response
             );
             throw new JobProcessorRunner.JobUpdateFailure("Unrecoverable error updating job status. See logs with token : " + errorToken);
+        } else {
+            return response.status200().payload();
         }
     }
 
@@ -73,6 +75,7 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
                 .accountId(this.accountId)
                 .jobId(job.id())
                 .currentVersion(job.version())
+                .strict(true)
                 .payload(JobUpdateData.builder()
                         .status(this.translated(job.opt().status()))
                         .result(job.result())
