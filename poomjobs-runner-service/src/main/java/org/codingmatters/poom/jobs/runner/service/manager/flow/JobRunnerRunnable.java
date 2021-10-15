@@ -105,16 +105,19 @@ public class JobRunnerRunnable implements Runnable {
     }
 
     private void runWhenAssigned() throws UnregisteredTokenException, JobProcessorRunner.JobUpdateFailure, JobProcessingException, InterruptedException {
-        Job job = this.jobAssignement.getAndSet(null);
-        if(job != null) {
-            this.statusListener.statusFor(this.token, RunnerStatus.BUSY);
-            this.jobConsumer.runWith(job);
-            this.statusListener.statusFor(this.token, RunnerStatus.IDLE);
-        } else {
-            this.statusListener.statusFor(this.token, RunnerStatus.IDLE);
-            synchronized (this.jobAssignement) {
+        Job job;
+        synchronized (this.jobAssignement) {
+            job = this.jobAssignement.getAndSet(null);
+            if(job != null) {
+                this.statusListener.statusFor(this.token, RunnerStatus.BUSY);
+            } else {
+                this.statusListener.statusFor(this.token, RunnerStatus.IDLE);
                 this.jobAssignement.wait(this.waitForAssignementTime);
             }
+        }
+        if(job != null) {
+            this.jobConsumer.runWith(job);
+            this.statusListener.statusFor(this.token, RunnerStatus.IDLE);
         }
     }
 
