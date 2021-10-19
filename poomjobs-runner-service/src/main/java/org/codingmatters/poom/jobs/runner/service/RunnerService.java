@@ -77,7 +77,7 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
 
         private long ttl = DEFAULT_TTL;
         private JobContextSetup contextSetup = JobContextSetup.NOOP;
-        private boolean exitOnUnrecoverableError = false;
+        private boolean exitOnUnrecoverableError = true;
 
 
         @Override
