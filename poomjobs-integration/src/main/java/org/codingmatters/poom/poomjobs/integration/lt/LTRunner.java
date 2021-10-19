@@ -49,6 +49,7 @@ public class LTRunner {
                 .concurrency(concurrentJobCount)
                 .endpoint("0.0.0.0", port)
                 .ttl(1000L)
+                .exitOnUnrecoverableError(false)
                 .build();
 
         try {
