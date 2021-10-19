@@ -26,6 +26,7 @@ public class RunnerManager implements JobRunnerRunnable.JobRunnerRunnableErrorLi
     private final RunnerStatusManager statusManager;
     private final RunnerPool runnerPool;
     private final RunnerStatusNotifier notifier;
+    private final boolean exitOnUnrecoverableError;
 
     public RunnerManager(
             ScheduledExecutorService scheduler,
@@ -35,10 +36,12 @@ public class RunnerManager implements JobRunnerRunnable.JobRunnerRunnableErrorLi
             int concurrentJobCount,
             JobManager jobManager,
             JobProcessor.Factory processorFactory,
-            JobContextSetup contextSetup
+            JobContextSetup contextSetup,
+            boolean exitOnUnrecoverableError
     ) {
         this.statusMonitor = runnerStatusMonitor;
         this.notifier = notifier;
+        this.exitOnUnrecoverableError = exitOnUnrecoverableError;
         this.statusManager = new RunnerStatusManager(this.notifier, this.statusMonitor, scheduler, ttl * 9 / 10);
         this.runnerPool = new RunnerPool(
                 concurrentJobCount,
@@ -77,9 +80,13 @@ public class RunnerManager implements JobRunnerRunnable.JobRunnerRunnableErrorLi
 
     @Override
     public void unrecoverableExceptionThrown(Exception e) {
-        log.error("unexpected error in runner service, unrecoverable, shutting down", e);
-        this.shutdown();
-        System.exit(42);
+        if(this.exitOnUnrecoverableError) {
+            log.error("[GRAVE] unexpected error in runner service, unrecoverable, shutting down", e);
+            this.shutdown();
+            System.exit(42);
+        } else {
+            log.error("[GRAVE] unexpected error in runner service, unrecoverable, but, still running as parametrized", e);
+        }
     }
 
     @Override

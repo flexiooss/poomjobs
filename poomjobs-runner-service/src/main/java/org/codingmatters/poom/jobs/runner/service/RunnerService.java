@@ -58,6 +58,7 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
     public interface OptionsSetup {
         OptionsSetup ttl(long ttl);
         OptionsSetup contextSetup(JobContextSetup contextSetup);
+        OptionsSetup exitOnUnrecoverableError(boolean exit);
         RunnerService build();
     }
 
@@ -76,6 +77,7 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
 
         private long ttl = DEFAULT_TTL;
         private JobContextSetup contextSetup = JobContextSetup.NOOP;
+        private boolean exitOnUnrecoverableError = true;
 
 
         @Override
@@ -123,6 +125,12 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
         }
 
         @Override
+        public OptionsSetup exitOnUnrecoverableError(boolean exit) {
+            this.exitOnUnrecoverableError = exit;
+            return this;
+        }
+
+        @Override
         public RunnerService build() {
             return new RunnerService(
                     this.runnerRegistryClient,
@@ -134,7 +142,9 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
                     this.jobProcessorFactory,
                     this.contextSetup,
                     this.jobRequestEndpointHost,
-                    this.jobRequestEndpointPort);
+                    this.jobRequestEndpointPort,
+                    this.exitOnUnrecoverableError
+            );
         }
     }
 
@@ -164,6 +174,7 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
 
     private final AtomicReference<String> errorToken = new AtomicReference<>(null);
     private Object stopMonitor = new Object();
+    private final boolean exitOnUnrecoverableError;
 
     public RunnerService(
             PoomjobsRunnerRegistryAPIClient runnerRegistryClient,
@@ -172,7 +183,8 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
             long ttl,
             String jobCategory, String[] jobNames, JobProcessor.Factory jobProcessorFactory,
             JobContextSetup contextSetup,
-            String jobRequestEndpointHost, int jobRequestEndpointPort
+            String jobRequestEndpointHost, int jobRequestEndpointPort,
+            boolean exitOnUnrecoverableError
     ) {
         this.runnerRegistryClient = runnerRegistryClient;
         this.jobRegistryClient = jobRegistryClient;
@@ -185,6 +197,7 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
         this.jobRequestEndpointPort = jobRequestEndpointPort;
         this.jobRequestEndpointHost = jobRequestEndpointHost;
         this.jobRequestEndpointUrl = Env.mandatory(Env.SERVICE_URL).asString();
+        this.exitOnUnrecoverableError = exitOnUnrecoverableError;
     }
 
     public void run() throws RunnerServiceInitializationException {
@@ -264,7 +277,8 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
                 this.concurrentJobCount,
                 this.jobManager,
                 this.jobProcessorFactory,
-                this.contextSetup
+                this.contextSetup,
+                this.exitOnUnrecoverableError
         );
         log.info("starting job manager...");
         runnerManager.start();

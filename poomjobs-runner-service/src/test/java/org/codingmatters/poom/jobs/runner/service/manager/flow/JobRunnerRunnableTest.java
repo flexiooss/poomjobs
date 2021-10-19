@@ -76,7 +76,7 @@ public class JobRunnerRunnableTest {
     public void givenNothingToProcess__whenStartedThenShutdown__thenStatusSetToIDLE_andStops() throws Exception {
         this.executor.execute(this.runnable);
 
-        Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.IDLE));
+        Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.BUSY, RunnerStatus.IDLE));
         assertThat(this.ranJobs, is(empty()));
         assertThat(this.jobProcessingException.get(), is(nullValue()));
     }
@@ -124,27 +124,31 @@ public class JobRunnerRunnableTest {
         this.runnable.assign(job);
 
 
-        Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.IDLE));
+        Eventually.defaults().assertThat(() -> this.statusHistory, contains(
+                RunnerStatus.BUSY, RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.BUSY, RunnerStatus.IDLE
+        ));
 
         assertThat(this.ranJobs, contains(job));
         assertThat(this.jobProcessingException.get(), is(nullValue()));
     }
 
     @Test
-    public void givenNoJobInitiallyAvailable__whenOneJobAssisgned_andAJobBecomesAvailable__thenBecameAvailableRanAfterAssigned() throws Exception {
+    public void givenNoJobInitiallyAvailable__whenOneJobAssisgned_andAJobBecomesAvailable__thenBothExecuted() throws Exception {
         Job assigned = this.runningJob("assigned");
         Job becameAvailableJob = this.runningJob("became-available");
 
         this.executor.execute(this.runnable);
 
-        Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.IDLE));
+        Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.BUSY, RunnerStatus.IDLE));
 
         this.jobQueue.add(becameAvailableJob);
         this.runnable.assign(assigned);
 
-        Eventually.defaults().assertThat(() -> this.statusHistory, contains(RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.IDLE, RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.IDLE));
-
-        assertThat(this.ranJobs, contains(assigned, becameAvailableJob));
+        Eventually.defaults().assertThat(() -> this.statusHistory, contains(
+                RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.BUSY, RunnerStatus.IDLE,
+                RunnerStatus.BUSY, RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.BUSY, RunnerStatus.IDLE, RunnerStatus.BUSY, RunnerStatus.IDLE
+        ));
+        assertThat(this.ranJobs, containsInAnyOrder(assigned, becameAvailableJob));
     }
 
     @Test
