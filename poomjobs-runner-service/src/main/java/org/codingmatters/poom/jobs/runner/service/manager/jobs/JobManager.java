@@ -37,11 +37,26 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
 
     @Override
     public synchronized Job update(Job job) throws JobProcessorRunner.JobUpdateFailure {
+        return this.update(job, false);
+    }
+
+    public synchronized Job reserve(Job job) throws JobProcessorRunner.JobUpdateFailure {
+        job = job.withStatus(org.codingmatters.poomjobs.api.types.job.Status.builder()
+                .run(org.codingmatters.poomjobs.api.types.job.Status.Run.RUNNING)
+                .build()
+        );
+        return this.update(
+                job,
+                true
+        );
+    }
+
+    private synchronized Job update(Job job, boolean strictly) throws JobProcessorRunner.JobUpdateFailure {
         int tried = 0;
         JobResourcePatchResponse response = null;
         while(tried < JOB_UPDATE_MAX_RETRIES && response == null) {
             try {
-                response = this.patchJob(job);
+                response = this.patchJob(job, strictly);
             } catch (IOException e) {
                 tried++;
                 log.warn("error updating job " + job.id() + " will retry in " + JOB_UPDATE_RETRY_DELAY + "ms (tried " + tried + " time)", e);
@@ -59,7 +74,7 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
             throw new JobProcessorRunner.JobUpdateFailure("Unrecoverable error updating job status. See logs with token : " + errorToken);
         } else if(response.opt().status200().isEmpty()) {
             String errorToken = log.tokenized().error(
-                    "[GRAVE] failed updating job {}. got response {}" +
+                    "[GRAVE] failed updating job {}. Got response {} " +
                             "Will not retry. " +
                             "This is not recoverable, job data is lost, failing fast.",
                     job, response
@@ -70,12 +85,12 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
         }
     }
 
-    private JobResourcePatchResponse patchJob(Job job) throws IOException {
+    private JobResourcePatchResponse patchJob(Job job, boolean strictly) throws IOException {
         JobResourcePatchResponse response = this.client.jobCollection().jobResource().patch(JobResourcePatchRequest.builder()
                 .accountId(this.accountId)
                 .jobId(job.id())
                 .currentVersion(job.version())
-                .strict(true)
+                .strict(strictly)
                 .payload(JobUpdateData.builder()
                         .status(this.translated(job.opt().status()))
                         .result(job.result())
@@ -124,17 +139,12 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
 
     private Job firstRunnableJob(ValueList<Job> candidates) throws IOException {
         for (Job candidate : candidates) {
-            log.debug("trying to reserve candidate job {}", candidate);
-            JobResourcePatchResponse response = this.patchJob(candidate.withStatus(org.codingmatters.poomjobs.api.types.job.Status.builder()
-                    .run(org.codingmatters.poomjobs.api.types.job.Status.Run.RUNNING)
-                    .build())
-            );
-            if(response.opt().status200().isPresent()) {
-                log.debug("candidate reserved {}", response.status200().payload());
-                return response.status200().payload();
-            } else {
-                log.error("failed patching candidate job, expected 200, got : {}", response);
+            try {
+                return this.reserve(candidate);
+            } catch (JobProcessorRunner.JobUpdateFailure e) {
+                e.printStackTrace();
             }
+            log.debug("trying to reserve candidate job {}", candidate);
         }
         return null;
     }

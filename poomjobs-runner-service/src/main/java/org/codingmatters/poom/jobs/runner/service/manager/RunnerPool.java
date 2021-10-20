@@ -124,10 +124,13 @@ public class RunnerPool {
             } else {
                 for (Map.Entry<RunnerToken, JobRunnerRunnable> runnableEntry : this.runnables.entrySet()) {
                     if (this.monitor.status(runnableEntry.getKey()).equals(RunnerStatus.IDLE)) {
-                        job = job.withStatus(Status.builder().run(Status.Run.RUNNING).build());
-                        job = this.jobManager.update(job);
-                        runnableEntry.getValue().assign(job);
-                        log.debug("assigned job {} to {}", job, runnableEntry.getKey());
+                        try {
+                            job = this.jobManager.reserve(job);
+                            runnableEntry.getValue().assign(job);
+                            log.debug("assigned job {} to {}", job, runnableEntry.getKey());
+                        } catch (JobProcessorRunner.JobUpdateFailure updateFailure) {
+                            log.info("cannot set job to running, giving up : {}", job);
+                        }
                         return;
                     }
                 }
