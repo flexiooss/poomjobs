@@ -57,7 +57,7 @@ public class RunnerCollectionPostHandler implements CollectionPostProtocol<Runne
                 .status400(Status400.builder()
                         .payload(Error.builder()
                                 .token(errorToken)
-                                .code(Error.Code.ILLEGAL_RUNNER_SPEC)
+                                .code(Error.Code.ILLEGAL_RESOURCE_CREATION)
                                 .description(creation.validation().message())
                                 .build())
                         .build())

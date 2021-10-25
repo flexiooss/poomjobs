@@ -5,6 +5,7 @@ import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Processing;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poom.services.domain.change.Change;
 import org.codingmatters.poom.services.domain.change.Validation;
+import org.codingmatters.poom.services.support.date.UTC;
 
 import java.time.LocalDateTime;
 
@@ -41,7 +42,7 @@ public class JobValueCreation extends Change<JobValue> {
                 Processing.from(this.newValue().processing()) :
                 Processing.builder();
         return this.newValue()
-                .withProcessing(processing.submitted(LocalDateTime.now()).build())
+                .withProcessing(processing.submitted(UTC.now()).build())
                 .withStatus(Status.builder().run(Status.Run.PENDING).build());
     }
 

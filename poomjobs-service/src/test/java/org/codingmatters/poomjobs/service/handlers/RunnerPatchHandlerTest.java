@@ -21,7 +21,7 @@ import org.junit.Test;
 import java.time.temporal.ChronoUnit;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class RunnerPatchHandlerTest {
 
@@ -80,7 +80,7 @@ public class RunnerPatchHandlerTest {
         RunnerPatchResponse response = this.handler.invalidUpdate(this.createChange(false, "invalid update", null, null), "error-token");
 
         assertThat(response.status400(), is(notNullValue()));
-        assertThat(response.status400().payload().code(), is(Error.Code.ILLEGAL_RUNNER_STATUS_CHANGE));
+        assertThat(response.status400().payload().code(), is(Error.Code.ILLEGAL_RESOURCE_CHANGE));
         assertThat(response.status400().payload().token(), is("error-token"));
         assertThat(response.status400().payload().description(), is("invalid update"));
     }
@@ -90,7 +90,7 @@ public class RunnerPatchHandlerTest {
         RunnerPatchResponse response = this.handler.entityNotFound("error-token");
 
         assertThat(response.status404(), is(notNullValue()));
-        assertThat(response.status404().payload().code(), is(Error.Code.RUNNER_NOT_FOUND));
+        assertThat(response.status404().payload().code(), is(Error.Code.RESOURCE_NOT_FOUND));
         assertThat(response.status404().payload().token(), is("error-token"));
         assertThat(response.status404().payload().description(), is("no runner found with the given runner-id"));
     }

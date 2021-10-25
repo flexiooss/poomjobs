@@ -1,7 +1,9 @@
 package org.codingmatters.poomjobs.service;
 
+import org.codingmatters.poom.jobs.collections.jobs.JobRegistryHandlersBuilder;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
+import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.PoomjobsJobRegistryAPIHandlers;
@@ -20,18 +22,14 @@ public class PoomjobsJobRegistryAPI {
     private final PoomjobsJobRegistryAPIHandlers handlers;
 
     public PoomjobsJobRegistryAPI(
-            Repository<JobValue, JobQuery> jobRepository) {
+            Repository<JobValue, PropertyQuery> jobRepository) {
         this(jobRepository, PoomjobsJobRepositoryListener.NOOP, null);
     }
     public PoomjobsJobRegistryAPI(
-            Repository<JobValue, JobQuery> jobRepository,
-            PoomjobsJobRepositoryListener jobRepositoryListener, Function<JobCollectionPostRequest, ObjectValue> contextualizer) {
-        this.handlers = new PoomjobsJobRegistryAPIHandlers.Builder()
-                .jobCollectionGetHandler(new JobCollectionGetHandler(jobRepository))
-                .jobCollectionPostHandler(new JobCollectionPostHandler(jobRepository, jobRepositoryListener, contextualizer))
-                .jobResourceGetHandler(new JobResourceGetHandler(jobRepository))
-                .jobResourcePatchHandler(new JobResourcePutHandler(jobRepository, jobRepositoryListener))
-                .build();
+            Repository<JobValue, PropertyQuery> jobRepository,
+            PoomjobsJobRepositoryListener jobRepositoryListener,
+            Function<JobCollectionPostRequest, ObjectValue> contextualizer) {
+        this.handlers = new JobRegistryHandlersBuilder(jobRepository, "", contextualizer, jobRepositoryListener).build();
     }
 
     public PoomjobsJobRegistryAPIHandlers handlers() {

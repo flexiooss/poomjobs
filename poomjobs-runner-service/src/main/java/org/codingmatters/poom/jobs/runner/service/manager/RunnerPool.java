@@ -3,10 +3,12 @@ package org.codingmatters.poom.jobs.runner.service.manager;
 import org.codingmatters.poom.jobs.runner.service.exception.JobNotSubmitableException;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerBusyException;
 import org.codingmatters.poom.jobs.runner.service.exception.UnregisteredTokenException;
+import org.codingmatters.poom.jobs.runner.service.manager.flow.JobAssignmentExcpetion;
 import org.codingmatters.poom.jobs.runner.service.manager.flow.JobProcessorRunner;
 import org.codingmatters.poom.jobs.runner.service.manager.flow.JobRunnerRunnable;
 import org.codingmatters.poom.jobs.runner.service.manager.jobs.JobManager;
 import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatus;
+import org.codingmatters.poom.jobs.runner.service.manager.monitor.RunnerStatusChangedListener;
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
@@ -15,12 +17,12 @@ import org.codingmatters.poomjobs.api.types.job.Status;
 import org.codingmatters.poomjobs.runner.domain.RunnerToken;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 public class RunnerPool {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(RunnerPool.class);
@@ -35,6 +37,9 @@ public class RunnerPool {
 
     private final Map<RunnerToken, JobRunnerRunnable> runnables = new HashMap<>();
     private AtomicBoolean running = new AtomicBoolean(false);
+    private AtomicBoolean shouldProcessPending = new AtomicBoolean(false);
+
+    private final BlockingQueue<JobAssignementFuture> awaitingJobAssignment;
 
     public RunnerPool(
             int concurrentJobCount,
@@ -50,21 +55,39 @@ public class RunnerPool {
         this.errorListener = errorListener;
         this.monitor = monitor;
 
-        this.pool = Executors.newFixedThreadPool(this.concurrentJobCount);
+        this.awaitingJobAssignment = new ArrayBlockingQueue<>(this.concurrentJobCount);
+        this.pool = Executors.newFixedThreadPool(this.concurrentJobCount + 2);
         for (int i = 0; i < this.concurrentJobCount; i++) {
             RunnerToken token = this.monitor.addToken();
             JobRunnerRunnable jobRunnerRunnable = new JobRunnerRunnable(
                     token,
                     this.jobManager,
                     this.jobProcessorFactory,
-                    this.jobManager,
                     this.monitor,
                     this.errorListener,
                     this.contextSetup
             );
             this.runnables.put(token, jobRunnerRunnable);
-
         }
+
+        this.monitor.addRunnerStatusChangedListener(new RunnerStatusChangedListener() {
+            @Override
+            public void onIdle(RunnerStatus was) {
+                synchronized (shouldProcessPending) {
+                    log.debug("runner became idle, should process pending");
+                    shouldProcessPending.set(true);
+                    shouldProcessPending.notify();
+                }
+            }
+
+            @Override
+            public void onBusy(RunnerStatus was) {
+                synchronized (shouldProcessPending) {
+                    log.debug("runner became busy, should not process pending");
+                    shouldProcessPending.set(false);
+                }
+            }
+        });
     }
 
 
@@ -77,38 +100,89 @@ public class RunnerPool {
             for (JobRunnerRunnable runnable : this.runnables.values()) {
                 this.pool.submit(runnable);
             }
+            this.pool.submit(this::processAssignments);
+            this.pool.submit(this::assignPendingJobs);
         }
     }
 
-    public boolean awaitReady(long timeout, TimeUnit unit) {
-        long start = System.currentTimeMillis();
+    private void processAssignments() {
+        while(this.running.get()) {
+            JobAssignementFuture assignment = null;
+            try {
+                assignment = this.awaitingJobAssignment.poll(2, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {}
+            if(assignment != null) {
+                try {
+                    this.assign(assignment.job());
+                    assignment.complete(JobAssignementFuture.Status.SUCCESS);
+                } catch (RunnerBusyException | JobNotSubmitableException | JobProcessorRunner.JobUpdateFailure e) {
+                    log.error("status changed, cannot assign incoming job", e);
+                    assignment.complete(JobAssignementFuture.Status.FAILURE);
+                }
+            }
+        }
+    }
 
-        while(System.currentTimeMillis() - start < unit.toMillis(timeout)) {
-            boolean ready = true;
-            for (RunnerToken token : this.runnables.keySet()) {
-                try {
-                    if (RunnerStatus.UNKNOWN.equals(this.monitor.status(token))) {
-                        ready = false;
-                        break;
+    private void assignPendingJobs() {
+        while(this.running.get()) {
+            if(this.monitor.status().equals(RunnerStatus.IDLE)) {
+                LinkedList<Job> pendingJobs;
+                synchronized (this.shouldProcessPending) {
+                    pendingJobs = new LinkedList<>(this.jobManager.pendingJobs().stream().collect(Collectors.toList()));
+                    if(pendingJobs.isEmpty()) {
+                        try {
+                            this.shouldProcessPending.wait(2 * 1000L);
+                        } catch (InterruptedException e) {}
                     }
-                } catch (UnregisteredTokenException e) {
-                    throw new RuntimeException("unrecoverable error", e);
+                }
+                if(! pendingJobs.isEmpty()) {
+                    while (!pendingJobs.isEmpty() && this.monitor.status().equals(RunnerStatus.IDLE)) {
+                        Job job = pendingJobs.pollFirst();
+                        try {
+                            this.requestAssignment(job).get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            log.error("while requesting pending job assignment, got unexpected error", e);
+                        } catch (JobNotSubmitableException e) {
+                            log.error("[GRAVE] grave pending job is not submittable : " + job, e);
+                        }
+                    }
                 }
             }
-            if (ready) {
-                return true;
-            } else {
-                try {
-                    Thread.sleep(100L);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException("interrupted while waiting for ready", e);
-                }
-            }
+        }
+    }
+
+    public synchronized boolean submit(Job job) throws JobNotSubmitableException {
+        JobAssignementFuture assigned = this.requestAssignment(job);
+        try {
+            JobAssignementFuture.Status assignment = assigned.get();
+            return assigned.equals(JobAssignementFuture.Status.SUCCESS);
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("while requesting submitted job assignment, got unexpected error", e);
         }
         return false;
     }
 
-    public synchronized void submit(Job job) throws RunnerBusyException, JobNotSubmitableException, JobProcessorRunner.JobUpdateFailure {
+    private JobAssignementFuture requestAssignment(Job job) throws JobNotSubmitableException {
+        if(! Status.Run.PENDING.equals(job.opt().status().run().orElse(null))) {
+            throw new JobNotSubmitableException("job should be pending, cannot submit a job with status " + job.opt().status().run().orElse(null));
+        }
+
+        JobAssignementFuture result = new JobAssignementFuture(job);
+        if(this.pool.isShutdown() || this.pool.isTerminated()) {
+            result.complete(JobAssignementFuture.Status.FAILURE);
+        } else {
+            try {
+                this.awaitingJobAssignment.add(result);
+            } catch (IllegalStateException e) {
+                log.debug("submitted job cannot be assigned, queue full");
+                result.complete(JobAssignementFuture.Status.FAILURE);
+            }
+        }
+        return result;
+    }
+
+    private boolean assign(Job job) throws RunnerBusyException, JobNotSubmitableException, JobProcessorRunner.JobUpdateFailure{
+        log.debug("job being assigned  : {}", job);
         if(this.pool.isShutdown()) {
             throw new RunnerBusyException("runner pool is shutting down, cannot execute job");
         }
@@ -128,10 +202,13 @@ public class RunnerPool {
                             job = this.jobManager.reserve(job);
                             runnableEntry.getValue().assign(job);
                             log.debug("assigned job {} to {}", job, runnableEntry.getKey());
+                            return true;
                         } catch (JobProcessorRunner.JobUpdateFailure updateFailure) {
                             log.info("cannot set job to running, giving up : {}", job);
+                            return false;
+                        } catch (JobAssignmentExcpetion jobAssignmentExcpetion) {
+                            log.info("while assigning, runnable became busy");
                         }
-                        return;
                     }
                 }
                 throw new RunnerBusyException("no runner threads accepted job, assuming busy, cannot execute job");
@@ -164,12 +241,32 @@ public class RunnerPool {
         return pool.shutdownNow();
     }
 
-    public boolean isShutdown() {
-        return pool.isShutdown();
-    }
+    public boolean awaitReady(long timeout, TimeUnit unit) {
+        long start = System.currentTimeMillis();
 
-    public boolean isTerminated() {
-        return pool.isTerminated();
+        while(System.currentTimeMillis() - start < unit.toMillis(timeout)) {
+            boolean ready = true;
+            for (RunnerToken token : this.runnables.keySet()) {
+                try {
+                    if (RunnerStatus.UNKNOWN.equals(this.monitor.status(token))) {
+                        ready = false;
+                        break;
+                    }
+                } catch (UnregisteredTokenException e) {
+                    throw new RuntimeException("unrecoverable error", e);
+                }
+            }
+            if (ready) {
+                return true;
+            } else {
+                try {
+                    Thread.sleep(100L);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("interrupted while waiting for ready", e);
+                }
+            }
+        }
+        return false;
     }
 
     public boolean awaitTermination(long l, TimeUnit timeUnit) throws InterruptedException {

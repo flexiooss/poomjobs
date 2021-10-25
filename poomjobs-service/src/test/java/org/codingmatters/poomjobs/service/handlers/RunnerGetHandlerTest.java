@@ -81,7 +81,7 @@ public class RunnerGetHandlerTest {
                 response.status404().payload(),
                 is(Error.builder()
                         .token("error-token")
-                        .code(Error.Code.RUNNER_NOT_FOUND)
+                        .code(Error.Code.RESOURCE_NOT_FOUND)
                         .description("no runner found with the given runner id")
                         .build())
         );

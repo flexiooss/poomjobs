@@ -86,7 +86,7 @@ public class JobCollectionPostHandler implements CollectionPostProtocol<JobValue
                 .status400(Status400.builder()
                         .payload(Error.builder()
                                 .token(errorToken)
-                                .code(Error.Code.ILLEGAL_JOB_SPEC)
+                                .code(Error.Code.ILLEGAL_RESOURCE_CHANGE)
                                 .description(creation.validation().message())
                                 .build())
                         .build())

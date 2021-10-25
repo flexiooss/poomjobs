@@ -1,24 +1,24 @@
 package org.codingmatters.poom.runner;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import org.codingmatters.poomjobs.client.*;
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.RunnerRepository;
-import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Runtime;
 import org.codingmatters.poom.runner.configuration.RunnerConfiguration;
-import org.codingmatters.poom.services.tests.Eventually;
+import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.support.date.UTC;
+import org.codingmatters.poom.services.tests.Eventually;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.RunnerCollectionGetRequest;
 import org.codingmatters.poomjobs.api.RunningJobPutResponse;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.Runner;
+import org.codingmatters.poomjobs.client.*;
 import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
 import org.codingmatters.poomjobs.service.PoomjobsRunnerRegistryAPI;
 import org.codingmatters.rest.api.client.okhttp.HttpClientWrapper;
@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class GenericRunnerTest {
 
@@ -49,7 +49,7 @@ public class GenericRunnerTest {
     private PoomjobsRunnerRegistryAPIClient runnerRegistry;
     private ExecutorService jobWorker;
 
-    private final Repository<JobValue, JobQuery> jobRepository = JobRepository.createInMemory();
+    private final Repository<JobValue, PropertyQuery> jobRepository = JobRepository.createInMemory();
     private ExecutorService jobRegistryPool;
 
     private Repository<RunnerValue, RunnerQuery> runnerRepository = RunnerRepository.createInMemory();
@@ -152,6 +152,7 @@ public class GenericRunnerTest {
     public void whenJobIsSubmitted_andStatusIsRunning__thenReturnsAStatus409() throws Exception {
         this.createPendingJob();
         this.runner.start();
+
 
         eventually.assertThat(() -> this.runnerRepository.all(0, 0).total(), is(1L));
         eventually.assertThat(() -> this.runnerRepository.all(0, 0).get(0).value().runtime().status(), is(Runtime.Status.RUNNING));
@@ -312,6 +313,7 @@ public class GenericRunnerTest {
         return this.jobRepository.create(JobValue.builder()
                 .name("TEST")
                 .category("TEST")
+//                        .accounting(acc -> acc.accountId())
                 .status(status -> status.run(Status.Run.PENDING))
                 .processing(processing -> processing.submitted(LocalDateTime.now()))
                 .build());

@@ -57,7 +57,7 @@ public class JobResourceGetHandler implements ResourceGetProtocol<JobValue, JobQ
         return JobResourceGetResponse.builder()
                 .status404(Status404.builder()
                         .payload(Error.builder()
-                                .code(Error.Code.JOB_NOT_FOUND)
+                                .code(Error.Code.RESOURCE_NOT_FOUND)
                                 .description("no job found with the given jobId")
                                 .token(errorToken)
                                 .build())

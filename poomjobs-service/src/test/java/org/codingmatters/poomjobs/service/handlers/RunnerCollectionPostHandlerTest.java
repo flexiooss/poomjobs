@@ -78,7 +78,7 @@ public class RunnerCollectionPostHandlerTest {
                 response.status400().payload(),
                 is(Error.builder()
                         .token("error-token")
-                        .code(Error.Code.ILLEGAL_RUNNER_SPEC)
+                        .code(Error.Code.ILLEGAL_RESOURCE_CREATION)
                         .description(creation.validation().message())
                         .build())
         );

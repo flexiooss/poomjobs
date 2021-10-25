@@ -7,25 +7,24 @@ import org.codingmatters.poom.poomjobs.domain.jobs.repositories.mongo.MongoJobRe
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.mongo.JobValueMongoMapper;
+import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
+import org.codingmatters.poom.services.domain.repositories.inmemory.InMemoryRepositoryWithPropertyQuery;
 
 /**
- * Created by nelt on 6/6/17.
- */
+ * Created by nelt on 6/6/17. */
 public class JobRepository {
-    static public Repository<JobValue, JobQuery> createInMemory() {
-        return new InMemoryJobRepository();
+    static public Repository<JobValue, PropertyQuery> createInMemory() {
+        return InMemoryRepositoryWithPropertyQuery.notValidating(JobValue.class);
     }
 
-    static public Repository<JobValue, JobQuery> createMongo(MongoClient mongoClient, String database) {
+    static public Repository<JobValue, PropertyQuery> createMongo(MongoClient mongoClient, String database) {
         JobValueMongoMapper jobValueMapper = new JobValueMongoMapper();
-        MongoJobRepositoryFiltersFilters filters = new MongoJobRepositoryFiltersFilters();
 
         return MongoCollectionRepository.<JobValue, JobQuery>repository(database, "jobs")
                 .withToDocument(jobValueMapper::toDocument)
                 .withToValue(jobValueMapper::toValue)
-                .withFilter(filters::filterJobValues)
-                .build(mongoClient);
+                .buildWithPropertyQuery(mongoClient);
     }
 
 }

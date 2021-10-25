@@ -57,7 +57,7 @@ public class RunnerGetHandler implements ResourceGetProtocol<RunnerValue, Runner
                 .status404(Status404.builder()
                         .payload(Error.builder()
                                 .token(errorToken)
-                                .code(Error.Code.RUNNER_NOT_FOUND)
+                                .code(Error.Code.RESOURCE_NOT_FOUND)
                                 .description("no runner found with the given runner id")
                                 .build())
                         .build())

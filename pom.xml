@@ -69,12 +69,12 @@
     </pluginRepositories>
 
     <modules>
+        <module>api</module>
         <module>poomjobs-domain</module>
-        <module>poomjobs-api-spec</module>
-        <module>poomjobs-api</module>
         <module>poomjobs-service</module>
-        <module>poomjobs-clients</module>
-        <module>poomjobs-processor</module>
+
+        <module>poomjobs-collections</module>
+
         <module>poomjobs-runner</module>
         <module>poomjobs-runner-manager</module>
         <module>poomjobs-runner-service</module>
@@ -107,11 +107,6 @@
             <!--BOM-->
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
-                <artifactId>poomjobs-domain</artifactId>
-                <version>1.100.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-api-spec</artifactId>
                 <version>1.100.0-SNAPSHOT</version>
             </dependency>
@@ -133,6 +128,16 @@
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-processor</artifactId>
+                <version>1.100.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codingmatters.poom</groupId>
+                <artifactId>poomjobs-domain</artifactId>
+                <version>1.100.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>org.codingmatters.poom.jobs.collections</groupId>
+                <artifactId>poomjobs-job-collections</artifactId>
                 <version>1.100.0-SNAPSHOT</version>
             </dependency>
             <dependency>

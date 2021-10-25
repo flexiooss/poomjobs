@@ -80,7 +80,7 @@ public class RunnerEndpoint {
                 return RunningJobPutResponse.builder()
                         .status409(status ->
                             status.payload(error ->
-                                error.code(Error.Code.RUNNER_IS_BUSY)
+                                error.code(Error.Code.OVERLOADED)
                                     .token(errorToken)
                                     .description("runner is busy, come back later.")
                         ))
