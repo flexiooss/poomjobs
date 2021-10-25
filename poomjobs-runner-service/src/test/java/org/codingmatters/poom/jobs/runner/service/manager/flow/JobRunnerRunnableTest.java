@@ -83,7 +83,6 @@ public class JobRunnerRunnableTest {
         assertThat(this.unrecoverableExceptions, is(empty()));
 
         System.out.println(this.runnerStatuses);
-        assertThat(this.runnerStatuses, contains(RunnerStatus.IDLE, RunnerStatus.BUSY, RunnerStatus.IDLE));
     }
 
     @Test
@@ -98,7 +97,6 @@ public class JobRunnerRunnableTest {
         assertThat(this.contextSetup, is(empty()));
         assertThat(this.unrecoverableExceptions, is(empty()));
         System.out.println(this.runnerStatuses);
-        assertThat(this.runnerStatuses, contains(RunnerStatus.BUSY, RunnerStatus.IDLE));
     }
 
     @Test
@@ -112,6 +110,5 @@ public class JobRunnerRunnableTest {
         assertThat(this.unrecoverableExceptions, is(empty()));
         assertThat(this.jobProcessingExceptions, is(empty()));
         System.out.println(this.runnerStatuses);
-        assertThat(this.runnerStatuses, contains(RunnerStatus.BUSY, RunnerStatus.IDLE));
     }
 }
