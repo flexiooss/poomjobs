@@ -298,8 +298,9 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
             this.runnerManager.submit(job);
         } catch (RunnerBusyException e) {
             return RunningJobPutResponse.builder().status409(status -> status.payload(error -> error
-                    .code(Error.Code.RUNNER_IS_BUSY)
-                    .token(log.tokenized().info("runner became busy", e))
+                    .code(Error.Code.OVERLOADED)
+//                    .token(log.tokenized().info("runner became busy", e))
+                    .token(log.tokenized().info("runner became busy"))
                     .description("runner busy, come back later")
             )).build();
         } catch (JobNotSubmitableException e) {

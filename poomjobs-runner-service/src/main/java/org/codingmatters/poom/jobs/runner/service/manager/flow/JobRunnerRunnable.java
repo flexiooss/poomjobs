@@ -7,7 +7,6 @@ import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
-import org.codingmatters.poom.services.support.Env;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.runner.domain.RunnerToken;
 
@@ -23,30 +22,27 @@ public class JobRunnerRunnable implements Runnable {
     private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
 
     private final RunnerToken token;
-    private final JobConsumer.NextJobSupplier jobSupplier;
     private final JobRunnerStatusStore statusListener;
     private final JobRunnerRunnableErrorListener errorListener;
+    private final JobProcessorRunner jobRunner;
 
-    private JobConsumer jobConsumer;
 
-    private AtomicReference<Job> jobAssignement = new AtomicReference<>(null);
+    private final AtomicReference<Job> jobAssignement = new AtomicReference<>(null);
     private final long waitForAssignementTime = 1000L;
 
     public JobRunnerRunnable(
             RunnerToken token,
             JobProcessorRunner.JobUpdater jobUpdater,
             JobProcessor.Factory processorFactory,
-            JobConsumer.NextJobSupplier jobSupplier,
             JobRunnerStatusStore statusListener,
             JobRunnerRunnableErrorListener errorListener,
             JobContextSetup contextSetup
     ) {
         this.token = token;
-        this.jobSupplier = jobSupplier;
         this.statusListener = statusListener;
         this.errorListener = errorListener;
 
-        this.jobConsumer = new JobConsumer(new JobProcessorRunner(jobUpdater, processorFactory, contextSetup), this.jobSupplier);
+        this.jobRunner = new JobProcessorRunner(jobUpdater, processorFactory, contextSetup);
     }
 
     public void shutdown() {
@@ -63,71 +59,50 @@ public class JobRunnerRunnable implements Runnable {
 
     @Override
     public void run() {
-        Thread.currentThread().setName(this.token.label());
-        log.info("starting job runner thread with token : {}", this.token);
-        this.runAvailableJobs();
+        this.running.set(true);
         while(! this.shuttingDown.get()) {
-            this.runAssignedJobs();
-            this.runAvailableJobs();
+            Job job;
+            synchronized (this.jobAssignement) {
+                job = this.jobAssignement.getAndSet(null);
+                try {
+                    if (job != null) {
+                        this.statusListener.statusFor(this.token, RunnerStatus.BUSY);
+                    } else {
+                        this.statusListener.statusFor(this.token, RunnerStatus.IDLE);
+                        try {
+                            this.jobAssignement.wait(this.waitForAssignementTime);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                } catch (UnregisteredTokenException e) {
+                    log.error("unrecoverable error thrown while waiting for assignment by runner with token " + this.token, e);
+                    this.errorListener.unrecoverableExceptionThrown(e);
+                }
+            }
+            if(job != null) {
+                this.runJob(job);
+            }
         }
-        log.info("stopping job runner thread with token : {}", this.token);
         this.running.set(false);
     }
 
-    private void runAvailableJobs() {
+    private void runJob(Job job) {
         try {
-            this.statusListener.statusFor(this.token, RunnerStatus.BUSY);
-            log.info("running available jobs");
-            Job job = this.jobSupplier.nextJob();
-            if(job != null) {
-                this.jobConsumer.runWith(job);
-            }
+            this.jobRunner.runWith(job);
         } catch (JobProcessingException e) {
+            log.error("job processing exception, notifying", e);
             this.errorListener.processingExceptionThrown(this.token, e);
-        } catch (Exception e) {
-            log.error("unrecoverable error thrown while running available jobs by runner with token " + this.token, e);
-            this.errorListener.unrecoverableExceptionThrown(e);
-            this.inError();
-        }
-    }
-
-    private void runAssignedJobs() {
-        log.info("now processing jobs as they are assigned");
-        try {
-            this.runWhenAssigned();
-        } catch (JobProcessingException e) {
-            this.errorListener.processingExceptionThrown(this.token, e);
-        } catch (JobProcessorRunner.JobUpdateFailure | UnregisteredTokenException | InterruptedException e) {
-            this.inError();
+        } catch (JobProcessorRunner.JobUpdateFailure e) {
             log.error("unrecoverable error thrown while running assigned jobs by runner with token " + this.token, e);
             this.errorListener.unrecoverableExceptionThrown(e);
+        } catch (Exception e) {
+            log.error("[GRAVE] unexpected exception thrown from job processor : " + job, e);
         }
     }
 
-    private void runWhenAssigned() throws UnregisteredTokenException, JobProcessorRunner.JobUpdateFailure, JobProcessingException, InterruptedException {
-        Job job;
+    public void assign(Job job) throws JobAssignmentExcpetion {
         synchronized (this.jobAssignement) {
-            job = this.jobAssignement.getAndSet(null);
-            if(job != null) {
-                this.statusListener.statusFor(this.token, RunnerStatus.BUSY);
-            } else {
-                this.statusListener.statusFor(this.token, RunnerStatus.IDLE);
-                this.jobAssignement.wait(this.waitForAssignementTime);
-            }
-        }
-        if(job != null) {
-            this.jobConsumer.runWith(job);
-            this.statusListener.statusFor(this.token, RunnerStatus.IDLE);
-        }
-    }
-
-    private void inError() {
-        this.shuttingDown.set(true);
-        this.error.set(true);
-    }
-
-    public void assign(Job job) {
-        synchronized (this.jobAssignement) {
+            if(this.jobAssignement.get() == null);
             this.jobAssignement.set(job);
             log.debug("job assigned {}, notifying", job);
             this.jobAssignement.notify();

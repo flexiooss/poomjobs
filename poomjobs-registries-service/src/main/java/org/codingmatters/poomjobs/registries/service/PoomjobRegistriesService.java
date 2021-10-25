@@ -2,6 +2,7 @@ package org.codingmatters.poomjobs.registries.service;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import io.undertow.Undertow;
+import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIHandlersClient;
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.RunnerRepository;
@@ -65,7 +66,7 @@ public class PoomjobRegistriesService {
     private Undertow server;
     private final JsonFactory jsonFactory = new JsonFactory();
 
-    private final Repository<JobValue, JobQuery> jobRepository = JobRepository.createInMemory();
+    private final Repository<JobValue, PropertyQuery> jobRepository = JobRepository.createInMemory();
     private final PoomjobsJobRegistryAPI jobRegistryAPI;
 
     private final PoomjobsRunnerRegistryAPIHandlersClient runnerRegistryClient;

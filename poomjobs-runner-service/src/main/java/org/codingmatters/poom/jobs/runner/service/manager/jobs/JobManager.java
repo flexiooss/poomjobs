@@ -1,6 +1,5 @@
 package org.codingmatters.poom.jobs.runner.service.manager.jobs;
 
-import org.codingmatters.poom.jobs.runner.service.manager.flow.JobConsumer;
 import org.codingmatters.poom.jobs.runner.service.manager.flow.JobProcessorRunner;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.Env;
@@ -16,7 +15,7 @@ import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 
 import java.io.IOException;
 
-public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunner.JobUpdater {
+public class JobManager implements JobProcessorRunner.JobUpdater {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(JobManager.class);
 
     static private final int JOB_UPDATE_MAX_RETRIES = Env.optional("JOB_UPDATE_MAX_RETRIES").orElse(new Env.Var("5")).asInteger();
@@ -36,12 +35,27 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
     }
 
     @Override
-    public synchronized Job update(Job job) throws JobProcessorRunner.JobUpdateFailure {
+    public Job update(Job job) throws JobProcessorRunner.JobUpdateFailure {
+        return this.update(job, false);
+    }
+
+    public Job reserve(Job job) throws JobProcessorRunner.JobUpdateFailure {
+        job = job.withStatus(org.codingmatters.poomjobs.api.types.job.Status.builder()
+                .run(org.codingmatters.poomjobs.api.types.job.Status.Run.RUNNING)
+                .build()
+        );
+        return this.update(
+                job,
+                true
+        );
+    }
+
+    private Job update(Job job, boolean strictly) throws JobProcessorRunner.JobUpdateFailure {
         int tried = 0;
         JobResourcePatchResponse response = null;
         while(tried < JOB_UPDATE_MAX_RETRIES && response == null) {
             try {
-                response = this.patchJob(job);
+                response = this.patchJob(job, strictly);
             } catch (IOException e) {
                 tried++;
                 log.warn("error updating job " + job.id() + " will retry in " + JOB_UPDATE_RETRY_DELAY + "ms (tried " + tried + " time)", e);
@@ -59,7 +73,7 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
             throw new JobProcessorRunner.JobUpdateFailure("Unrecoverable error updating job status. See logs with token : " + errorToken);
         } else if(response.opt().status200().isEmpty()) {
             String errorToken = log.tokenized().error(
-                    "[GRAVE] failed updating job {}. got response {}" +
+                    "[GRAVE] failed updating job {}. Got response {} " +
                             "Will not retry. " +
                             "This is not recoverable, job data is lost, failing fast.",
                     job, response
@@ -70,17 +84,19 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
         }
     }
 
-    private JobResourcePatchResponse patchJob(Job job) throws IOException {
+    private JobResourcePatchResponse patchJob(Job job, boolean strictly) throws IOException {
+        log.debug("patching job");
         JobResourcePatchResponse response = this.client.jobCollection().jobResource().patch(JobResourcePatchRequest.builder()
                 .accountId(this.accountId)
                 .jobId(job.id())
                 .currentVersion(job.version())
-                .strict(true)
+                .strict(strictly)
                 .payload(JobUpdateData.builder()
                         .status(this.translated(job.opt().status()))
                         .result(job.result())
                         .build())
                 .build());
+        log.debug("job patch response " + response);
         return response;
     }
 
@@ -91,52 +107,31 @@ public class JobManager implements JobConsumer.NextJobSupplier, JobProcessorRunn
                 .build();
     }
 
-
-
-    @Override
-    public synchronized Job nextJob() {
+    public ValueList<Job> pendingJobs() {
+        JobCollectionGetResponse response;
         try {
-            Job job = null;
-            while(job == null) {
-                JobCollectionGetResponse response = this.client.jobCollection().get(builder -> builder
-                        .accountId(this.accountId)
-                        .category(this.jobCategory)
-                        .names(this.jobNames)
-                        .runStatus(org.codingmatters.poomjobs.api.types.job.Status.Run.PENDING.name())
-                        .range("0-9")
-                );
-                if (response.opt().status200().isPresent()) {
-                    if (response.status200().payload() == null || response.status200().payload().isEmpty()) return null;
-                    job = this.firstRunnableJob(response.status200().payload());
-                } else if (response.opt().status206().isPresent()) {
-                    job = this.firstRunnableJob(response.status206().payload());
-                } else {
-                    log.error("failed getting candidate job list, expected 200 or 206, got : {}", response);
-                    return null;
-                }
-            }
-            return job;
+            response = this.client.jobCollection().get(builder -> builder
+                .accountId(this.accountId)
+                .category(this.jobCategory)
+                .names(this.jobNames)
+                .runStatus(org.codingmatters.poomjobs.api.types.job.Status.Run.PENDING.name())
+                .range("0-19")
+            );
         } catch (IOException e) {
-            log.error("couldn't reach job registry, nothing to process", e);
+            log.error("while getting candidate jobs, couldn't reach job registry, nothing to process", e);
+            return ValueList.<Job>builder().build();
+        }
+
+        ValueList<Job> candidates;
+        if(response.opt().status200().isPresent()) {
+            candidates = response.status200().payload();
+        } else if(response.opt().status206().isPresent()) {
+            candidates = response.status206().payload();
+        } else {
+            log.error("failed getting candidate job list, expected 200 or 206, got : {}", response);
             return null;
         }
-    }
-
-    private Job firstRunnableJob(ValueList<Job> candidates) throws IOException {
-        for (Job candidate : candidates) {
-            log.debug("trying to reserve candidate job {}", candidate);
-            JobResourcePatchResponse response = this.patchJob(candidate.withStatus(org.codingmatters.poomjobs.api.types.job.Status.builder()
-                    .run(org.codingmatters.poomjobs.api.types.job.Status.Run.RUNNING)
-                    .build())
-            );
-            if(response.opt().status200().isPresent()) {
-                log.debug("candidate reserved {}", response.status200().payload());
-                return response.status200().payload();
-            } else {
-                log.error("failed patching candidate job, expected 200, got : {}", response);
-            }
-        }
-        return null;
+        return candidates;
     }
 
 }

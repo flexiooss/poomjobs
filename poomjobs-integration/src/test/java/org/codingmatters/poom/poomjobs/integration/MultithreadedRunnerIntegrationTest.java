@@ -7,8 +7,12 @@ import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.tests.Eventually;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
+import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
+import org.codingmatters.poomjobs.api.JobResourcePatchRequest;
+import org.codingmatters.poomjobs.api.JobResourcePatchResponse;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
+import org.codingmatters.poomjobs.api.types.JobUpdateData;
 import org.codingmatters.poomjobs.api.types.job.Status;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIRequesterClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIRequesterClient;
@@ -16,6 +20,7 @@ import org.codingmatters.poomjobs.registries.service.PoomjobRegistriesService;
 import org.codingmatters.rest.api.client.okhttp.HttpClientWrapper;
 import org.codingmatters.rest.api.client.okhttp.OkHttpClientWrapper;
 import org.codingmatters.rest.api.client.okhttp.OkHttpRequesterFactory;
+import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +30,7 @@ import java.net.ServerSocket;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 public class MultithreadedRunnerIntegrationTest {
@@ -47,7 +53,7 @@ public class MultithreadedRunnerIntegrationTest {
     @Before
     public void setUp() throws Exception {
         int registriesPort = freePort();
-        this.registries = new PoomjobRegistriesService("localhost", registriesPort, Executors.newFixedThreadPool(10));
+        this.registries = new PoomjobRegistriesService("localhost", registriesPort, Executors.newFixedThreadPool(30));
         this.registries.start();
 
         HttpClientWrapper httpClientWrapper = OkHttpClientWrapper.build();
@@ -119,9 +125,46 @@ public class MultithreadedRunnerIntegrationTest {
 
     @After
     public void tearDown() throws Exception {
-        this.runnerService.stop();
+        try {
+            this.runnerService.stop();
+        } catch (Exception e) {}
         this.registries.stop();
     }
+
+//    @Test
+//    public void given__when__then() throws Exception {
+//        JobCollectionPostResponse created = this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
+//                .accountId("blurp")
+//                .payload(JobCreationData.builder()
+//                        .category("c").name("short")
+//                        .build())
+//                .build());
+//        String jobId = created.status201().xEntityId();
+//
+//        JobResourcePatchResponse patched = this.jobRegistryClient.jobCollection().jobResource().patch(JobResourcePatchRequest.builder()
+//                .accountId("blurp")
+//                .strict(true)
+//                .currentVersion("1")
+//                        .jobId(jobId)
+//                .payload(JobUpdateData.builder()
+//                        .status(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.builder().run(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Run.RUNNING).build())
+//                        .build())
+//                .build());
+//
+//        System.out.println(patched);
+//
+//        patched = this.jobRegistryClient.jobCollection().jobResource().patch(JobResourcePatchRequest.builder()
+//                .accountId("blurp")
+//                .strict(true)
+//                .currentVersion("2")
+//                .jobId(jobId)
+//                .payload(JobUpdateData.builder()
+//                        .status(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.builder().run(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Run.DONE).exit(org.codingmatters.poomjobs.api.types.jobupdatedata.Status.Exit.SUCCESS).build())
+//                        .build())
+//                .build());
+//
+//        System.out.println(patched);
+//    }
 
     @Test
     public void oneJob_noConcurrency() throws Exception {
@@ -138,24 +181,29 @@ public class MultithreadedRunnerIntegrationTest {
                 () -> this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange(),
                 is("Job 0-0/1")
         );
+//        Thread.sleep(2000);
+//        assertThat(this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange(), is("Job 0-0/1"));
     }
 
     @Test
     public void manyJob_noConcurrency() throws Exception {
         this.createAndStartRunnerServiceWithConcurrency(1);
         for (int i = 0; i < 10; i++) {
-            this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
+            JobCollectionPostResponse e = this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
                     .accountId("blurp")
                     .payload(JobCreationData.builder()
                             .category("c").name("short")
                             .build())
                     .build());
+            System.out.println("######## posted " + i + " : " + e);
         }
 
         Eventually.timeout(20, TimeUnit.SECONDS).assertThat(
                 () -> this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange(),
                 is("Job 0-9/10")
         );
+//        Thread.sleep(20 * 1000L);
+//        assertThat(this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange(), is("Job 0-9/10"));
     }
 
     @Test

@@ -5,9 +5,9 @@ import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poom.services.domain.change.Change;
 import org.codingmatters.poom.services.domain.change.ChangeBuilder;
 import org.codingmatters.poom.services.domain.change.Validation;
+import org.codingmatters.poom.services.support.date.UTC;
 
 import java.math.BigInteger;
-import java.time.LocalDateTime;
 
 /**
  * Created by nelt on 6/23/17.
@@ -29,11 +29,13 @@ public class JobValueChange extends Change<JobValue> {
 
     @Override
     public Validation validation() {
-        if(this.currentVersion.compareTo(this.fromVersion) != 0) {
-            return new Validation(
-                    false,
-                    String.format("version differs, cannot validate change (current is %s, changing from %s)", this.currentVersion, this.fromVersion)
-            );
+        if(this.fromVersion != null) {
+            if(this.currentVersion.compareTo(this.fromVersion) != 0) {
+                return new Validation(
+                        false,
+                        String.format("version differs, cannot validate change (current is %s, changing from %s)", this.currentVersion, this.fromVersion)
+                );
+            }
         }
         return super.validation();
     }
@@ -69,10 +71,10 @@ public class JobValueChange extends Change<JobValue> {
         JobValue result = this.newValue();
 
         if(this.runStatusChanges(Status.Run.PENDING, Status.Run.RUNNING)) {
-            result = result.withProcessing(result.processing().withStarted(LocalDateTime.now()));
+            result = result.withProcessing(result.processing().withStarted(UTC.now()));
         }
         if(this.runStatusChanges(Status.Run.RUNNING, Status.Run.DONE)) {
-            result = result.withProcessing(result.processing().withFinished(LocalDateTime.now()));
+            result = result.withProcessing(result.processing().withFinished(UTC.now()));
         }
 
         return result;

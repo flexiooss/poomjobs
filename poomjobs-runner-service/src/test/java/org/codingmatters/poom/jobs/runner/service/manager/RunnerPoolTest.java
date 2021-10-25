@@ -57,7 +57,7 @@ public class RunnerPoolTest {
             synchronized (reserved) {
                 if(reserved.contains(request.jobId())) {
                     return JobResourcePatchResponse.builder()
-                            .status400(status -> status.payload(error -> error.code(Error.Code.ILLEGAL_JOB_CHANGE)))
+                            .status400(status -> status.payload(error -> error.code(Error.Code.ILLEGAL_RESOURCE_CHANGE)))
                             .build();
                 } else {
                     Job job;
@@ -241,7 +241,7 @@ public class RunnerPoolTest {
             } else {
                 if(! pendingReturned.getAndSet(true)) {
                     return JobCollectionGetResponse.builder().status200(status -> status.contentRange("Job 0-0/1").payload(
-                            Job.builder().id("pending").build()
+                            Job.builder().id("pending").status(Status.builder().run(Status.Run.PENDING).build()).build()
                     )).build();
                 } else {
                     return JobCollectionGetResponse.builder().status200(status -> status.contentRange("Job 0-0/0").payload(Collections.emptyList())).build();

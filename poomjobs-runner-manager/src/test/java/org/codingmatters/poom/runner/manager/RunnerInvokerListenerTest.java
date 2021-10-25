@@ -1,6 +1,7 @@
 package org.codingmatters.poom.runner.manager;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIHandlersClient;
@@ -44,8 +45,7 @@ public class RunnerInvokerListenerTest {
 
     private RunnerInvokerListener runnerInvokerListener;
 
-    private final Repository<JobValue, JobQuery> jobRepository = JobRepository.createInMemory();
-    private PoomjobsJobRegistryAPIClient jobRegistry;
+    private final Repository<JobValue, PropertyQuery> jobRepository = JobRepository.createInMemory();
 
     private Repository<RunnerValue, RunnerQuery> runnerRepository = RunnerRepository.createInMemory();
     private ExecutorService runnerRegistryPool;

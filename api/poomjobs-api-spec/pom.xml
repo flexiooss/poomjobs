@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.codingmatters.poom</groupId>
+        <artifactId>api</artifactId>
+        <version>1.100.0</version>
+    </parent>
+
+    <artifactId>poomjobs-api-spec</artifactId>
+    <name>${project.groupId}:${project.artifactId}</name>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codingmatters.rest</groupId>
+                <artifactId>cdm-rest-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>job-registry-api-doc-gen</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>generate-api-doc</goal>
+                        </goals>
+                        <configuration>
+                            <api-spec-file>${basedir}/src/main/resources/poomjobs-job-registry-api.raml</api-spec-file>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>poomjobs-runner-api-doc-gen</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>generate-api-doc</goal>
+                        </goals>
+                        <configuration>
+                            <api-spec-file>${basedir}/src/main/resources/poomjobs-runner-api.raml</api-spec-file>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>poomjobs-runner-registry-api-doc-gen</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>generate-api-doc</goal>
+                        </goals>
+                        <configuration>
+                            <api-spec-file>${basedir}/src/main/resources/poomjobs-runner-registry-api.raml</api-spec-file>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

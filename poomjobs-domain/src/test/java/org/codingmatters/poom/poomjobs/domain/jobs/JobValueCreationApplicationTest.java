@@ -3,11 +3,14 @@ package org.codingmatters.poom.poomjobs.domain.jobs;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Processing;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
+import org.codingmatters.poom.services.support.date.UTC;
+import org.codingmatters.poom.services.tests.DateMatchers;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
+import static org.codingmatters.poom.services.tests.DateMatchers.around;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
@@ -36,7 +39,7 @@ public class JobValueCreationApplicationTest {
                 .build())
                 .applied();
 
-        assertThat(jobValue.processing().submitted(), is(notNullValue()));
+        assertThat(jobValue.processing().submitted(), is(around(UTC.now())));
     }
 
     @Test
