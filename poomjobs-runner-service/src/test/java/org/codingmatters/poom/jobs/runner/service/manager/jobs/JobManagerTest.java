@@ -90,7 +90,7 @@ public class JobManagerTest {
             this.jobPatch.nextResponse(request -> response);
 
             this.thrown.expect(JobProcessorRunner.JobUpdateFailure.class);
-            this.thrown.expectMessage(startsWith("Unrecoverable error updating job status. See logs with token : "));
+            this.thrown.expectMessage(startsWith("Failed updating job, got response : JobResourcePatchResponse"));
 
             this.manager.update(Job.builder()
                     .id("job-id")

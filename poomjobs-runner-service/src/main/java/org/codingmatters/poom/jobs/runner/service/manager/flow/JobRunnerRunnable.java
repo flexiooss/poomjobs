@@ -93,7 +93,7 @@ public class JobRunnerRunnable implements Runnable {
             log.error("job processing exception, notifying", e);
             this.errorListener.processingExceptionThrown(this.token, e);
         } catch (JobProcessorRunner.JobUpdateFailure e) {
-            log.error("unrecoverable error thrown while running assigned jobs by runner with token " + this.token, e);
+            log.error("[GRAVE] unrecoverable error thrown while running assigned jobs by runner with token " + this.token, e);
             this.errorListener.unrecoverableExceptionThrown(e);
         } catch (Exception e) {
             log.error("[GRAVE] unexpected exception thrown from job processor : " + job, e);
