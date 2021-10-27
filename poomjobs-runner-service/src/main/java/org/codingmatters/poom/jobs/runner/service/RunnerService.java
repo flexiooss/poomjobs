@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorListener {
+public class RunnerService {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(RunnerService.class);
 
     private static final long MIN_TTL = 1000L;
@@ -315,16 +315,5 @@ public class RunnerService implements JobRunnerRunnable.JobRunnerRunnableErrorLi
         return RunningJobPutResponse.builder().status201(status -> status
                 .location("%s/%s", this.jobRequestEndpointUrl, job.id())
         ).build();
-    }
-
-    @Override
-    public void unrecoverableExceptionThrown(Exception e) {
-        this.errorToken.set(log.tokenized().error("[GRAVE] unexpected error in job runner, unrecoverable, will stop", e));
-        this.stop();
-    }
-
-    @Override
-    public void processingExceptionThrown(RunnerToken token, JobProcessingException e) {
-        log.error("error processing job from " + token, e);
     }
 }

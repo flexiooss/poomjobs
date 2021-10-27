@@ -115,10 +115,12 @@ public class RunnerPoolTest {
             JobContextSetup.NOOP,
             new JobRunnerRunnable.JobRunnerRunnableErrorListener() {
                 @Override
-                public void unrecoverableExceptionThrown(Exception e) {}
+                public void unrecoverableExceptionThrown(Exception e) {
+                    System.err.println("\n\n\n\n\n\nUNRECOVERABLE\n\n\n\n\n\n");
+                }
 
                 @Override
-                public void processingExceptionThrown(RunnerToken token, JobProcessingException e) {}
+                public void processingExceptionThrown(RunnerToken token, Job job, JobProcessingException e) {}
             },
             new RunnerStatusMonitor(
                     "test-job-pool",
@@ -218,17 +220,24 @@ public class RunnerPoolTest {
     @Test
     public void givenManyPendingJobs__whenPoolStarted__thenAllJobProcessed() throws Exception {
         String[] expectedProcessedIds = new String[this.concurrentJobCount * 2];
-        for (int i = 0; i < this.concurrentJobCount * 2; i++) {
+        for (int i = 0; i < expectedProcessedIds.length; i++) {
             String id = "job-" + i;
             this.jobs.add(Job.builder().id(id).status(Status.builder().run(Status.Run.PENDING).build()).build());
             expectedProcessedIds[i] = id;
         }
+        Thread.sleep(2000);
         this.pool.start();
 
         Eventually.timeout(10, TimeUnit.SECONDS).assertThat(
-                () -> this.processedJobs.stream().map(Job::id).collect(Collectors.toList()),
+                () -> {
+                    System.out.println(this.processedJobs.stream().map(Job::id).collect(Collectors.toList()));
+                    return this.processedJobs.stream().map(Job::id).collect(Collectors.toList());
+                },
                 containsInAnyOrder(expectedProcessedIds)
         );
+//        Thread.sleep(10_000L);
+//        System.out.println(this.processedJobs.stream().map(Job::id).collect(Collectors.toList()));
+//        assertThat(this.processedJobs.stream().map(Job::id).collect(Collectors.toList()), containsInAnyOrder(expectedProcessedIds));
     }
 
     @Test

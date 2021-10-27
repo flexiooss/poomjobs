@@ -49,7 +49,7 @@ public class JobRunnerRunnableTest {
                 }
 
                 @Override
-                public void processingExceptionThrown(RunnerToken token, JobProcessingException e) {
+                public void processingExceptionThrown(RunnerToken token, Job job, JobProcessingException e) {
                     assertThat(token, is(testToken));
                     jobProcessingExceptions.add(e);
                 }
