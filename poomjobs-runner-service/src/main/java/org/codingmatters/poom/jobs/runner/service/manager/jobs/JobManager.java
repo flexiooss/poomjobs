@@ -65,20 +65,11 @@ public class JobManager implements JobProcessorRunner.JobUpdater {
             }
         }
         if(response == null) {
-            String errorToken = log.tokenized().error(
-                    "[GRAVE] failed updating job {} {} times (see previous logs). " +
-                            "Will not retry. " +
-                            "This is not recoverable, job data is lost, failing fast.",
-                    job, tried);
-            throw new JobProcessorRunner.JobUpdateFailure("Unrecoverable error updating job status. See logs with token : " + errorToken);
+            throw new JobProcessorRunner.JobUpdateFailure(String.format(
+                    "Failed updating job, tried %s time, will not retry.", tried
+            ));
         } else if(response.opt().status200().isEmpty()) {
-            String errorToken = log.tokenized().error(
-                    "[GRAVE] failed updating job {}. Got response {} " +
-                            "Will not retry. " +
-                            "This is not recoverable, job data is lost, failing fast.",
-                    job, response
-            );
-            throw new JobProcessorRunner.JobUpdateFailure("Unrecoverable error updating job status. See logs with token : " + errorToken);
+            throw new JobProcessorRunner.JobUpdateFailure("Failed updating job, got response : " + response);
         } else {
             return response.status200().payload();
         }
