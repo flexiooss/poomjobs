@@ -14,6 +14,7 @@ import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poomjobs.api.types.Job;
+import org.codingmatters.poomjobs.api.types.job.Status;
 import org.codingmatters.poomjobs.runner.domain.RunnerToken;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -26,6 +27,7 @@ public class RunnerManager implements JobRunnerRunnable.JobRunnerRunnableErrorLi
     private final RunnerStatusManager statusManager;
     private final RunnerPool runnerPool;
     private final RunnerStatusNotifier notifier;
+    private final JobManager jobManager;
     private final boolean exitOnUnrecoverableError;
 
     public RunnerManager(
@@ -41,6 +43,7 @@ public class RunnerManager implements JobRunnerRunnable.JobRunnerRunnableErrorLi
     ) {
         this.statusMonitor = runnerStatusMonitor;
         this.notifier = notifier;
+        this.jobManager = jobManager;
         this.exitOnUnrecoverableError = exitOnUnrecoverableError;
         this.statusManager = new RunnerStatusManager(this.notifier, this.statusMonitor, scheduler, ttl * 9 / 10);
         this.runnerPool = new RunnerPool(
@@ -90,7 +93,13 @@ public class RunnerManager implements JobRunnerRunnable.JobRunnerRunnableErrorLi
     }
 
     @Override
-    public void processingExceptionThrown(RunnerToken token, JobProcessingException e) {
+    public void processingExceptionThrown(RunnerToken token, Job job, JobProcessingException e) {
         log.error("error processing job on runner " + token, e);
+        job = job.withStatus(Status.builder().run(Status.Run.DONE).exit(Status.Exit.FAILURE).build());
+        try {
+            this.jobManager.update(job);
+        } catch (JobProcessorRunner.JobUpdateFailure ex) {
+            log.error("[GRAVE] failed updating errored job, final status is lost : ", job, e);
+        }
     }
 }

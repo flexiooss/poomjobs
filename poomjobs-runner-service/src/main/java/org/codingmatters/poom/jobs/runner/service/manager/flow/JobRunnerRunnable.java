@@ -91,7 +91,7 @@ public class JobRunnerRunnable implements Runnable {
             this.jobRunner.runWith(job);
         } catch (JobProcessingException e) {
             log.error("job processing exception, notifying", e);
-            this.errorListener.processingExceptionThrown(this.token, e);
+            this.errorListener.processingExceptionThrown(this.token, job, e);
         } catch (JobProcessorRunner.JobUpdateFailure e) {
             log.error("[GRAVE] unrecoverable error thrown while running assigned jobs by runner with token " + this.token, e);
             this.errorListener.unrecoverableExceptionThrown(e);
@@ -112,14 +112,14 @@ public class JobRunnerRunnable implements Runnable {
 
     public interface JobRunnerRunnableErrorListener {
         void unrecoverableExceptionThrown(Exception e);
-        void processingExceptionThrown(RunnerToken token, JobProcessingException e);
+        void processingExceptionThrown(RunnerToken token, Job job, JobProcessingException e);
 
         JobRunnerRunnableErrorListener NOOP = new JobRunnerRunnableErrorListener() {
             @Override
             public void unrecoverableExceptionThrown(Exception e) {}
 
             @Override
-            public void processingExceptionThrown(RunnerToken token, JobProcessingException e) {}
+            public void processingExceptionThrown(RunnerToken token, Job job, JobProcessingException e) {}
         };
     }
 }
