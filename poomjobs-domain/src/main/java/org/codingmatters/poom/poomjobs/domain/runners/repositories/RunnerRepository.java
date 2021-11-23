@@ -1,6 +1,6 @@
 package org.codingmatters.poom.poomjobs.domain.runners.repositories;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import io.flexio.io.mongo.repository.MongoCollectionRepository;
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.mongo.MongoJobRepositoryFiltersFilters;
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.inmemory.InMemoryRunnerRepository;
