@@ -67,6 +67,7 @@ public class RunnerManager implements JobRunnerRunnable.JobRunnerRunnableErrorLi
     }
 
     public void shutdown() {
+        log.info("shutting down runner manager...");
         this.statusManager.stop();
         this.runnerPool.shutdown();
         try {
@@ -75,10 +76,14 @@ public class RunnerManager implements JobRunnerRunnable.JobRunnerRunnableErrorLi
             log.error("failed notifying terminal status");
         }
         try {
-            this.runnerPool.awaitTermination(30, TimeUnit.SECONDS);
+            if(! this.runnerPool.awaitTermination(30, TimeUnit.SECONDS)) {
+                log.error("failed shutting down runner pool, forcing...");
+                this.runnerPool.shutdownNow();
+            }
         } catch (InterruptedException e) {
             log.error("interrupted while waiting runner pool termination");
         }
+        log.info("...runner manager shut down.");
     }
 
     @Override

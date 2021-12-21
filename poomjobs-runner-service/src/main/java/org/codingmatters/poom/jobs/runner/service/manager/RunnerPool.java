@@ -224,21 +224,26 @@ public class RunnerPool {
     }
 
     public void shutdown() {
+        log.info("shutting down runner pool...");
         if(this.running.getAndSet(false)) {
             for (JobRunnerRunnable runnable : this.runnables.values()) {
                 runnable.shutdown();
             }
         }
         pool.shutdown();
+        log.info("... runner pool shut down");
     }
 
     public List<Runnable> shutdownNow() {
+        log.info("forcing runner pool shutdown...");
         if(this.running.getAndSet(false)) {
             for (JobRunnerRunnable runnable : this.runnables.values()) {
                 runnable.shutdown();
             }
         }
-        return pool.shutdownNow();
+        List<Runnable> result = pool.shutdownNow();
+        log.info("runner pool forcibly shut down.");
+        return result;
     }
 
     public boolean awaitReady(long timeout, TimeUnit unit) {
