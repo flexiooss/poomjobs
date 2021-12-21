@@ -210,7 +210,10 @@ public class RunnerService {
         synchronized (this.stopMonitor) {
             try {
                 this.stopMonitor.wait();
-            } catch (InterruptedException e) {}
+                log.info("runner service stop requested...");
+            } catch (InterruptedException e) {
+                log.error("runner service was interrupted");
+            }
         }
 
         this.runnerManager.shutdown();
