@@ -27,6 +27,7 @@ import static org.codingmatters.poomjobs.service.JobValueMerger.merge;
 /**
  * Created by nelt on 6/15/17.
  */
+@Deprecated
 public class JobResourcePutHandler implements ResourcePutProtocol<JobValue, JobQuery, JobResourcePatchRequest, JobResourcePatchResponse> {
     static private final Logger log = LoggerFactory.getLogger(JobResourcePutHandler.class);
 
