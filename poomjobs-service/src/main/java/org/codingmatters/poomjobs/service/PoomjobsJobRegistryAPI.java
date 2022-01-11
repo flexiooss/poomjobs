@@ -1,16 +1,11 @@
 package org.codingmatters.poomjobs.service;
 
 import org.codingmatters.poom.jobs.collections.jobs.JobRegistryHandlersBuilder;
-import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.PoomjobsJobRegistryAPIHandlers;
-import org.codingmatters.poomjobs.service.handlers.JobCollectionGetHandler;
-import org.codingmatters.poomjobs.service.handlers.JobCollectionPostHandler;
-import org.codingmatters.poomjobs.service.handlers.JobResourceGetHandler;
-import org.codingmatters.poomjobs.service.handlers.JobResourcePutHandler;
 import org.codingmatters.value.objects.values.ObjectValue;
 
 import java.util.function.Function;
