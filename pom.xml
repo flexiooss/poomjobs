@@ -91,7 +91,7 @@
     </dependencies>
 
     <properties>
-        <flexio-commons.version>1.106.0</flexio-commons.version>
+        <flexio-commons.version>1.107.0</flexio-commons.version>
     </properties>
 
     <dependencyManagement>
