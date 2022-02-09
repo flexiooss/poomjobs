@@ -75,9 +75,16 @@ public class FeederJobProcessorPool {
             } catch (NotIdleException e) {
                 throw new RunnerBusyException("feeder pool not idle anymore", e);
             }
+            Job reserved;
+            try {
+                reserved = this.pendingJobManager.reserve(job);
+            } catch (JobProcessorRunner.JobUpdateFailure e) {
+                handle.release();
+                throw new JobNotSubmitableException("failed updating job, cannot submit", e);
+            }
             try {
                 log.info("processing incoming job : {}", job);
-                handle.feed(this.pendingJobManager.reserve(job));
+                handle.feed(reserved);
             } catch (NotReservedException e) {
                 handle.release();
                 throw new RunnerBusyException("feeder pool not idle anymore", e);

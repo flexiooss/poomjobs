@@ -325,7 +325,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void givenConcurrency__whenOneLongJob__thenRunnerStatusStaysIdle() throws Exception {
-        log.info("givenConcurrency__whenOneLongJob__thenRunnerStatusStaysIdle");
+        log.info("\n\n\ngivenConcurrency__whenOneLongJob__thenRunnerStatusStaysIdle\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(2);
 
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
