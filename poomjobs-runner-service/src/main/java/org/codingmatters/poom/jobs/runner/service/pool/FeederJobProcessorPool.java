@@ -68,11 +68,18 @@ public class FeederJobProcessorPool {
             if(! Status.Run.PENDING.equals(job.opt().status().run().orElse(null))) {
                 throw new JobNotSubmitableException("job should be pending, cannot submit a job with status " + job.opt().status().run().orElse(null));
             }
+            Feeder.Handle<Job> handle;
             try {
-                log.debug("incomingJob : {}", job);
-                Feeder.Handle<Job> handle = this.feeders.reserve();
+                log.info("processing incoming job : {}", job);
+                handle = this.feeders.reserve();
+            } catch (NotIdleException e) {
+                throw new RunnerBusyException("feeder pool not idle anymore", e);
+            }
+            try {
+                log.info("processing incoming job : {}", job);
                 handle.feed(this.pendingJobManager.reserve(job));
-            } catch (NotIdleException | NotReservedException e) {
+            } catch (NotReservedException e) {
+                handle.release();
                 throw new RunnerBusyException("feeder pool not idle anymore", e);
             }
         } else {

@@ -173,7 +173,7 @@ public class MultithreadedRunnerIntegrationTest {
 
         Eventually.timeout(10, TimeUnit.SECONDS).assertThat(
                 () -> this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange(),
-                is("Job 0-0/1")
+                is("Job 0-1/2")
         );
     }
 
@@ -284,7 +284,7 @@ public class MultithreadedRunnerIntegrationTest {
     }
 
     @Test
-    public void givenNoConcurrency__whenNoJob_andWaitingForAWhile__thenLastPingChanges() throws Exception {
+    public void givenNoConcurrency__whenNoJob_andWaitingForAWhile__thenPinged() throws Exception {
         LocalDateTime start = UTC.now();
         this.createAndStartRunnerServiceWithConcurrency(1);
 
@@ -325,6 +325,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void givenConcurrency__whenOneLongJob__thenRunnerStatusStaysIdle() throws Exception {
+        log.info("givenConcurrency__whenOneLongJob__thenRunnerStatusStaysIdle");
         this.createAndStartRunnerServiceWithConcurrency(2);
 
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
@@ -354,7 +355,7 @@ public class MultithreadedRunnerIntegrationTest {
     }
 
     @Test
-    public void givenConcurrency__whenMoreLongJobThanConcurrency__thenRunnerStatusChangesToBusy_thanChangesBackToIdle() throws Exception {
+    public void givenConcurrency__whenMoreJobsThanConcurrency__thenRunnerStatusChangesToBusy_thanChangesBackToIdle() throws Exception {
         this.createAndStartRunnerServiceWithConcurrency(2);
 
         for (int i = 0; i < 6; i++) {
@@ -366,12 +367,10 @@ public class MultithreadedRunnerIntegrationTest {
                     .build());
         }
 
-
         Eventually.timeout(2, TimeUnit.SECONDS).assertThat(
                 () -> this.runnerRegistryClient.runnerCollection().get(RunnerCollectionGetRequest.builder().build()).status200().payload().get(0).runtime().status(),
                 is(Runtime.Status.RUNNING)
         );
-
         Eventually.timeout(15, TimeUnit.SECONDS).assertThat(
                 () -> this.runnerRegistryClient.runnerCollection().get(RunnerCollectionGetRequest.builder().build()).status200().payload().get(0).runtime().status(),
                 is(Runtime.Status.IDLE)

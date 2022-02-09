@@ -28,6 +28,15 @@ public class FeederTest {
     }
 
     @Test
+    public void givenReserved__whenReleased__thenIdle() throws Exception {
+        Feeder.Handle<UUID> handle = this.feeder.reserve();
+
+        handle.release();
+
+        assertThat(feeder.isIdle(), is(true));
+    }
+
+    @Test
     public void givenReserved__whenFeeding__thenBusy_andMonitorExposesIn() throws Exception {
         Feeder.Handle<UUID> handle = this.feeder.reserve();
 

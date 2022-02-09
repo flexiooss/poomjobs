@@ -47,7 +47,7 @@ public class JobProcessorRunner {
             log.debug("job processed, will update status with {}", updated);
             updated = this.updatedJobConsumer.update(updated);
 
-            log.debug("job processed : {}", updated);
+            log.info("job processed : {}", updated);
         }
     }
 

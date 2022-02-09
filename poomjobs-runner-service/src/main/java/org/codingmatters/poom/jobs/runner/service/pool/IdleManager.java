@@ -45,7 +45,10 @@ public class IdleManager {
                     handle.feed(reserved);
                 } catch (NotReservedException e) {
                     log.error("[GRAVE] feeder busy, this one is very strange", e);
+                    handle.release();
                 }
+            } else {
+                handle.release();
             }
         }
     }

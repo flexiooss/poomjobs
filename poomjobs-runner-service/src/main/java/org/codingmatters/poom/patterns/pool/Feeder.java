@@ -99,6 +99,10 @@ public class Feeder<In> {
         public void feed(In with) throws NotReservedException {
             this.feeder.feed(with);
         }
+
+        public void release() {
+            this.feeder.done();
+        }
     }
 
     static public class Monitor<In> {
