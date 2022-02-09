@@ -15,7 +15,7 @@ import org.codingmatters.poom.services.domain.repositories.inmemory.InMemoryRepo
  * Created by nelt on 6/6/17. */
 public class JobRepository {
     static public Repository<JobValue, PropertyQuery> createInMemory() {
-        return InMemoryRepositoryWithPropertyQuery.notValidating(JobValue.class);
+        return InMemoryRepositoryWithPropertyQuery.notValidating(JobValue.class, true);
     }
 
     static public Repository<JobValue, PropertyQuery> createMongo(MongoClient mongoClient, String database) {
@@ -24,7 +24,7 @@ public class JobRepository {
         return MongoCollectionRepository.<JobValue, JobQuery>repository(database, "jobs")
                 .withToDocument(jobValueMapper::toDocument)
                 .withToValue(jobValueMapper::toValue)
-                .buildWithPropertyQuery(mongoClient);
+                .buildWithPropertyQuery(mongoClient, true);
     }
 
 }

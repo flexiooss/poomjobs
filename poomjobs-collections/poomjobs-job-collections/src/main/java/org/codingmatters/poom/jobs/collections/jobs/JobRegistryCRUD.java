@@ -116,7 +116,6 @@ public class JobRegistryCRUD implements PagedCollectionAdapter.CRUD<Job, JobCrea
         }
         JobValue newValue = merge(entity.value()).with(jobUpdateData);
         JobValueChange change = JobValueChange.from(entity.version(), this.fromVersion, entity.value()).to(newValue);
-        log.debug("change computed");
         if(change.validation().isValid()) {
             Entity<JobValue> updated;
             try {

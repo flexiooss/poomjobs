@@ -7,12 +7,9 @@ import io.undertow.server.handlers.PathHandler;
 import org.codingmatters.poom.jobs.runner.service.exception.JobNotSubmitableException;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerBusyException;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerServiceInitializationException;
-import org.codingmatters.poom.jobs.runner.service.manager.RunnerManager;
-import org.codingmatters.poom.jobs.runner.service.manager.RunnerStatusMonitor;
-import org.codingmatters.poom.jobs.runner.service.manager.flow.JobProcessorRunner;
-import org.codingmatters.poom.jobs.runner.service.manager.flow.JobRunnerRunnable;
-import org.codingmatters.poom.jobs.runner.service.manager.jobs.JobManager;
-import org.codingmatters.poom.jobs.runner.service.manager.status.RunnerRegistryRunnerStatusNotifier;
+import org.codingmatters.poom.jobs.runner.service.jobs.JobProcessorRunner;
+import org.codingmatters.poom.jobs.runner.service.jobs.JobManager;
+import org.codingmatters.poom.jobs.runner.service.pool.FeederJobProcessorPool;
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
@@ -25,15 +22,15 @@ import org.codingmatters.poomjobs.api.types.RunnerData;
 import org.codingmatters.poomjobs.api.types.runnerdata.Competencies;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
-import org.codingmatters.poomjobs.runner.domain.RunnerToken;
 import org.codingmatters.poomjobs.service.api.PoomjobsRunnerAPIProcessor;
 import org.codingmatters.rest.undertow.CdmHttpUndertowHandler;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class RunnerService {
+public class RunnerService implements FeederJobProcessorPool.JobErrorListener {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(RunnerService.class);
 
     private static final long MIN_TTL = 1000L;
@@ -42,6 +39,7 @@ public class RunnerService {
     static public JobSetup setup() {
         return new Builder();
     }
+
 
     public interface JobSetup {
         ClientsSetup jobs(String category, String [] names, JobProcessor.Factory factory);
@@ -167,13 +165,14 @@ public class RunnerService {
     private Undertow jobRequestEndpointServer;
     private final String jobRequestEndpointUrl;
 
-    private RunnerStatusMonitor monitor;
     private JobManager jobManager;
+    private FeederJobProcessorPool feederJobProcessorPool;
 
-    private RunnerManager runnerManager;
+    private RunnerStatusManager runnerStatusManager;
+    private ExecutorService statusPool;
 
     private final AtomicReference<String> errorToken = new AtomicReference<>(null);
-    private Object stopMonitor = new Object();
+    private final Object stopMonitor = new Object();
     private final boolean exitOnUnrecoverableError;
 
     public RunnerService(
@@ -203,9 +202,8 @@ public class RunnerService {
     public void run() throws RunnerServiceInitializationException {
         this.registerRunner();
         this.startJobRequestEndpoint();
-        this.startMonitor();
         this.createJobManager();
-        this.startRunnerManager();
+        this.startFeederJobProcessorPool();
 
         synchronized (this.stopMonitor) {
             try {
@@ -216,7 +214,6 @@ public class RunnerService {
             }
         }
 
-        this.runnerManager.shutdown();
         if(this.errorToken.get() != null) {
             throw new RuntimeException("error in runner service, see logs with " + this.errorToken.get());
         }
@@ -259,9 +256,6 @@ public class RunnerService {
         this.jobRequestEndpointServer.start();
     }
 
-    private void startMonitor() {
-        this.monitor = new RunnerStatusMonitor("runner-" + this.runnerId);
-    }
     private void createJobManager() {
         this.jobManager = new JobManager(
                 this.jobRegistryClient,
@@ -271,24 +265,32 @@ public class RunnerService {
         );
     }
 
-    private void startRunnerManager() {
-        this.runnerManager = new RunnerManager(
-                Executors.newSingleThreadScheduledExecutor(),
-                this.monitor,
-                new RunnerRegistryRunnerStatusNotifier(this.runnerId, this.runnerRegistryClient),
-                this.ttl,
-                this.concurrentJobCount,
+    private void startFeederJobProcessorPool() {
+        this.feederJobProcessorPool = new FeederJobProcessorPool(
                 this.jobManager,
                 this.jobProcessorFactory,
                 this.contextSetup,
-                this.exitOnUnrecoverableError
+                this,
+                this.concurrentJobCount
         );
-        log.info("starting job manager...");
-        runnerManager.start();
-        log.info("job manager started, job runner is up and running !");
+        this.runnerStatusManager = new RunnerStatusManager(this.runnerRegistryClient, this.runnerId, this.ttl - (this.ttl / 10), this.ttl);
+        this.feederJobProcessorPool.addPoolListener(this.runnerStatusManager);
+
+        this.runnerStatusManager.start();
+        this.statusPool = Executors.newSingleThreadExecutor();
+        this.statusPool.submit(this.runnerStatusManager);
+
+        this.feederJobProcessorPool.start();
     }
 
     public void stop() {
+        try {
+            this.jobRequestEndpointServer.stop();
+            this.feederJobProcessorPool.stop();
+            this.runnerStatusManager.stop();
+
+            this.statusPool.shutdownNow();
+        } catch (Exception e) {}
         synchronized (this.stopMonitor) {
             this.stopMonitor.notify();
         }
@@ -296,13 +298,13 @@ public class RunnerService {
 
 
     private RunningJobPutResponse jobExecutionRequested(RunningJobPutRequest request) {
+        log.debug("job execution requested : {}", request);
         Job job = request.payload();
         try {
-            this.runnerManager.submit(job);
+            this.feederJobProcessorPool.incomingJob(job);
         } catch (RunnerBusyException e) {
             return RunningJobPutResponse.builder().status409(status -> status.payload(error -> error
                     .code(Error.Code.OVERLOADED)
-//                    .token(log.tokenized().info("runner became busy", e))
                     .token(log.tokenized().info("runner became busy"))
                     .description("runner busy, come back later")
             )).build();
@@ -313,10 +315,24 @@ public class RunnerService {
                     .description("failed taking job request")
             )).build();
         } catch (JobProcessorRunner.JobUpdateFailure e) {
-            this.runnerManager.unrecoverableExceptionThrown(e);
+            this.unrecoverableExceptionThrown(job, e);
         }
         return RunningJobPutResponse.builder().status201(status -> status
                 .location("%s/%s", this.jobRequestEndpointUrl, job.id())
         ).build();
+    }
+
+    @Override
+    public void unrecoverableExceptionThrown(Job job, Exception e) {
+        log.error("Unrecoverable error while processing job : " + job, e);
+        if(this.exitOnUnrecoverableError) {
+            log.error("exiting on unrecoverable error");
+            System.exit(42);
+        }
+    }
+
+    @Override
+    public void processingExceptionThrown(Job job, JobProcessingException e) {
+        log.error("[GRAVE] processing exception raised for job " + job, e);
     }
 }

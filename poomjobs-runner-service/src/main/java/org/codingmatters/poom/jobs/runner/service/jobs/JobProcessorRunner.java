@@ -1,10 +1,11 @@
-package org.codingmatters.poom.jobs.runner.service.manager.flow;
+package org.codingmatters.poom.jobs.runner.service.jobs;
 
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.logging.LoggingContext;
+import org.codingmatters.poomjobs.api.ValueList;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.job.Status;
 
@@ -44,9 +45,9 @@ public class JobProcessorRunner {
             }
 
             log.debug("job processed, will update status with {}", updated);
-            this.updatedJobConsumer.update(updated);
+            updated = this.updatedJobConsumer.update(updated);
 
-            log.debug("job processed : {}", updated);
+            log.info("job processed : {}", updated);
         }
     }
 
@@ -71,6 +72,11 @@ public class JobProcessorRunner {
     @FunctionalInterface
     public interface JobUpdater {
         Job update(Job job) throws JobUpdateFailure;
+    }
+
+    public interface PendingJobManager {
+        ValueList<Job> pendingJobs();
+        Job reserve(Job job) throws JobProcessorRunner.JobUpdateFailure;
     }
 
     public static class JobUpdateFailure extends Exception {
