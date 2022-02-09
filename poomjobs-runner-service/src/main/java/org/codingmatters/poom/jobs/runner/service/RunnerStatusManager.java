@@ -32,15 +32,20 @@ public class RunnerStatusManager implements Runnable, FeederPool.Listener {
         this.minTimeout = minTimeout;
     }
 
-
     @Override
     public void becameIdle() {
-        this.nextStatus.set(RunnerStatusData.builder().status(RunnerStatusData.Status.IDLE).build());
+        synchronized (this.nextStatus) {
+            this.nextStatus.set(RunnerStatusData.builder().status(RunnerStatusData.Status.IDLE).build());
+            this.nextStatus.notify();
+        }
     }
 
     @Override
     public void becameBusy() {
-        this.nextStatus.set(RunnerStatusData.builder().status(RunnerStatusData.Status.RUNNING).build());
+        synchronized (this.nextStatus) {
+            this.nextStatus.set(RunnerStatusData.builder().status(RunnerStatusData.Status.RUNNING).build());
+            this.nextStatus.notify();
+        }
     }
 
 
@@ -50,21 +55,25 @@ public class RunnerStatusManager implements Runnable, FeederPool.Listener {
 
     public void stop() {
         this.running.set(false);
+        synchronized (this.nextStatus) {
+            this.nextStatus.notify();
+        }
     }
 
     @Override
     public void run() {
-        while(true) {
+        while(this.running.get()) {
             synchronized (this.nextStatus) {
                 try {
                     this.nextStatus.wait(this.nextTimeout());
                 } catch (InterruptedException e) {}
-                RunnerStatusData statusData = this.nextStatus.get();
-                if(statusData != null) {
-                    this.patchRunnerStatus(statusData);
+                if(this.running.get()) {
+                    RunnerStatusData statusData = this.nextStatus.get();
+                    if (statusData != null) {
+                        this.patchRunnerStatus(statusData);
+                    }
                 }
             }
-
         }
     }
 
@@ -84,6 +93,8 @@ public class RunnerStatusManager implements Runnable, FeederPool.Listener {
                     .build());
             if(response.opt().status200().isEmpty()) {
                 log.error("[GRAVE] unexpected response from runner registry while patching runner status");
+            } else {
+                log.debug("runner status patched to {}", statusData);
             }
         } catch (IOException e) {
             log.error("[GRAVE] while patching runner status, failed reaching runner registry");
