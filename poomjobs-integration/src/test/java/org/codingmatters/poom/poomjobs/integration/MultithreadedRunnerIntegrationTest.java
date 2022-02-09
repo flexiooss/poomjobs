@@ -131,7 +131,9 @@ public class MultithreadedRunnerIntegrationTest {
     public void tearDown() throws Exception {
         try {
             this.runnerService.stop();
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            log.error("error stopping runner", e);
+        }
         this.registries.stop();
     }
 
@@ -260,7 +262,7 @@ public class MultithreadedRunnerIntegrationTest {
 
         this.createAndStartRunnerServiceWithConcurrency(10);
 
-        Eventually.timeout(10, TimeUnit.SECONDS).assertThat(
+        Eventually.timeout(20, TimeUnit.SECONDS).assertThat(
                 () -> this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange(),
                 is("Job 0-49/50")
         );
@@ -339,7 +341,7 @@ public class MultithreadedRunnerIntegrationTest {
 
         for (int i = 0; i < 5; i++) {
             Thread.sleep(1000);
-            assertThat(
+            assertThat("still idle at " + i,
                     this.runnerRegistryClient.runnerCollection().get(RunnerCollectionGetRequest.builder().build()).status200().payload().get(0).runtime().status(),
                     is(Runtime.Status.IDLE)
             );
