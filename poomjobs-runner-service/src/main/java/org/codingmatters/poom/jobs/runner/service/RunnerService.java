@@ -26,6 +26,8 @@ import org.codingmatters.poomjobs.service.api.PoomjobsRunnerAPIProcessor;
 import org.codingmatters.rest.undertow.CdmHttpUndertowHandler;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class RunnerService implements FeederJobProcessorPool.JobErrorListener {
@@ -167,6 +169,7 @@ public class RunnerService implements FeederJobProcessorPool.JobErrorListener {
     private FeederJobProcessorPool feederJobProcessorPool;
 
     private RunnerStatusManager runnerStatusManager;
+    private ExecutorService statusPool;
 
     private final AtomicReference<String> errorToken = new AtomicReference<>(null);
     private final Object stopMonitor = new Object();
@@ -216,21 +219,6 @@ public class RunnerService implements FeederJobProcessorPool.JobErrorListener {
         }
     }
 
-    private void startFeederJobProcessorPool() {
-        this.feederJobProcessorPool = new FeederJobProcessorPool(
-                this.jobManager,
-                this.jobProcessorFactory,
-                this.contextSetup,
-                this,
-                this.concurrentJobCount
-        );
-        this.runnerStatusManager = new RunnerStatusManager(this.runnerRegistryClient, this.runnerId, this.ttl - (this.ttl / 10), this.ttl);
-        this.feederJobProcessorPool.addPoolListener(this.runnerStatusManager);
-
-        this.runnerStatusManager.start();
-        this.feederJobProcessorPool.start();
-    }
-
     private void registerRunner() throws RunnerServiceInitializationException {
         try {
             RunnerCollectionPostResponse response = this.runnerRegistryClient.runnerCollection().post(RunnerCollectionPostRequest.builder()
@@ -277,11 +265,31 @@ public class RunnerService implements FeederJobProcessorPool.JobErrorListener {
         );
     }
 
+    private void startFeederJobProcessorPool() {
+        this.feederJobProcessorPool = new FeederJobProcessorPool(
+                this.jobManager,
+                this.jobProcessorFactory,
+                this.contextSetup,
+                this,
+                this.concurrentJobCount
+        );
+        this.runnerStatusManager = new RunnerStatusManager(this.runnerRegistryClient, this.runnerId, this.ttl - (this.ttl / 10), this.ttl);
+        this.feederJobProcessorPool.addPoolListener(this.runnerStatusManager);
+
+        this.runnerStatusManager.start();
+        this.statusPool = Executors.newSingleThreadExecutor();
+        this.statusPool.submit(this.runnerStatusManager);
+
+        this.feederJobProcessorPool.start();
+    }
+
     public void stop() {
         try {
             this.jobRequestEndpointServer.stop();
             this.feederJobProcessorPool.stop();
             this.runnerStatusManager.stop();
+
+            this.statusPool.shutdownNow();
         } catch (Exception e) {}
         synchronized (this.stopMonitor) {
             this.stopMonitor.notify();
