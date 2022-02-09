@@ -65,7 +65,9 @@ public class RunnerStatusMonitor implements JobRunnerStatusStore, RunnerStatusPr
     }
 
     private void notifyStatusChanged(RunnerStatus from, RunnerStatus to) {
-        log.debug("status change request from {} to {}", from, to);
+        if(! from.equals(to)) {
+            log.debug("status change request from {} to {}", from, to);
+        }
         if(from != null && ! from.equals(to)) {
             if(RunnerStatus.IDLE.equals(to)) {
                 this.statusChangedListener.onIdle(from);

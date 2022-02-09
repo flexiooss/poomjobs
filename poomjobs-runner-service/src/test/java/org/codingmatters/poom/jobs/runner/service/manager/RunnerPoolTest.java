@@ -109,6 +109,7 @@ public class RunnerPoolTest {
                     Thread.sleep(10L);
                 } catch (InterruptedException e) {}
                 Job changed = job.withStatus(Status.builder().run(Status.Run.DONE).exit(Status.Exit.SUCCESS).build());
+//                System.out.println("processed job " + job.id());
                 processedJobs.add(changed);
                 return changed;
             },
@@ -120,7 +121,10 @@ public class RunnerPoolTest {
                 }
 
                 @Override
-                public void processingExceptionThrown(RunnerToken token, Job job, JobProcessingException e) {}
+                public void processingExceptionThrown(RunnerToken token, Job job, JobProcessingException e) {
+                    System.err.println("\n\n\n\n\n\nEXCEPTION THROWN " + job + "\n\n\n\n\n\n");
+                    e.printStackTrace();
+                }
             },
             new RunnerStatusMonitor(
                     "test-job-pool",
@@ -225,7 +229,7 @@ public class RunnerPoolTest {
             this.jobs.add(Job.builder().id(id).status(Status.builder().run(Status.Run.PENDING).build()).build());
             expectedProcessedIds[i] = id;
         }
-        Thread.sleep(2000);
+        Thread.sleep(3000);
         this.pool.start();
 
         Eventually.timeout(10, TimeUnit.SECONDS).assertThat(

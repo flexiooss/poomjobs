@@ -88,6 +88,8 @@ public class RunnerPool {
                 }
             }
         });
+
+
     }
 
 
@@ -105,48 +107,63 @@ public class RunnerPool {
         }
     }
 
+    private void processAssignement(JobAssignementFuture assignment) {
+        try {
+            this.assign(assignment.job());
+            assignment.complete(JobAssignementFuture.Status.SUCCESS);
+        } catch (RunnerBusyException | JobNotSubmitableException | JobProcessorRunner.JobUpdateFailure e) {
+            log.error("status changed, cannot assign incoming job", e);
+            assignment.complete(JobAssignementFuture.Status.FAILURE);
+        }
+    }
+
     private void processAssignments() {
         while(this.running.get()) {
-            JobAssignementFuture assignment = null;
             try {
-                assignment = this.awaitingJobAssignment.poll(2, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {}
-            if(assignment != null) {
+                JobAssignementFuture assignment = null;
                 try {
-                    this.assign(assignment.job());
-                    assignment.complete(JobAssignementFuture.Status.SUCCESS);
-                } catch (RunnerBusyException | JobNotSubmitableException | JobProcessorRunner.JobUpdateFailure e) {
-                    log.error("status changed, cannot assign incoming job", e);
-                    assignment.complete(JobAssignementFuture.Status.FAILURE);
+                    assignment = this.awaitingJobAssignment.poll(2, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
                 }
+                if (assignment != null) {
+                    log.debug("processing assignment :: {}", assignment.job().id());
+                    this.processAssignement(assignment);
+                }
+            } catch(Exception e) {
+                log.error("[GRAVE] unexpected exception caught in assignment processing runnable", e);
             }
         }
     }
 
     private void assignPendingJobs() {
         while(this.running.get()) {
-            if(this.monitor.status().equals(RunnerStatus.IDLE)) {
-                LinkedList<Job> pendingJobs;
-                synchronized (this.shouldProcessPending) {
-                    pendingJobs = new LinkedList<>(this.jobManager.pendingJobs().stream().collect(Collectors.toList()));
-                    if(pendingJobs.isEmpty()) {
-                        try {
-                            this.shouldProcessPending.wait(2 * 1000L);
-                        } catch (InterruptedException e) {}
+            try {
+                if (this.monitor.status().equals(RunnerStatus.IDLE)) {
+                    LinkedList<Job> pendingJobs;
+                    synchronized (this.shouldProcessPending) {
+                        pendingJobs = new LinkedList<>(this.jobManager.pendingJobs().stream().collect(Collectors.toList()));
+                        if (pendingJobs.isEmpty()) {
+                            try {
+                                this.shouldProcessPending.wait(2 * 1000L);
+                            } catch (InterruptedException e) {
+                            }
+                        }
                     }
-                }
-                if(! pendingJobs.isEmpty()) {
-                    while (!pendingJobs.isEmpty() && this.monitor.status().equals(RunnerStatus.IDLE)) {
-                        Job job = pendingJobs.pollFirst();
-                        try {
-                            this.requestAssignment(job).get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            log.error("while requesting pending job assignment, got unexpected error", e);
-                        } catch (JobNotSubmitableException e) {
-                            log.error("[GRAVE] grave pending job is not submittable : " + job, e);
+                    if (!pendingJobs.isEmpty()) {
+                        while (!pendingJobs.isEmpty() && this.monitor.status().equals(RunnerStatus.IDLE)) {
+                            Job job = pendingJobs.pollFirst();
+                            try {
+                                this.requestAssignment(job).get();
+                            } catch (InterruptedException | ExecutionException e) {
+                                log.error("while requesting pending job assignment, got unexpected error", e);
+                            } catch (JobNotSubmitableException e) {
+                                log.error("[GRAVE] grave pending job is not submittable : " + job, e);
+                            }
                         }
                     }
                 }
+            } catch (Exception e) {
+                log.error("[GRAVE] unexpected exception caught in pending job assignment runnable", e);
             }
         }
     }
@@ -155,7 +172,7 @@ public class RunnerPool {
         JobAssignementFuture assigned = this.requestAssignment(job);
         try {
             JobAssignementFuture.Status assignment = assigned.get();
-            return assigned.equals(JobAssignementFuture.Status.SUCCESS);
+            return assignment.equals(JobAssignementFuture.Status.SUCCESS);
         } catch (InterruptedException | ExecutionException e) {
             log.error("while requesting submitted job assignment, got unexpected error", e);
         }
