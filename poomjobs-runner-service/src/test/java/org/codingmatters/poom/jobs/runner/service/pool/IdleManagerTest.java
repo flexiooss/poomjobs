@@ -1,11 +1,10 @@
 package org.codingmatters.poom.jobs.runner.service.pool;
 
-import org.codingmatters.poom.jobs.runner.service.manager.flow.JobProcessorRunner;
+import org.codingmatters.poom.jobs.runner.service.jobs.JobProcessorRunner;
 import org.codingmatters.poom.patterns.pool.FeederPool;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poomjobs.api.ValueList;
 import org.codingmatters.poomjobs.api.types.Job;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.util.Arrays;

@@ -1,20 +1,18 @@
-package org.codingmatters.poom.jobs.runner.service.manager.jobs;
+package org.codingmatters.poom.jobs.runner.service.jobs;
 
 import org.codingmatters.poom.handler.HandlerResource;
-import org.codingmatters.poom.jobs.runner.service.manager.flow.JobProcessorRunner;
+import org.codingmatters.poom.jobs.runner.service.jobs.JobManager;
+import org.codingmatters.poom.jobs.runner.service.jobs.JobProcessorRunner;
 import org.codingmatters.poomjobs.api.*;
 import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status200;
-import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status206;
 import org.codingmatters.poomjobs.api.jobresourcepatchresponse.Status400;
 import org.codingmatters.poomjobs.api.jobresourcepatchresponse.Status404;
 import org.codingmatters.poomjobs.api.jobresourcepatchresponse.Status500;
-import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 import org.codingmatters.poomjobs.api.types.jobupdatedata.Status;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIHandlersClient;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -22,8 +20,6 @@ import org.junit.rules.ExpectedException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;

@@ -2,8 +2,8 @@ package org.codingmatters.poom.jobs.runner.service.pool;
 
 import org.codingmatters.poom.jobs.runner.service.exception.JobNotSubmitableException;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerBusyException;
-import org.codingmatters.poom.jobs.runner.service.manager.flow.JobProcessorRunner;
-import org.codingmatters.poom.jobs.runner.service.manager.jobs.JobManager;
+import org.codingmatters.poom.jobs.runner.service.jobs.JobProcessorRunner;
+import org.codingmatters.poom.jobs.runner.service.jobs.JobManager;
 import org.codingmatters.poom.patterns.pool.Feeder;
 import org.codingmatters.poom.patterns.pool.FeederPool;
 import org.codingmatters.poom.patterns.pool.exception.NotIdleException;

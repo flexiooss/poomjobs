@@ -1,6 +1,5 @@
-package org.codingmatters.poom.jobs.runner.service.manager.jobs;
+package org.codingmatters.poom.jobs.runner.service.jobs;
 
-import org.codingmatters.poom.jobs.runner.service.manager.flow.JobProcessorRunner;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.Env;
 import org.codingmatters.poomjobs.api.JobCollectionGetResponse;

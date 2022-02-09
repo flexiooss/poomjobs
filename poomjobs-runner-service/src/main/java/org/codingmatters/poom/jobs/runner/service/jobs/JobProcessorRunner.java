@@ -1,4 +1,4 @@
-package org.codingmatters.poom.jobs.runner.service.manager.flow;
+package org.codingmatters.poom.jobs.runner.service.jobs;
 
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;

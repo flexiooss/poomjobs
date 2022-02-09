@@ -18,5 +18,5 @@
     <logger name="io.undertow.request" level="INFO" />
     <logger name="org.mongodb.driver" level="WARN" />
 
-    <logger name="org.codingmatters.poom.jobs.runner.service.manager.flow.JobProcessorRunner" level="WARN" />
+    <logger name="org.codingmatters.poom.jobs.runner.service.jobs.JobProcessorRunner" level="WARN" />
 </configuration>

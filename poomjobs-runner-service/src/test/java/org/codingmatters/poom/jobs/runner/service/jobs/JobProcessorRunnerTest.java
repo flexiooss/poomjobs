@@ -1,5 +1,6 @@
-package org.codingmatters.poom.jobs.runner.service.manager.flow;
+package org.codingmatters.poom.jobs.runner.service.jobs;
 
+import org.codingmatters.poom.jobs.runner.service.jobs.JobProcessorRunner;
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poomjobs.api.types.Job;
