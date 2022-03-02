@@ -121,6 +121,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void oneJob_noConcurrency() throws Exception {
+        log.info("\n\n\noneJob_noConcurrency\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(1);
 
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
@@ -138,6 +139,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void twoJobs_noConcurrency() throws Exception {
+        log.info("\n\n\ntwoJobs_noConcurrency\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(1);
 
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
@@ -161,6 +163,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void manyJob_noConcurrency() throws Exception {
+        log.info("\n\n\nmanyJob_noConcurrency\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(1);
         for (int i = 0; i < 10; i++) {
             JobCollectionPostResponse e = this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
@@ -180,6 +183,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void oneJob_concurrency() throws Exception {
+        log.info("\n\n\noneJob_concurrency\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(10);
 
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
@@ -198,6 +202,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void oneJobBeforeStart_concurrency() throws Exception {
+        log.info("\n\n\noneJobBeforeStart_concurrency\n\n\n");
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
                 .accountId("blurp")
                 .payload(JobCreationData.builder()
@@ -215,6 +220,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void manyJob_concurrency() throws Exception {
+        log.info("\n\n\nmanyJob_concurrency\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(10);
         for (int i = 0; i < 50; i++) {
             this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
@@ -233,6 +239,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void manyJobBeforeStart_concurrency() throws Exception {
+        log.info("\n\n\nmanyJobBeforeStart_concurrency\n\n\n");
         for (int i = 0; i < 50; i++) {
             this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
                     .accountId("blurp")
@@ -261,6 +268,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void givenNoConcurrency__whenNoJob__thenRunnerRegistered_andIdle() throws Exception {
+        log.info("\n\n\ngivenNoConcurrency__whenNoJob__thenRunnerRegistered_andIdle\n\n\n");
         LocalDateTime start = UTC.now();
         this.createAndStartRunnerServiceWithConcurrency(1);
 
@@ -276,6 +284,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void givenNoConcurrency__whenNoJob_andWaitingForAWhile__thenPinged() throws Exception {
+        log.info("\n\n\ngivenNoConcurrency__whenNoJob_andWaitingForAWhile__thenPinged\n\n\n");
         LocalDateTime start = UTC.now();
         this.createAndStartRunnerServiceWithConcurrency(1);
 
@@ -293,6 +302,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void givenNoConcurrency__whenOneLongJob__thenRunnerStatusChangesToBusy_thanChangesBackToIdle() throws Exception {
+        log.info("\n\n\ngivenNoConcurrency__whenOneLongJob__thenRunnerStatusChangesToBusy_thanChangesBackToIdle\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(1);
 
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
@@ -347,6 +357,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void givenConcurrency__whenMoreJobsThanConcurrency__thenRunnerStatusChangesToBusy_thanChangesBackToIdle() throws Exception {
+        log.info("\n\n\ngivenConcurrency__whenMoreJobsThanConcurrency__thenRunnerStatusChangesToBusy_thanChangesBackToIdle\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(2);
 
         for (int i = 0; i < 6; i++) {
