@@ -28,6 +28,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -226,13 +227,17 @@ public class MultithreadedRunnerIntegrationTest {
             this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
                     .accountId("blurp")
                     .payload(JobCreationData.builder()
-                            .category("c").name("short")
+                            .category("c").name("short").arguments("job-" + i)
                             .build())
                     .build());
         }
 
         Eventually.timeout(120, TimeUnit.SECONDS).assertThat(
-                () -> this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange(),
+                () -> {
+                    String contentRange = this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange();
+                    log.info("done jobs range : {}", contentRange);
+                    return contentRange;
+                },
                 is("Job 0-49/50")
         );
     }
@@ -297,7 +302,7 @@ public class MultithreadedRunnerIntegrationTest {
         System.out.println(response.status200());
 
         assertThat(response.status200().payload().get(0).runtime().lastPing(), is(not(DateMatchers.around(start))));
-        assertThat(response.status200().payload().get(0).runtime().lastPing(), is(DateMatchers.after(start)));
+        assertThat(response.status200().payload().get(0).runtime().lastPing(), is(DateMatchers.after(start.plus((long) (RUNNER_TTL * 0.66), ChronoUnit.MILLIS))));
     }
 
     @Test
