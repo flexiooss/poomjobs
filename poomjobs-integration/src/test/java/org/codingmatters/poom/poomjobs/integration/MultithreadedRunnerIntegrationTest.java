@@ -231,7 +231,7 @@ public class MultithreadedRunnerIntegrationTest {
                     .build());
         }
 
-        Eventually.timeout(20, TimeUnit.SECONDS).assertThat(
+        Eventually.timeout(50, TimeUnit.SECONDS).assertThat(
                 () -> this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange(),
                 is("Job 0-49/50")
         );
