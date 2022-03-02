@@ -78,25 +78,7 @@ public class MultithreadedRunnerIntegrationTest {
             this.runnerService = RunnerService.setup()
                     .jobs(
                             "c", new String[]{"short", "long"},
-                            new JobProcessor.Factory() {
-                                @Override
-                                public JobProcessor createFor(Job job) {
-                                    return () -> {
-                                        log.info("PROCESSING TEST JOB {}", job);
-                                        try {
-                                            if (job.name().equals("short")) {
-                                                Thread.sleep(500L);
-                                            } else {
-                                                Thread.sleep(5000L);
-                                            }
-                                        } catch (InterruptedException e) {
-                                        }
-
-                                        log.info("DONE PROCESSING TEST JOB {}", job);
-                                        return job.withStatus(Status.builder().run(Status.Run.DONE).exit(Status.Exit.SUCCESS).build());
-                                    };
-                                }
-                            }
+                            new TestJobFactory()
                     )
                     .clients(
                             this.runnerRegistryClient,
@@ -259,6 +241,15 @@ public class MultithreadedRunnerIntegrationTest {
                             .build())
                     .build());
         }
+
+        assertThat(
+                this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange(),
+                is("Job 0-0/0")
+        );
+        assertThat(
+                this.jobRegistryClient.jobCollection().get(JobCollectionGetRequest.builder().build()).status200().contentRange(),
+                is("Job 0-49/50")
+        );
 
         this.createAndStartRunnerServiceWithConcurrency(10);
 

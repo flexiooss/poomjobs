@@ -37,6 +37,7 @@ public class IdleManager {
                     reserved = this.jobManager.reserve(pendingJob);
                     break;
                 } catch (JobProcessorRunner.JobUpdateFailure e) {
+                    handle.release();
                     log.debug("job changed status, cannot reserve");
                 }
             }
