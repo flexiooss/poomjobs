@@ -24,6 +24,7 @@ public class RunnerStatusManager implements Runnable, FeederPool.Listener {
 
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicReference<RunnerStatusData> nextStatus = new AtomicReference<>(RunnerStatusData.builder().status(RunnerStatusData.Status.IDLE).build());
+    private final AtomicReference<RunnerStatusData> lastStatus = new AtomicReference<>();
 
     public RunnerStatusManager(PoomjobsRunnerRegistryAPIClient runnerRegistryClient, String runnerId, long maxTimeout, long minTimeout) {
         this.runnerRegistryClient = runnerRegistryClient;
@@ -69,7 +70,7 @@ public class RunnerStatusManager implements Runnable, FeederPool.Listener {
                 } catch (InterruptedException e) {}
                 if(this.running.get()) {
                     RunnerStatusData statusData = this.nextStatus.get();
-                    if (statusData != null) {
+                    if (statusData != null && ! statusData.equals(this.lastStatus.get())) {
                         this.patchRunnerStatus(statusData);
                     }
                 }
