@@ -70,7 +70,7 @@ public class FeederJobProcessorPool {
             }
             Feeder.Handle<Job> handle;
             try {
-                log.info("processing incoming job : {}", job);
+                log.debug("processing incoming job - reserve feeder : {}", job);
                 handle = this.feeders.reserve();
             } catch (NotIdleException e) {
                 throw new RunnerBusyException("feeder pool not idle anymore", e);
@@ -83,7 +83,7 @@ public class FeederJobProcessorPool {
                 throw new JobNotSubmitableException("failed updating job, cannot submit", e);
             }
             try {
-                log.info("processing incoming job : {}", job);
+                log.debug("processing incoming job - feeding : {}", job);
                 handle.feed(reserved);
             } catch (NotReservedException e) {
                 handle.release();

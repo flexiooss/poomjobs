@@ -132,8 +132,8 @@ public class IdleManagerTest {
 
     @Test
     public void givenOneFeederIdle__whenSomePendingJobsOnFirstCall_andSomePendingJobsOnSecondCall_thenNoPendingJobs__thenOneJobsReserved_andPendingJobsNotRequestedAgain() throws Exception {
-        this.feeders.reserve();
-        this.feeders.reserve();
+        this.feeders.reserve().feed(Job.builder().id("working-1").build());
+        this.feeders.reserve().feed(Job.builder().id("working-2").build());
 
         this.nextPendingJobsResponses.add(Arrays.asList(
                 Job.builder().id("a").build(), Job.builder().id("b").build(), Job.builder().id("c").build()
@@ -152,9 +152,9 @@ public class IdleManagerTest {
 
     @Test
     public void givenFeedersBusy__whenSomePendingJobsOnFirstCall__thenPendingJobsNotRequested_andNoJobReserved() throws Exception {
-        this.feeders.reserve();
-        this.feeders.reserve();
-        this.feeders.reserve();
+        this.feeders.reserve().feed(Job.builder().id("working-1").build());
+        this.feeders.reserve().feed(Job.builder().id("working-2").build());
+        this.feeders.reserve().feed(Job.builder().id("working-3").build());
 
         this.nextPendingJobsResponses.add(Arrays.asList(
                 Job.builder().id("a").build(), Job.builder().id("b").build(), Job.builder().id("c").build()

@@ -76,7 +76,7 @@ public class Feeder<In> {
     }
 
     public synchronized boolean isIdle() {
-        return this.status.equals(Status.IDLE);
+        return this.status.equals(Status.IDLE) || this.status.equals(Status.RESERVED);
     }
 
     public Monitor<In> monitor() {

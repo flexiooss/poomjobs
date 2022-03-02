@@ -21,10 +21,10 @@ public class FeederTest {
     }
 
     @Test
-    public void whenReserved__thenBusy() throws Exception {
+    public void whenReserved__thenIdle() throws Exception {
         this.feeder.reserve();
 
-        assertThat(feeder.isIdle(), is(false));
+        assertThat(feeder.isIdle(), is(true));
     }
 
     @Test

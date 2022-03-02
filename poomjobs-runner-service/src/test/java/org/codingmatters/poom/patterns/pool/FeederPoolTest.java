@@ -17,7 +17,7 @@ public class FeederPoolTest {
     }
 
     @Test
-    public void givenAllFeederReserved_whenNotFeed__thenPoolBecomesBusy_andNextReservationRaisesException() throws Exception {
+    public void givenAllFeederReserved_whenNotFeed__thenPoolIsIdle_andNextReservationRaisesException() throws Exception {
         FeederPool<UUID> pool = new FeederPool<UUID>(5);
 
         for (int i = 1; i <= 4; i++) {
@@ -26,7 +26,7 @@ public class FeederPoolTest {
         }
 
         pool.reserve();
-        assertThat(pool.isIdle(), is(false));
+        assertThat(pool.isIdle(), is(true));
 
         assertThrows(NotIdleException.class, () -> pool.reserve());
     }

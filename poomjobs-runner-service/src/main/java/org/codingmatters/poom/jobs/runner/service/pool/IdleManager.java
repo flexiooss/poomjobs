@@ -26,14 +26,16 @@ public class IdleManager {
             if(jobs.isEmpty()) return ;
             Feeder.Handle<Job> handle;
             try {
+                log.debug("processing pending jobs - reserve feeder : {} pending jobs", jobs.size());
                 handle = this.feeders.reserve();
             } catch (NotIdleException e) {
-                log.info("not idle feeder, must have change status");
+                log.debug("not idle feeder, must have change status");
                 return;
             }
             Job reserved = null;
             for (Job pendingJob : jobs) {
                 try {
+                    log.debug("processing pending jobs - reserving : {}", pendingJob);
                     reserved = this.jobManager.reserve(pendingJob);
                     break;
                 } catch (JobProcessorRunner.JobUpdateFailure e) {
@@ -43,6 +45,7 @@ public class IdleManager {
             }
             if(reserved != null) {
                 try {
+                    log.debug("processing pending jobs - feeding : {}", reserved);
                     handle.feed(reserved);
                 } catch (NotReservedException e) {
                     log.error("[GRAVE] feeder busy, this one is very strange", e);
