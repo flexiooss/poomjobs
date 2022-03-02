@@ -297,7 +297,7 @@ public class MultithreadedRunnerIntegrationTest {
         System.out.println(response.status200());
 
         assertThat(response.status200().payload().get(0).runtime().lastPing(), is(not(DateMatchers.around(start))));
-        assertThat(response.status200().payload().get(0).runtime().lastPing(), is(DateMatchers.around(now)));
+        assertThat(response.status200().payload().get(0).runtime().lastPing(), is(DateMatchers.after(start)));
     }
 
     @Test
