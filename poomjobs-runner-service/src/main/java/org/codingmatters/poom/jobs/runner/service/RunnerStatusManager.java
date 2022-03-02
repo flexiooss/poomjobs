@@ -92,6 +92,7 @@ public class RunnerStatusManager implements Runnable, FeederPool.Listener {
                     .runnerId(this.runnerId)
                     .payload(statusData)
                     .build());
+            this.lastStatus.set(statusData);
             if(response.opt().status200().isEmpty()) {
                 log.error("[GRAVE] unexpected response from runner registry while patching runner status");
             } else {
