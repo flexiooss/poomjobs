@@ -57,7 +57,7 @@ public class MultithreadedRunnerIntegrationTest {
     @Before
     public void setUp() throws Exception {
         int registriesPort = freePort();
-        this.registries = new PoomjobRegistriesService("localhost", registriesPort, Executors.newFixedThreadPool(30));
+        this.registries = new PoomjobRegistriesService("localhost", registriesPort, Executors.newFixedThreadPool(30), Executors.newSingleThreadExecutor());
         this.registries.start();
 
         HttpClientWrapper httpClientWrapper = OkHttpClientWrapper.build();

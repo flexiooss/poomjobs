@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 
 public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
 
@@ -26,21 +27,23 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
 
     private final PoomjobsRunnerRegistryAPIClient runnerRegistry;
     private final RunnerClientFactory runnerClientFactory;
+    private final ExecutorService listenerPool;
 
-    public RunnerInvokerListener(PoomjobsRunnerRegistryAPIClient runnerRegistry, RunnerClientFactory runnerClientFactory) {
+    public RunnerInvokerListener(PoomjobsRunnerRegistryAPIClient runnerRegistry, RunnerClientFactory runnerClientFactory, ExecutorService listenerPool) {
         this.runnerRegistry = runnerRegistry;
         this.runnerClientFactory = runnerClientFactory;
+        this.listenerPool = listenerPool;
     }
 
     @Override
     public void jobCreated(Entity<JobValue> entity) {
-        this.findRunnerAndDeleguateJob(entity);
+        this.listenerPool.submit(() -> this.findRunnerAndDeleguateJob(entity));
     }
 
     @Override
     public void jobUpdated(Entity<JobValue> entity) {
         if(Status.Run.PENDING.equals(entity.value().opt().status().run().orElse(Status.Run.DONE))) {
-            this.findRunnerAndDeleguateJob(entity);
+            this.listenerPool.submit(() -> this.findRunnerAndDeleguateJob(entity));
         }
     }
 
