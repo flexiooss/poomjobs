@@ -10,7 +10,7 @@ public class LTRegistries {
      * @param args
      */
     public static void main(String[] args) {
-        PoomjobRegistriesService service = new PoomjobRegistriesService("0.0.0.0", 9999, Executors.newFixedThreadPool(5));
+        PoomjobRegistriesService service = new PoomjobRegistriesService("0.0.0.0", 9999, Executors.newFixedThreadPool(5), Executors.newFixedThreadPool(5));
 
         service.start();
         try {

@@ -6,7 +6,6 @@ import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIHandlersClient;
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.RunnerRepository;
-import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
@@ -41,8 +40,9 @@ public class PoomjobRegistriesService {
         
         AtomicInteger threadIndex = new AtomicInteger(1);
         ExecutorService clientPool = Executors.newFixedThreadPool(clientPoolSize, runnable -> new Thread(runnable, "client-pool-thread-" + threadIndex.getAndIncrement()));
+        ExecutorService listenerPool = Executors.newFixedThreadPool(Env.optional("JOB_LISTENER_POOL_SIZE").orElse(new Env.Var("5")).asInteger());
 
-        PoomjobRegistriesService service = new PoomjobRegistriesService(host, port, clientPool);
+        PoomjobRegistriesService service = new PoomjobRegistriesService(host, port, clientPool, listenerPool);
         service.start();
 
         log.info("poomjob registries running.");
@@ -74,7 +74,7 @@ public class PoomjobRegistriesService {
     private final Repository<RunnerValue, RunnerQuery> runnerRepository = RunnerRepository.createInMemory();
     private final PoomjobsRunnerRegistryAPI runnerRegistryAPI;
 
-    public PoomjobRegistriesService(String host, int port, ExecutorService clientPool) {
+    public PoomjobRegistriesService(String host, int port, ExecutorService clientPool, ExecutorService listenerPool) {
         this.host = host;
         this.port = port;
         this.clientPool = clientPool;
@@ -87,7 +87,7 @@ public class PoomjobRegistriesService {
 
         this.jobRegistryAPI = new PoomjobsJobRegistryAPI(
                 this.jobRepository,
-                new RunnerInvokerListener(runnerRegistryClient, new DefaultRunnerClientFactory(this.jsonFactory, OkHttpClientWrapper.build())),
+                new RunnerInvokerListener(runnerRegistryClient, new DefaultRunnerClientFactory(this.jsonFactory, OkHttpClientWrapper.build()), listenerPool),
                 null
         );
     }
