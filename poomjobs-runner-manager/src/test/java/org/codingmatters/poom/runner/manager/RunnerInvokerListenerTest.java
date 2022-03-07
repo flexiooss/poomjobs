@@ -2,6 +2,7 @@ package org.codingmatters.poom.runner.manager;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
+import org.codingmatters.poom.services.tests.Eventually;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIHandlersClient;
@@ -49,6 +50,7 @@ public class RunnerInvokerListenerTest {
 
     private Repository<RunnerValue, RunnerQuery> runnerRepository = RunnerRepository.createInMemory();
     private ExecutorService runnerRegistryPool;
+    private ExecutorService listenerPool = Executors.newSingleThreadExecutor();
     private PoomjobsRunnerRegistryAPIClient runnerRegistry;
 
     private Function<RunningJobPutRequest, RunningJobPutResponse> runnerPutResponder;
@@ -70,13 +72,19 @@ public class RunnerInvokerListenerTest {
         this.testRunnerClientFactory = new TestRunnerClientFactory(new DefaultRunnerClientFactory(new JsonFactory(), OkHttpClientWrapper.build()));
         this.runnerInvokerListener = new RunnerInvokerListener(
                 this.runnerRegistry,
-                testRunnerClientFactory
+                testRunnerClientFactory,
+                this.listenerPool
         );
     }
 
     @After
     public void tearDown() throws Exception {
-        this.tearDownRunnerRegistry();
+        try {
+            this.tearDownRunnerRegistry();
+        } catch (Exception e) {}
+        try {
+            this.listenerPool.shutdownNow();
+        } catch (Exception e) {}
     }
 
     public void setUpRunnerRegistry() throws Exception {
@@ -133,7 +141,8 @@ public class RunnerInvokerListenerTest {
                 .build());
         this.runnerInvokerListener.jobCreated(jobEntity);
 
-        assertThat(runnerRequestJob.get().id(), is(jobEntity.id()));
+        Eventually.defaults().assertThat(() -> runnerRequestJob.get().id(), is(jobEntity.id()));
+//        assertThat(runnerRequestJob.get().id(), is(jobEntity.id()));
     }
 
     @Test
@@ -165,7 +174,7 @@ public class RunnerInvokerListenerTest {
                 .build());
         this.runnerInvokerListener.jobUpdated(jobEntity);
 
-        assertThat(runnerRequestJob.get().id(), is(jobEntity.id()));
+        Eventually.defaults().assertThat(() -> runnerRequestJob.get().id(), is(jobEntity.id()));
     }
 
     @Test
@@ -197,7 +206,7 @@ public class RunnerInvokerListenerTest {
                 .build());
         this.runnerInvokerListener.jobUpdated(jobEntity);
 
-        assertThat(runnerRequestJob.get(), is(nullValue()));
+        Eventually.defaults().assertThat(() -> runnerRequestJob.get(), is(nullValue()));
     }
 
 
@@ -226,6 +235,6 @@ public class RunnerInvokerListenerTest {
                 .build());
         this.runnerInvokerListener.jobCreated(jobEntity);
 
-        assertThat(this.runnerRepository.retrieve(runnerId).value().runtime().status(), is(Runtime.Status.DISCONNECTED));
+        Eventually.defaults().assertThat(() -> this.runnerRepository.retrieve(runnerId).value().runtime().status(), is(Runtime.Status.DISCONNECTED));
     }
 }
