@@ -3,16 +3,13 @@ package org.codingmatters.poom.poomjobs.integration;
 import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.jobs.runner.service.RunnerService;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerServiceInitializationException;
-import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.date.UTC;
 import org.codingmatters.poom.services.tests.DateMatchers;
 import org.codingmatters.poom.services.tests.Eventually;
 import org.codingmatters.poomjobs.api.*;
-import org.codingmatters.poomjobs.api.types.Job;
+import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status200;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
-import org.codingmatters.poomjobs.api.types.JobUpdateData;
-import org.codingmatters.poomjobs.api.types.job.Status;
 import org.codingmatters.poomjobs.api.types.runner.Runtime;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIRequesterClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIRequesterClient;
@@ -20,7 +17,6 @@ import org.codingmatters.poomjobs.registries.service.PoomjobRegistriesService;
 import org.codingmatters.rest.api.client.okhttp.HttpClientWrapper;
 import org.codingmatters.rest.api.client.okhttp.OkHttpClientWrapper;
 import org.codingmatters.rest.api.client.okhttp.OkHttpRequesterFactory;
-import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,8 +24,10 @@ import org.junit.Test;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -78,25 +76,7 @@ public class MultithreadedRunnerIntegrationTest {
             this.runnerService = RunnerService.setup()
                     .jobs(
                             "c", new String[]{"short", "long"},
-                            new JobProcessor.Factory() {
-                                @Override
-                                public JobProcessor createFor(Job job) {
-                                    return () -> {
-                                        log.info("PROCESSING TEST JOB {}", job);
-                                        try {
-                                            if (job.name().equals("short")) {
-                                                Thread.sleep(500L);
-                                            } else {
-                                                Thread.sleep(5000L);
-                                            }
-                                        } catch (InterruptedException e) {
-                                        }
-
-                                        log.info("DONE PROCESSING TEST JOB {}", job);
-                                        return job.withStatus(Status.builder().run(Status.Run.DONE).exit(Status.Exit.SUCCESS).build());
-                                    };
-                                }
-                            }
+                            new TestJobFactory()
                     )
                     .clients(
                             this.runnerRegistryClient,
@@ -139,6 +119,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void oneJob_noConcurrency() throws Exception {
+        log.info("\n\n\noneJob_noConcurrency\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(1);
 
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
@@ -156,18 +137,19 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void twoJobs_noConcurrency() throws Exception {
+        log.info("\n\n\ntwoJobs_noConcurrency\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(1);
 
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
                 .accountId("blurp1")
                 .payload(JobCreationData.builder()
-                        .category("c").name("short")
+                        .category("c").name("short").arguments("job-1")
                         .build())
                 .build());
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
                 .accountId("blurp2")
                 .payload(JobCreationData.builder()
-                        .category("c").name("short")
+                        .category("c").name("short").arguments("job-2")
                         .build())
                 .build());
 
@@ -179,6 +161,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void manyJob_noConcurrency() throws Exception {
+        log.info("\n\n\nmanyJob_noConcurrency\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(1);
         for (int i = 0; i < 10; i++) {
             JobCollectionPostResponse e = this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
@@ -198,6 +181,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void oneJob_concurrency() throws Exception {
+        log.info("\n\n\noneJob_concurrency\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(10);
 
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
@@ -216,6 +200,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void oneJobBeforeStart_concurrency() throws Exception {
+        log.info("\n\n\noneJobBeforeStart_concurrency\n\n\n");
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
                 .accountId("blurp")
                 .payload(JobCreationData.builder()
@@ -233,24 +218,37 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void manyJob_concurrency() throws Exception {
+        log.info("\n\n\nmanyJob_concurrency\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(10);
         for (int i = 0; i < 50; i++) {
             this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
                     .accountId("blurp")
                     .payload(JobCreationData.builder()
-                            .category("c").name("short")
+                            .category("c").name("short").arguments("job-" + i)
                             .build())
                     .build());
+            log.info("submitted job-" + i);
         }
 
-        Eventually.timeout(20, TimeUnit.SECONDS).assertThat(
-                () -> this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange(),
+        Eventually.timeout(10, TimeUnit.SECONDS).assertThat(
+                () -> {
+                    String contentRange = this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange();
+                    log.info("done jobs range : {}", contentRange);
+                    Status200 pending = this.jobRegistryClient.jobCollection().get(get -> get.runStatus("PENDING")).status200();
+                    log.info("pending jobs range : {}", pending.contentRange());
+                    log.info("\t pending jobs : {}", pending.payload().stream().map(job -> job.arguments().get(0)).collect(Collectors.joining(", ")));
+                    Status200 running = this.jobRegistryClient.jobCollection().get(get -> get.runStatus("RUNNING")).status200();
+                    log.info("running jobs range : {}", running.contentRange());
+                    log.info("\t running jobs : {}", running.payload().stream().map(job -> job.arguments().get(0)).collect(Collectors.joining(", ")));
+                    return contentRange;
+                },
                 is("Job 0-49/50")
         );
     }
 
     @Test
     public void manyJobBeforeStart_concurrency() throws Exception {
+        log.info("\n\n\nmanyJobBeforeStart_concurrency\n\n\n");
         for (int i = 0; i < 50; i++) {
             this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
                     .accountId("blurp")
@@ -259,6 +257,15 @@ public class MultithreadedRunnerIntegrationTest {
                             .build())
                     .build());
         }
+
+        assertThat(
+                this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange(),
+                is("Job 0-0/0")
+        );
+        assertThat(
+                this.jobRegistryClient.jobCollection().get(JobCollectionGetRequest.builder().build()).status200().contentRange(),
+                is("Job 0-49/50")
+        );
 
         this.createAndStartRunnerServiceWithConcurrency(10);
 
@@ -270,6 +277,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void givenNoConcurrency__whenNoJob__thenRunnerRegistered_andIdle() throws Exception {
+        log.info("\n\n\ngivenNoConcurrency__whenNoJob__thenRunnerRegistered_andIdle\n\n\n");
         LocalDateTime start = UTC.now();
         this.createAndStartRunnerServiceWithConcurrency(1);
 
@@ -285,6 +293,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void givenNoConcurrency__whenNoJob_andWaitingForAWhile__thenPinged() throws Exception {
+        log.info("\n\n\ngivenNoConcurrency__whenNoJob_andWaitingForAWhile__thenPinged\n\n\n");
         LocalDateTime start = UTC.now();
         this.createAndStartRunnerServiceWithConcurrency(1);
 
@@ -297,11 +306,12 @@ public class MultithreadedRunnerIntegrationTest {
         System.out.println(response.status200());
 
         assertThat(response.status200().payload().get(0).runtime().lastPing(), is(not(DateMatchers.around(start))));
-        assertThat(response.status200().payload().get(0).runtime().lastPing(), is(DateMatchers.around(now)));
+        assertThat(response.status200().payload().get(0).runtime().lastPing(), is(DateMatchers.after(start.plus((long) (RUNNER_TTL * 0.66), ChronoUnit.MILLIS))));
     }
 
     @Test
     public void givenNoConcurrency__whenOneLongJob__thenRunnerStatusChangesToBusy_thanChangesBackToIdle() throws Exception {
+        log.info("\n\n\ngivenNoConcurrency__whenOneLongJob__thenRunnerStatusChangesToBusy_thanChangesBackToIdle\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(1);
 
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
@@ -356,6 +366,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Test
     public void givenConcurrency__whenMoreJobsThanConcurrency__thenRunnerStatusChangesToBusy_thanChangesBackToIdle() throws Exception {
+        log.info("\n\n\ngivenConcurrency__whenMoreJobsThanConcurrency__thenRunnerStatusChangesToBusy_thanChangesBackToIdle\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(2);
 
         for (int i = 0; i < 6; i++) {

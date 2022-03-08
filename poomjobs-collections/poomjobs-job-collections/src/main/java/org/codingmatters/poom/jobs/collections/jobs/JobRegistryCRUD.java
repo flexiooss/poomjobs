@@ -128,7 +128,7 @@ public class JobRegistryCRUD implements PagedCollectionAdapter.CRUD<Job, JobCrea
         } else {
             throw new BadRequestException(Error.builder()
                     .code(Error.Code.INVALID_OBJECT_FOR_UPDATE)
-                    .token(log.tokenized().info("invalid for job update : {} - {}", change.validation().message(), jobUpdateData))
+                    .token(log.tokenized().info("invalid for job {} update : {} - {}", entity.id(), change.validation().message(), jobUpdateData))
                     .description(change.validation().message())
                     .build(), change.validation().message());
         }

@@ -117,6 +117,10 @@ public class PoomjobRegistriesService {
     public void stop() {
         this.server.stop();
 
+        try {
+            this.clientPool.shutdownNow();
+        } catch (Exception e) {}
+
         this.clientPool.shutdown();
         try {
             this.clientPool.awaitTermination(5, TimeUnit.SECONDS);
