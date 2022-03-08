@@ -43,10 +43,26 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
                 .run(org.codingmatters.poomjobs.api.types.job.Status.Run.RUNNING)
                 .build()
         );
-        return this.update(
+        Job result = this.update(
                 job,
                 true
         );
+        log.debug("reserved job: {}", job);
+        return result;
+    }
+
+    @Override
+    public Job release(Job job) throws JobProcessorRunner.JobUpdateFailure {
+        job = job.withStatus(org.codingmatters.poomjobs.api.types.job.Status.builder()
+                .run(org.codingmatters.poomjobs.api.types.job.Status.Run.PENDING)
+                .build()
+        );
+        Job result = this.update(
+                job,
+                true
+        );
+        log.debug("released job: {}", job);
+        return result;
     }
 
     private Job update(Job job, boolean strictly) throws JobProcessorRunner.JobUpdateFailure {
@@ -119,7 +135,7 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
             candidates = response.status206().payload();
         } else {
             log.error("failed getting candidate job list, expected 200 or 206, got : {}", response);
-            return null;
+            candidates = ValueList.<Job>builder().build();
         }
         return candidates;
     }

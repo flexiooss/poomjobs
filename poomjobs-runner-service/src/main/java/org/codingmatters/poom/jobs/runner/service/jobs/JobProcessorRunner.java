@@ -77,6 +77,7 @@ public class JobProcessorRunner {
     public interface PendingJobManager {
         ValueList<Job> pendingJobs();
         Job reserve(Job job) throws JobProcessorRunner.JobUpdateFailure;
+        Job release(Job reserved) throws JobUpdateFailure;
     }
 
     public static class JobUpdateFailure extends Exception {

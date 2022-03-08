@@ -1,6 +1,5 @@
 package org.codingmatters.poom.jobs.runner.service;
 
-import org.codingmatters.poom.patterns.pool.FeederPool;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poomjobs.api.RunnerPatchRequest;
 import org.codingmatters.poomjobs.api.RunnerPatchResponse;
@@ -12,7 +11,7 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class RunnerStatusManager implements Runnable, FeederPool.Listener {
+public class RunnerStatusManager implements Runnable {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(RunnerStatusManager.class);
 
     private final PoomjobsRunnerRegistryAPIClient runnerRegistryClient;
@@ -33,7 +32,6 @@ public class RunnerStatusManager implements Runnable, FeederPool.Listener {
         this.minTimeout = minTimeout;
     }
 
-    @Override
     public void becameIdle() {
         synchronized (this.nextStatus) {
             this.nextStatus.set(RunnerStatusData.builder().status(RunnerStatusData.Status.IDLE).build());
@@ -41,7 +39,6 @@ public class RunnerStatusManager implements Runnable, FeederPool.Listener {
         }
     }
 
-    @Override
     public void becameBusy() {
         synchronized (this.nextStatus) {
             this.nextStatus.set(RunnerStatusData.builder().status(RunnerStatusData.Status.RUNNING).build());
@@ -70,9 +67,7 @@ public class RunnerStatusManager implements Runnable, FeederPool.Listener {
                 } catch (InterruptedException e) {}
                 if(this.running.get()) {
                     RunnerStatusData statusData = this.nextStatus.get();
-                    if (statusData != null && ! statusData.equals(this.lastStatus.get())) {
-                        this.patchRunnerStatus(statusData);
-                    }
+                    this.patchRunnerStatus(statusData);
                 }
             }
         }
@@ -92,6 +87,7 @@ public class RunnerStatusManager implements Runnable, FeederPool.Listener {
                     .runnerId(this.runnerId)
                     .payload(statusData)
                     .build());
+            log.debug("status manager - status updated to {}", statusData);
             this.lastStatus.set(statusData);
             if(response.opt().status200().isEmpty()) {
                 log.error("[GRAVE] unexpected response from runner registry while patching runner status");

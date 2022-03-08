@@ -11,7 +11,7 @@ public class TestJobFactory implements JobProcessor.Factory {
     @Override
     public JobProcessor createFor(Job job) {
         return () -> {
-            log.info("PROCESSING TEST JOB {}", job);
+            log.info("PROCESSING TEST JOB {} : ", job.arguments(), job);
             try {
                 if (job.name().equals("short")) {
                     Thread.sleep(500L);

@@ -3,16 +3,13 @@ package org.codingmatters.poom.poomjobs.integration;
 import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.jobs.runner.service.RunnerService;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerServiceInitializationException;
-import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.date.UTC;
 import org.codingmatters.poom.services.tests.DateMatchers;
 import org.codingmatters.poom.services.tests.Eventually;
 import org.codingmatters.poomjobs.api.*;
-import org.codingmatters.poomjobs.api.types.Job;
+import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status200;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
-import org.codingmatters.poomjobs.api.types.JobUpdateData;
-import org.codingmatters.poomjobs.api.types.job.Status;
 import org.codingmatters.poomjobs.api.types.runner.Runtime;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIRequesterClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIRequesterClient;
@@ -20,7 +17,6 @@ import org.codingmatters.poomjobs.registries.service.PoomjobRegistriesService;
 import org.codingmatters.rest.api.client.okhttp.HttpClientWrapper;
 import org.codingmatters.rest.api.client.okhttp.OkHttpClientWrapper;
 import org.codingmatters.rest.api.client.okhttp.OkHttpRequesterFactory;
-import org.hamcrest.MatcherAssert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,6 +27,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -146,13 +143,13 @@ public class MultithreadedRunnerIntegrationTest {
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
                 .accountId("blurp1")
                 .payload(JobCreationData.builder()
-                        .category("c").name("short")
+                        .category("c").name("short").arguments("job-1")
                         .build())
                 .build());
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
                 .accountId("blurp2")
                 .payload(JobCreationData.builder()
-                        .category("c").name("short")
+                        .category("c").name("short").arguments("job-2")
                         .build())
                 .build());
 
@@ -230,12 +227,19 @@ public class MultithreadedRunnerIntegrationTest {
                             .category("c").name("short").arguments("job-" + i)
                             .build())
                     .build());
+            log.info("submitted job-" + i);
         }
 
-        Eventually.timeout(120, TimeUnit.SECONDS).assertThat(
+        Eventually.timeout(10, TimeUnit.SECONDS).assertThat(
                 () -> {
                     String contentRange = this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange();
                     log.info("done jobs range : {}", contentRange);
+                    Status200 pending = this.jobRegistryClient.jobCollection().get(get -> get.runStatus("PENDING")).status200();
+                    log.info("pending jobs range : {}", pending.contentRange());
+                    log.info("\t pending jobs : {}", pending.payload().stream().map(job -> job.arguments().get(0)).collect(Collectors.joining(", ")));
+                    Status200 running = this.jobRegistryClient.jobCollection().get(get -> get.runStatus("RUNNING")).status200();
+                    log.info("running jobs range : {}", running.contentRange());
+                    log.info("\t running jobs : {}", running.payload().stream().map(job -> job.arguments().get(0)).collect(Collectors.joining(", ")));
                     return contentRange;
                 },
                 is("Job 0-49/50")
