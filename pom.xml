@@ -41,13 +41,13 @@
     <repositories>
         <repository>
             <id>codingmatters-snapshots</id>
-            <url>http://maven.ci.flexio.io:8080/repository/codingmatters-snapshots/</url>
+            <url>https://mvn.ci.flexio.io/codingmatters-snapshots/</url>
             <releases><enabled>false</enabled></releases>
             <snapshots><enabled>true</enabled></snapshots>
         </repository>
         <repository>
             <id>codingmatters-releases</id>
-            <url>http://maven.ci.flexio.io:8080/repository/codingmatters-releases/</url>
+            <url>https://mvn.ci.flexio.io/codingmatters-releases/</url>
             <releases><enabled>true</enabled></releases>
             <snapshots><enabled>false</enabled></snapshots>
         </repository>
@@ -56,13 +56,13 @@
     <pluginRepositories>
         <pluginRepository>
             <id>codingmatters-snapshots</id>
-            <url>http://maven.ci.flexio.io:8080/repository/codingmatters-snapshots/</url>
+            <url>https://mvn.ci.flexio.io/codingmatters-snapshots/</url>
             <releases><enabled>false</enabled></releases>
             <snapshots><enabled>true</enabled></snapshots>
         </pluginRepository>
         <pluginRepository>
             <id>codingmatters-releases</id>
-            <url>http://maven.ci.flexio.io:8080/repository/codingmatters-releases/</url>
+            <url>https://mvn.ci.flexio.io/codingmatters-releases/</url>
             <releases><enabled>true</enabled></releases>
             <snapshots><enabled>false</enabled></snapshots>
         </pluginRepository>
