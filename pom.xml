@@ -7,11 +7,11 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poom-services</artifactId>
-        <version>1.121.0</version>
+        <version>1.123.0</version>
     </parent>
 
     <artifactId>poomjobs</artifactId>
-    <version>1.139.0</version>
+    <version>1.140.0</version>
 
     <name>Poor Man's Jobs</name>
     <description>Distributed Job Queue Framework</description>
@@ -91,7 +91,7 @@
     </dependencies>
 
     <properties>
-        <flexio-commons.version>1.130.0</flexio-commons.version>
+        <flexio-commons.version>1.131.0</flexio-commons.version>
     </properties>
 
     <dependencyManagement>
@@ -108,62 +108,62 @@
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-api-spec</artifactId>
-                <version>1.139.0</version>
+                <version>1.140.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-api</artifactId>
-                <version>1.139.0</version>
+                <version>1.140.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-service</artifactId>
-                <version>1.139.0</version>
+                <version>1.140.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-clients</artifactId>
-                <version>1.139.0</version>
+                <version>1.140.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-processor</artifactId>
-                <version>1.139.0</version>
+                <version>1.140.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-domain</artifactId>
-                <version>1.139.0</version>
+                <version>1.140.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom.jobs.collections</groupId>
                 <artifactId>poomjobs-job-collections</artifactId>
-                <version>1.139.0</version>
+                <version>1.140.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-runner</artifactId>
-                <version>1.139.0</version>
+                <version>1.140.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-runner-manager</artifactId>
-                <version>1.139.0</version>
+                <version>1.140.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-registries-service</artifactId>
-                <version>1.139.0</version>
+                <version>1.140.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-runner-service</artifactId>
-                <version>1.139.0</version>
+                <version>1.140.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-integration</artifactId>
-                <version>1.139.0</version>
+                <version>1.140.0</version>
             </dependency>
             <!--// BOM-->
         </dependencies>
