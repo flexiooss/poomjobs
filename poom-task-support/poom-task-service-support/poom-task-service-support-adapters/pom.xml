@@ -6,16 +6,11 @@
 
     <parent>
         <groupId>org.codingmatters.tasks</groupId>
-        <artifactId>poom-task-support</artifactId>
+        <artifactId>poom-task-service-support</artifactId>
         <version>1.147.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>poom-task-service-support</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>poom-task-service-support-adapters</artifactId>
 
-    <modules>
-        <module>poom-task-service-support-api</module>
-        <module>poom-task-service-support-handlers</module>
-        <module>poom-task-service-support-adapters</module>
-    </modules>
+    
 </project>

@@ -10,7 +10,7 @@
         <version>1.147.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>poom-task-service-support-handlers</artifactId>
+    <artifactId>poom-task-service-support-api</artifactId>
 
     <dependencies>
         <dependency>
@@ -22,23 +22,8 @@
             <artifactId>poom-services-domain</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.codingmatters.tasks</groupId>
-            <artifactId>poom-task-service-support-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.codingmatters.poom</groupId>
-            <artifactId>poomjobs-clients</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.codingmatters.poom</groupId>
-            <artifactId>poom-services-repository-in-memory</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.codingmatters.poom</groupId>
-            <artifactId>poom-services-test-support</artifactId>
-            <scope>test</scope>
+            <artifactId>poomjobs-api</artifactId>
         </dependency>
     </dependencies>
     
