@@ -5,13 +5,13 @@ description: Poom Task API
 baseUri: https://api.poom.codingmatters.org/tasks
 mediaType: application/json
 
-annotationTypes: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/annotation-types/codingmatters.raml
+annotationTypes: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/annotation-types/codingmatters.raml
 resourceTypes:
-  tasks: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/tasks/tasks-resource-type.raml
-  task: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/tasks/task-resource-type.raml
-  task-logs: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/tasks/task-logs-resource-type.raml
-  task-status: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/tasks/task-status-resource-type.raml
-  task-result: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/tasks/task-result-resource-type.raml
+  tasks: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/tasks/tasks-resource-type.raml
+  task: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/tasks/task-resource-type.raml
+  task-logs: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/tasks/task-logs-resource-type.raml
+  task-status: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/tasks/task-status-resource-type.raml
+  task-result: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/tasks/task-result-resource-type.raml
 
 /:
   type: { tasks: { task-name: task, task-params: object } }
@@ -27,19 +27,19 @@ resourceTypes:
 
 
 types:
-  Task: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/tasks/types/task.raml
-  TaskCreation: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/tasks/types/task-creation.raml
-  TaskStatusChange: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/tasks/types/task-status-change.raml
-  TaskLog: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/tasks/types/task-log.raml
+  Task: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/tasks/types/task.raml
+  TaskCreation: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/tasks/types/task-creation.raml
+  TaskStatusChange: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/tasks/types/task-status-change.raml
+  TaskLog: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/tasks/types/task-log.raml
 
-  Message: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/types/message.raml
-  Error: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/types/error-with-messages.raml
+  Message: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/types/message.raml
+  Error: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/types/error-with-messages.raml
 
 
 traits:
-  rfc7233Browsing: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/traits/collection/rfc7233-browse-collection.raml
-  entityCreation: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/traits/collection/create.raml
-  entityRetrieve: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/traits/entity/retrieve.raml
-  entityReplace: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/traits/entity/replace.raml
-  entityUpdate: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/traits/entity/update.raml
-  entityDelete: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.17.0/apis/core/traits/entity/delete.raml
+  rfc7233Browsing: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/traits/collection/rfc7233-browse-collection.raml
+  entityCreation: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/traits/collection/create.raml
+  entityRetrieve: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/traits/entity/retrieve.raml
+  entityReplace: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/traits/entity/replace.raml
+  entityUpdate: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/traits/entity/update.raml
+  entityDelete: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.18.0/apis/core/traits/entity/delete.raml
