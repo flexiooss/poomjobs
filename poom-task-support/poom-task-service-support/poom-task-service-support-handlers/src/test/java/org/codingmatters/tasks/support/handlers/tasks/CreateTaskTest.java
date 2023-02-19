@@ -94,7 +94,7 @@ public class CreateTaskTest {
     }
 
     @Test
-    public void givenJobCreationFails__whenCreatingTaskWithParams__thenError500() throws Exception {
+    public void givenJobCreationFails__whenCreatingTaskWithParams__thenError500_andNoTaskStored() throws Exception {
         this.jobCreationRequest.nextResponse(req -> JobCollectionPostResponse.builder().status500(st -> st.payload(e -> e.token("tok"))).build());
 
         TaskCollectionPostResponse response = this.createTask.apply(TaskCollectionPostRequest.builder()
@@ -103,5 +103,18 @@ public class CreateTaskTest {
                 .build());
 
         assertThat(response.status500(), is(notNullValue()));
+
+        assertThat(this.repository.all(0L, 0L).total(), is(1L));
+
+        Task task = this.repository.all(0L, 0L).valueList().get(0);
+        assertThat(task.status().run(), is(Status.Run.DONE));
+        assertThat(task.status().exit(), is(Status.Exit.FAILURE));
+        assertThat(task.createdAt(), is(around(UTC.now())));
+        assertThat(task.startedAt(), is(nullValue()));
+        assertThat(task.finishedAt(), is(around(UTC.now())));
+
+        assertThat(task.callbackUrl(), is("http://call.me/back"));
+        assertThat(task.params(), is(ObjectValue.builder().property("submitted", v -> v.stringValue("value")).build()));
+        assertThat(task.results(), is(nullValue()));
     }
 }

@@ -63,11 +63,20 @@ public class CreateTask extends AbstractTaskHandler implements Function<TaskColl
             if(response.opt().status201().isPresent()) {
                 log.info("created job {} for task {}", response.status201().xEntityId(), taskEntity.id());
             } else {
+                log.error("job creation failed for task for task {} - response from job registry : {}", taskEntity.id(), response);
+                try {
+                    adapter.tasks().update(taskEntity, taskEntity.value()
+                            .withChangedStatus(status -> status.run(Status.Run.DONE).exit(Status.Exit.FAILURE))
+                            .withFinishedAt(UTC.now())
+                    );
+                } catch (RepositoryException e) {
+                    log.error("while job creation faile for task, failed accessing task storage", e);
+                }
                 return TaskCollectionPostResponse.builder().status500(st -> st.payload(error -> error
                     .code(Error.Code.UNEXPECTED_ERROR)
                     .token(log.tokenized().error("while submitting job for task, job refused : {} - {}", request, response))
-                    .description("job submission failed")
-            )).build();
+                    .description("job submission failed"))
+                ).build();
             }
         } catch (IOException e) {
             return TaskCollectionPostResponse.builder().status500(st -> st.payload(error -> error
