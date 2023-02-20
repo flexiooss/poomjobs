@@ -3,6 +3,7 @@ package org.codingmatters.tasks.support.api;
 import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
+import org.codingmatters.rest.api.client.Requester;
 import org.codingmatters.tasks.api.types.Task;
 import org.codingmatters.tasks.api.types.TaskLog;
 
@@ -13,4 +14,5 @@ public interface TaskEntryPointAdapter {
     Optional<Repository<TaskLog, PropertyQuery>> taskLogs();
     JobCreationData jobFor(Task task);
     String jobAccount();
+    Requester callbackRequester(String callbackUrl);
 }

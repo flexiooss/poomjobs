@@ -6,6 +6,8 @@ import org.codingmatters.poom.services.domain.repositories.inmemory.InMemoryRepo
 import org.codingmatters.poom.services.support.date.UTC;
 import org.codingmatters.poom.services.tests.DateMatchers;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
+import org.codingmatters.rest.api.client.Requester;
+import org.codingmatters.rest.api.client.test.TestRequesterFactory;
 import org.codingmatters.tasks.api.TaskLogsPostRequest;
 import org.codingmatters.tasks.api.TaskLogsPostResponse;
 import org.codingmatters.tasks.api.types.Task;
@@ -28,6 +30,8 @@ public class CreateTaskLogTest {
 
     private final AtomicReference<Repository<TaskLog, PropertyQuery>> taskLogRepository = new AtomicReference<>(InMemoryRepositoryWithPropertyQuery.validating(TaskLog.class));
 
+    private final TestRequesterFactory callbackRequesterFactory = new TestRequesterFactory(() -> "http://call.me/back");
+
     private final CreateTaskLog createTaskLog = new CreateTaskLog(() -> new TaskEntryPointAdapter() {
         @Override
         public Repository<Task, PropertyQuery> tasks() {
@@ -47,6 +51,11 @@ public class CreateTaskLogTest {
         @Override
         public String jobAccount() {
             return null;
+        }
+
+        @Override
+        public Requester callbackRequester(String callbackUrl) {
+            return callbackRequesterFactory.create();
         }
     });
 

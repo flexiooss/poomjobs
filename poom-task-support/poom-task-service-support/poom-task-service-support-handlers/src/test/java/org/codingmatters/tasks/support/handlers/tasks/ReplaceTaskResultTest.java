@@ -4,6 +4,8 @@ import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.domain.repositories.inmemory.InMemoryRepositoryWithPropertyQuery;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
+import org.codingmatters.rest.api.client.Requester;
+import org.codingmatters.rest.api.client.test.TestRequesterFactory;
 import org.codingmatters.tasks.api.TaskResultsPutRequest;
 import org.codingmatters.tasks.api.TaskResultsPutResponse;
 import org.codingmatters.tasks.api.types.Task;
@@ -20,6 +22,8 @@ import static org.hamcrest.Matchers.*;
 
 public class ReplaceTaskResultTest {
     private final Repository<Task, PropertyQuery> repository = InMemoryRepositoryWithPropertyQuery.validating(Task.class);
+
+    private final TestRequesterFactory callbackRequesterFactory = new TestRequesterFactory(() -> "http://call.me/back");
 
     private final ReplaceTaskResult replaceTaskResult = new ReplaceTaskResult(() -> new TaskEntryPointAdapter() {
         @Override
@@ -40,6 +44,11 @@ public class ReplaceTaskResultTest {
         @Override
         public String jobAccount() {
             return null;
+        }
+
+        @Override
+        public Requester callbackRequester(String callbackUrl) {
+            return callbackRequesterFactory.create();
         }
     });
 

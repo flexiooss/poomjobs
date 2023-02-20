@@ -1,34 +1,40 @@
 package org.codingmatters.tasks.support.handlers.tasks;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import org.codingmatters.poom.handler.HandlerResource;
 import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.domain.repositories.inmemory.InMemoryRepositoryWithPropertyQuery;
 import org.codingmatters.poom.services.support.date.UTC;
-import org.codingmatters.poom.services.tests.DateMatchers;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
 import org.codingmatters.poomjobs.api.PoomjobsJobRegistryAPIHandlers;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIHandlersClient;
+import org.codingmatters.rest.api.client.Requester;
+import org.codingmatters.rest.api.client.test.TestRequesterFactory;
 import org.codingmatters.tasks.api.TaskCollectionPostRequest;
 import org.codingmatters.tasks.api.TaskCollectionPostResponse;
 import org.codingmatters.tasks.api.types.Task;
 import org.codingmatters.tasks.api.types.TaskLog;
+import org.codingmatters.tasks.api.types.TaskNotification;
+import org.codingmatters.tasks.api.types.json.TaskNotificationReader;
 import org.codingmatters.tasks.api.types.task.Status;
 import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.codingmatters.value.objects.values.ObjectValue;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.Executors;
-import java.util.function.Function;
 
 import static org.codingmatters.poom.services.tests.DateMatchers.around;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertTrue;
 
 public class CreateTaskTest {
 
@@ -45,6 +51,7 @@ public class CreateTaskTest {
             .jobCollectionPostHandler(this.jobCreationRequest)
             .build(), Executors.newSingleThreadExecutor());
 
+    private final TestRequesterFactory callbackRequesterFactory = new TestRequesterFactory(() -> "http://call.me/back");
 
     private final CreateTask createTask = new CreateTask(() -> new TaskEntryPointAdapter() {
         @Override
@@ -65,6 +72,11 @@ public class CreateTaskTest {
         @Override
         public String jobAccount() {
             return "test-account";
+        }
+
+        @Override
+        public Requester callbackRequester(String callbackUrl) {
+            return callbackRequesterFactory.create();
         }
     }, this.jobsClient);
 
@@ -87,6 +99,31 @@ public class CreateTaskTest {
         assertThat(task.callbackUrl(), is("http://call.me/back"));
         assertThat(task.params(), is(ObjectValue.builder().property("submitted", v -> v.stringValue("value")).build()));
         assertThat(task.results(), is(nullValue()));
+    }
+
+    @Test
+    public void whenCreatingTask__thenCallbackCalled() throws Exception {
+        this.callbackRequesterFactory.nextResponse(TestRequesterFactory.Method.POST, 200);
+
+        TaskCollectionPostResponse response = this.createTask.apply(TaskCollectionPostRequest.builder()
+                        .callbackUrl("http://call.me/back")
+                        .payload(ObjectValue.builder().property("submitted", v -> v.stringValue("value")).build())
+                .build());
+
+        assertTrue(this.callbackRequesterFactory.lastCall().isPresent());
+
+        TestRequesterFactory.Call call = this.callbackRequesterFactory.lastCall().get();
+
+        assertThat(call.url(), is("http://call.me/back"));
+        assertThat(call.headers().get("status")[0], is("PENDING"));
+        assertThat(call.headers().get("result"), is(nullValue()));
+        assertThat(call.method().name(), is("POST"));
+
+        TaskNotification notification = this.readTaskNotification(call.requestBody());
+        assertThat(notification, is(TaskNotification.builder()
+                .type(TaskNotification.Type.CREATED)
+                .task(response.status201().payload())
+                .build()));
     }
 
     @Test
@@ -123,5 +160,13 @@ public class CreateTaskTest {
         assertThat(task.callbackUrl(), is("http://call.me/back"));
         assertThat(task.params(), is(ObjectValue.builder().property("submitted", v -> v.stringValue("value")).build()));
         assertThat(task.results(), is(nullValue()));
+    }
+
+
+
+    private TaskNotification readTaskNotification(byte[] json) throws IOException {
+        try(JsonParser parser = new JsonFactory().createParser(json)) {
+            return new TaskNotificationReader().read(parser);
+        }
     }
 }

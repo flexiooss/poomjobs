@@ -1,5 +1,7 @@
 package org.codingmatters.tasks.support.handlers.tasks;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.date.UTC;
@@ -7,15 +9,21 @@ import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
+import org.codingmatters.rest.api.client.Requester;
+import org.codingmatters.rest.api.client.ResponseDelegate;
+import org.codingmatters.rest.io.Content;
 import org.codingmatters.tasks.api.TaskCollectionPostRequest;
 import org.codingmatters.tasks.api.TaskCollectionPostResponse;
 import org.codingmatters.tasks.api.taskcollectionpostresponse.Status201;
 import org.codingmatters.tasks.api.types.Error;
 import org.codingmatters.tasks.api.types.Task;
+import org.codingmatters.tasks.api.types.TaskNotification;
+import org.codingmatters.tasks.api.types.json.TaskNotificationWriter;
 import org.codingmatters.tasks.api.types.task.Status;
 import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.codingmatters.tasks.support.handlers.AbstractTaskHandler;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -23,6 +31,7 @@ import java.util.function.Supplier;
 public class CreateTask extends AbstractTaskHandler implements Function<TaskCollectionPostRequest, TaskCollectionPostResponse> {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(CreateTask.class);
     private final PoomjobsJobRegistryAPIClient jobsClient;
+    private JsonFactory jsonFactory = new JsonFactory();
 
     public CreateTask(Supplier<TaskEntryPointAdapter> adapterProvider, PoomjobsJobRegistryAPIClient jobsClient) {
         super(adapterProvider);
@@ -84,6 +93,31 @@ public class CreateTask extends AbstractTaskHandler implements Function<TaskColl
                     .token(log.tokenized().error("while submitting job for task, failed accessing job registry : " + request, e))
                     .description("job submission failed")
             )).build();
+        }
+
+        if(taskEntity.value().opt().callbackUrl().isPresent()) {
+            TaskNotification notification = TaskNotification.builder()
+                    .type(TaskNotification.Type.CREATED).task(taskEntity.value())
+                    .build();
+            Requester requester = adapter.callbackRequester(taskEntity.value().callbackUrl());
+            requester.header("status", taskEntity.value().status().run().name());
+            try {
+                try (ByteArrayOutputStream json = new ByteArrayOutputStream(); JsonGenerator generator = this.jsonFactory.createGenerator(json)) {
+                    new TaskNotificationWriter().write(generator, notification);
+                    generator.flush();
+                    generator.close();
+                    ResponseDelegate response = requester.post("application/json", Content.from(json.toByteArray()));
+                    if(response.code() != 204) {
+                        if(response.code() == 410) {
+                            log.info("callback endpoint is gone");
+                        } else {
+                            log.error("callback endpoint failure : {}, {} - {}", response.code(), response.contentType(), response.body() != null ? new String(response.body()) : null);
+                        }
+                    }
+                }
+            } catch(IOException e) {
+                log.error("unexpected error notifying callback", e);
+            }
         }
 
         return TaskCollectionPostResponse.builder()
