@@ -15,11 +15,13 @@ import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIHandlersClient;
 import org.codingmatters.tasks.api.TaskCollectionPostRequest;
 import org.codingmatters.tasks.api.TaskCollectionPostResponse;
 import org.codingmatters.tasks.api.types.Task;
+import org.codingmatters.tasks.api.types.TaskLog;
 import org.codingmatters.tasks.api.types.task.Status;
 import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.codingmatters.value.objects.values.ObjectValue;
 import org.junit.Test;
 
+import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 
@@ -48,6 +50,11 @@ public class CreateTaskTest {
         @Override
         public Repository<Task, PropertyQuery> tasks() {
             return repository;
+        }
+
+        @Override
+        public Optional<Repository<TaskLog, PropertyQuery>> taskLogs() {
+            return Optional.empty();
         }
 
         @Override

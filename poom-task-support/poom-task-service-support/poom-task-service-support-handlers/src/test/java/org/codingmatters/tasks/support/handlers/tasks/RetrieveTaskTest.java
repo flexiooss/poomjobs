@@ -7,8 +7,11 @@ import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.tasks.api.TaskEntityGetRequest;
 import org.codingmatters.tasks.api.TaskEntityGetResponse;
 import org.codingmatters.tasks.api.types.Task;
+import org.codingmatters.tasks.api.types.TaskLog;
 import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.junit.Test;
+
+import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertThrows;
@@ -21,6 +24,11 @@ public class RetrieveTaskTest {
         @Override
         public Repository<Task, PropertyQuery> tasks() {
             return repository;
+        }
+
+        @Override
+        public Optional<Repository<TaskLog, PropertyQuery>> taskLogs() {
+            return Optional.empty();
         }
 
         @Override

@@ -9,10 +9,13 @@ import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.tasks.api.TaskStatusChangesPostRequest;
 import org.codingmatters.tasks.api.TaskStatusChangesPostResponse;
 import org.codingmatters.tasks.api.types.Task;
+import org.codingmatters.tasks.api.types.TaskLog;
 import org.codingmatters.tasks.api.types.TaskStatusChange;
 import org.codingmatters.tasks.api.types.task.Status;
 import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.junit.Test;
+
+import java.util.Optional;
 
 import static org.codingmatters.poom.services.tests.DateMatchers.around;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -26,6 +29,11 @@ public class UpdateTaskStatusTest {
         @Override
         public Repository<Task, PropertyQuery> tasks() {
             return repository;
+        }
+
+        @Override
+        public Optional<Repository<TaskLog, PropertyQuery>> taskLogs() {
+            return Optional.empty();
         }
 
         @Override
