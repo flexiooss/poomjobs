@@ -1,5 +1,6 @@
 package org.codingmatters.tasks.support.handlers.tasks;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.domain.repositories.inmemory.InMemoryRepositoryWithPropertyQuery;
@@ -49,7 +50,7 @@ public class RetrieveTaskTest {
         public Requester callbackRequester(String callbackUrl) {
             return callbackRequesterFactory.create();
         }
-    });
+    }, new JsonFactory());
 
     @Test
     public void givenRepositoryEmpty__whenRetrivingTask__then404() throws Exception {

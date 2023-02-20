@@ -31,10 +31,9 @@ import java.util.function.Supplier;
 public class CreateTask extends AbstractTaskHandler implements Function<TaskCollectionPostRequest, TaskCollectionPostResponse> {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(CreateTask.class);
     private final PoomjobsJobRegistryAPIClient jobsClient;
-    private JsonFactory jsonFactory = new JsonFactory();
 
-    public CreateTask(Supplier<TaskEntryPointAdapter> adapterProvider, PoomjobsJobRegistryAPIClient jobsClient) {
-        super(adapterProvider);
+    public CreateTask(Supplier<TaskEntryPointAdapter> adapterProvider, PoomjobsJobRegistryAPIClient jobsClient, JsonFactory jsonFactory) {
+        super(adapterProvider, jsonFactory);
         this.jobsClient = jobsClient;
     }
 
@@ -99,25 +98,12 @@ public class CreateTask extends AbstractTaskHandler implements Function<TaskColl
             TaskNotification notification = TaskNotification.builder()
                     .type(TaskNotification.Type.CREATED).task(taskEntity.value())
                     .build();
-            Requester requester = adapter.callbackRequester(taskEntity.value().callbackUrl());
-            requester.header("status", taskEntity.value().status().run().name());
-            try {
-                try (ByteArrayOutputStream json = new ByteArrayOutputStream(); JsonGenerator generator = this.jsonFactory.createGenerator(json)) {
-                    new TaskNotificationWriter().write(generator, notification);
-                    generator.flush();
-                    generator.close();
-                    ResponseDelegate response = requester.post("application/json", Content.from(json.toByteArray()));
-                    if(response.code() != 204) {
-                        if(response.code() == 410) {
-                            log.info("callback endpoint is gone");
-                        } else {
-                            log.error("callback endpoint failure : {}, {} - {}", response.code(), response.contentType(), response.body() != null ? new String(response.body()) : null);
-                        }
-                    }
-                }
-            } catch(IOException e) {
-                log.error("unexpected error notifying callback", e);
-            }
+
+            this.notifyCallback(
+                    taskEntity.value(),
+                    notification,
+                    adapter.callbackRequester(taskEntity.value().callbackUrl())
+            );
         }
 
         return TaskCollectionPostResponse.builder()

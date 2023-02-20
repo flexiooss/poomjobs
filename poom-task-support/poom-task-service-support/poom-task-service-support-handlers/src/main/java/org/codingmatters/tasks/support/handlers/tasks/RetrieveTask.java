@@ -1,5 +1,6 @@
 package org.codingmatters.tasks.support.handlers.tasks;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.servives.domain.entities.Entity;
@@ -19,8 +20,8 @@ import java.util.function.Supplier;
 public class RetrieveTask extends AbstractTaskHandler implements Function<TaskEntityGetRequest, TaskEntityGetResponse> {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(RetrieveTask.class);
 
-    public RetrieveTask(Supplier<TaskEntryPointAdapter> adapterProvider) {
-        super(adapterProvider);
+    public RetrieveTask(Supplier<TaskEntryPointAdapter> adapterProvider, JsonFactory jsonFactory) {
+        super(adapterProvider, jsonFactory);
     }
 
     @Override

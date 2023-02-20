@@ -1,5 +1,6 @@
 package org.codingmatters.tasks.support.handlers.tasks;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
@@ -25,8 +26,8 @@ import java.util.function.Supplier;
 public class UpdateTaskStatus extends AbstractTaskHandler implements Function<TaskStatusChangesPostRequest, TaskStatusChangesPostResponse> {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(UpdateTaskStatus.class);
 
-    public UpdateTaskStatus(Supplier<TaskEntryPointAdapter> adapterProvider) {
-        super(adapterProvider);
+    public UpdateTaskStatus(Supplier<TaskEntryPointAdapter> adapterProvider, JsonFactory jsonFactory) {
+        super(adapterProvider, jsonFactory);
     }
 
     @Override

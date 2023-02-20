@@ -29,6 +29,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.codingmatters.poom.services.tests.DateMatchers.around;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -51,7 +52,8 @@ public class CreateTaskTest {
             .jobCollectionPostHandler(this.jobCreationRequest)
             .build(), Executors.newSingleThreadExecutor());
 
-    private final TestRequesterFactory callbackRequesterFactory = new TestRequesterFactory(() -> "http://call.me/back");
+    private final TestRequesterFactory callbackRequesterFactory = new TestRequesterFactory(() -> "");
+    private final AtomicReference<String> lastCallback = new AtomicReference<>();
 
     private final CreateTask createTask = new CreateTask(() -> new TaskEntryPointAdapter() {
         @Override
@@ -76,9 +78,10 @@ public class CreateTaskTest {
 
         @Override
         public Requester callbackRequester(String callbackUrl) {
+            lastCallback.set(callbackUrl);
             return callbackRequesterFactory.create();
         }
-    }, this.jobsClient);
+    }, this.jobsClient, new JsonFactory());
 
     @Test
     public void whenCreatingTaskWithParams__thenTaskCreatedFromRequest() throws Exception {
@@ -114,7 +117,7 @@ public class CreateTaskTest {
 
         TestRequesterFactory.Call call = this.callbackRequesterFactory.lastCall().get();
 
-        assertThat(call.url(), is("http://call.me/back"));
+        assertThat(this.lastCallback.get(), is("http://call.me/back"));
         assertThat(call.headers().get("status")[0], is("PENDING"));
         assertThat(call.headers().get("result"), is(nullValue()));
         assertThat(call.method().name(), is("POST"));

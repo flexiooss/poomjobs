@@ -1,5 +1,6 @@
 package org.codingmatters.tasks.support.handlers.tasks;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
@@ -24,8 +25,8 @@ import java.util.function.Supplier;
 public class CreateTaskLog extends AbstractTaskHandler implements Function<TaskLogsPostRequest, TaskLogsPostResponse> {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(CreateTaskLog.class);
 
-    public CreateTaskLog(Supplier<TaskEntryPointAdapter> adapterProvider) {
-        super(adapterProvider);
+    public CreateTaskLog(Supplier<TaskEntryPointAdapter> adapterProvider, JsonFactory jsonFactory) {
+        super(adapterProvider, jsonFactory);
     }
 
     @Override

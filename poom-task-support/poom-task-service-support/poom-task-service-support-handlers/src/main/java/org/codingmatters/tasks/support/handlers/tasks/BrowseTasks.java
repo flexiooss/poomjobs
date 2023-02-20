@@ -1,5 +1,6 @@
 package org.codingmatters.tasks.support.handlers.tasks;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
@@ -24,8 +25,8 @@ public class BrowseTasks extends AbstractTaskHandler implements Function<TaskCol
     static private final CategorizedLogger log = CategorizedLogger.getLogger(BrowseTasks.class);
     private final int maxPageSize;
 
-    public BrowseTasks(Supplier<TaskEntryPointAdapter> adapterProvider, int maxPageSize) {
-        super(adapterProvider);
+    public BrowseTasks(Supplier<TaskEntryPointAdapter> adapterProvider, int maxPageSize, JsonFactory jsonFactory) {
+        super(adapterProvider, jsonFactory);
         this.maxPageSize = maxPageSize;
     }
 

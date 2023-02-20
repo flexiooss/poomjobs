@@ -1,5 +1,6 @@
 package org.codingmatters.tasks.support.handlers.tasks;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.domain.repositories.inmemory.InMemoryRepositoryWithPropertyQuery;
@@ -57,7 +58,7 @@ public class CreateTaskLogTest {
         public Requester callbackRequester(String callbackUrl) {
             return callbackRequesterFactory.create();
         }
-    });
+    }, new JsonFactory());
 
     @Test
     public void givenHasTaskLogRepository__whenNoTask__then404_andNoLogCreated() throws Exception {
