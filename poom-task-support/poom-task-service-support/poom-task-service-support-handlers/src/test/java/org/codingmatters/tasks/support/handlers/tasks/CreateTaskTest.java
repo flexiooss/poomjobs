@@ -105,8 +105,8 @@ public class CreateTaskTest {
     }
 
     @Test
-    public void whenCreatingTask__thenCallbackCalled() throws Exception {
-        this.callbackRequesterFactory.nextResponse(TestRequesterFactory.Method.POST, 200);
+    public void whenCreatingTask__thenCreationNotified() throws Exception {
+        this.callbackRequesterFactory.nextResponse(TestRequesterFactory.Method.POST, 204);
 
         TaskCollectionPostResponse response = this.createTask.apply(TaskCollectionPostRequest.builder()
                         .callbackUrl("http://call.me/back")

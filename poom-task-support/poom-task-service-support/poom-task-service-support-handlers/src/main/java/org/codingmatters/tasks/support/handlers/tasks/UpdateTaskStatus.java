@@ -15,6 +15,7 @@ import org.codingmatters.tasks.api.taskstatuschangespostresponse.Status404;
 import org.codingmatters.tasks.api.taskstatuschangespostresponse.Status500;
 import org.codingmatters.tasks.api.types.Error;
 import org.codingmatters.tasks.api.types.Task;
+import org.codingmatters.tasks.api.types.TaskNotification;
 import org.codingmatters.tasks.api.types.TaskStatusChange;
 import org.codingmatters.tasks.api.types.task.Status;
 import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
@@ -32,11 +33,12 @@ public class UpdateTaskStatus extends AbstractTaskHandler implements Function<Ta
 
     @Override
     public TaskStatusChangesPostResponse apply(TaskStatusChangesPostRequest request) {
-        Repository<Task, PropertyQuery> repository = this.adapter().tasks();
+        TaskEntryPointAdapter adapter = this.adapter();
+        Repository<Task, PropertyQuery> repository = adapter.tasks();
 
-        Entity<Task> taskEntry;
+        Entity<Task> taskEntity;
         try {
-            taskEntry = repository.retrieve(request.taskId());
+            taskEntity = repository.retrieve(request.taskId());
         } catch (RepositoryException e) {
             return TaskStatusChangesPostResponse.builder().status500(Status500.builder().payload(Error.builder()
                             .code(Error.Code.UNEXPECTED_ERROR)
@@ -44,32 +46,32 @@ public class UpdateTaskStatus extends AbstractTaskHandler implements Function<Ta
                     .build()).build()).build();
         }
 
-        if(taskEntry == null) {
+        if(taskEntity == null) {
             return TaskStatusChangesPostResponse.builder().status404(Status404.builder().payload(Error.builder()
                             .code(Error.Code.RESOURCE_NOT_FOUND)
                             .token(log.tokenized().info("while changing task status, task not found : {}", request))
                     .build()).build()).build();
-        } else if(taskEntry.value().opt().status().run().orElse(null).equals(Status.Run.DONE)) {
+        } else if(taskEntity.value().opt().status().run().orElse(null).equals(Status.Run.DONE)) {
             return TaskStatusChangesPostResponse.builder().status400(Status400.builder().payload(Error.builder()
                             .code(Error.Code.BAD_REQUEST)
-                            .token(log.tokenized().info("cannot change task status when status is DONE : {}", taskEntry))
+                            .token(log.tokenized().info("cannot change task status when status is DONE : {}", taskEntity))
                     .build()).build()).build();
         } else {
             try {
                 if (request.payload().run().equals(TaskStatusChange.Run.RUNNING)) {
-                    taskEntry = repository.update(taskEntry, taskEntry.value()
+                    taskEntity = repository.update(taskEntity, taskEntity.value()
                             .withStartedAt(UTC.now())
                             .withStatus(Status.builder().run(Status.Run.RUNNING).build())
                     );
                 } else if (request.payload().run().equals(TaskStatusChange.Run.DONE)) {
-                    taskEntry = repository.update(taskEntry, taskEntry.value()
+                    taskEntity = repository.update(taskEntity, taskEntity.value()
                             .withFinishedAt(UTC.now())
                             .withStatus(Status.builder().run(Status.Run.DONE).exit(
                                     request.opt().payload().exit().isPresent() ? Status.Exit.valueOf(request.payload().exit().name()) : Status.Exit.SUCCESS
                             ).build())
                     );
                 }
-                log.info("task status updated {}", taskEntry);
+                log.info("task status updated {}", taskEntity);
             } catch (RepositoryException e) {
                 return TaskStatusChangesPostResponse.builder().status500(Status500.builder().payload(Error.builder()
                         .code(Error.Code.UNEXPECTED_ERROR)
@@ -77,6 +79,19 @@ public class UpdateTaskStatus extends AbstractTaskHandler implements Function<Ta
                         .build()).build()).build();
             }
         }
-        return TaskStatusChangesPostResponse.builder().status201(Status201.builder().xEntityId(taskEntry.id()).payload(request.payload()).build()).build();
+
+        if(taskEntity.value().opt().callbackUrl().isPresent()) {
+            TaskNotification notification = TaskNotification.builder()
+                    .type(TaskNotification.Type.STATUS_CHANGE).task(taskEntity.value())
+                    .build();
+
+            this.notifyCallback(
+                    taskEntity.value(),
+                    notification,
+                    adapter.callbackRequester(taskEntity.value().callbackUrl())
+            );
+        }
+
+        return TaskStatusChangesPostResponse.builder().status201(Status201.builder().xEntityId(taskEntity.id()).payload(request.payload()).build()).build();
     }
 }

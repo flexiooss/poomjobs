@@ -15,6 +15,7 @@ import org.codingmatters.tasks.api.tasklogspostresponse.Status500;
 import org.codingmatters.tasks.api.types.Error;
 import org.codingmatters.tasks.api.types.Task;
 import org.codingmatters.tasks.api.types.TaskLog;
+import org.codingmatters.tasks.api.types.TaskNotification;
 import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.codingmatters.tasks.support.handlers.AbstractTaskHandler;
 
@@ -32,16 +33,16 @@ public class CreateTaskLog extends AbstractTaskHandler implements Function<TaskL
     @Override
     public TaskLogsPostResponse apply(TaskLogsPostRequest request) {
         TaskEntryPointAdapter adapter = this.adapter();
-        Entity<Task> task;
+        Entity<Task> taskEntity;
         try {
-            task = adapter.tasks().retrieve(request.taskId());
+            taskEntity = adapter.tasks().retrieve(request.taskId());
         } catch (RepositoryException e) {
             return TaskLogsPostResponse.builder().status500(Status500.builder().payload(Error.builder()
                             .code(Error.Code.UNEXPECTED_ERROR)
                             .token(log.tokenized().error("while creating task log, failed reaching task repository", e))
                     .build()).build()).build();
         }
-        if(task == null) {
+        if(taskEntity == null) {
             return TaskLogsPostResponse.builder().status404(Status404.builder().payload(Error.builder()
                             .code(Error.Code.RESOURCE_NOT_FOUND)
                             .token(log.tokenized().info("request to add log to unexistent task : {}", request))
@@ -50,7 +51,7 @@ public class CreateTaskLog extends AbstractTaskHandler implements Function<TaskL
         }
 
         TaskLog taskLog = TaskLog.builder()
-                .taskId(task.id())
+                .taskId(taskEntity.id())
                 .at(UTC.now())
                 .level(TaskLog.Level.valueOf(request.payload().level().name()))
                 .log(request.payload().log())
@@ -67,6 +68,19 @@ public class CreateTaskLog extends AbstractTaskHandler implements Function<TaskL
                         .build()).build()).build();
             }
         }
+
+        if(taskEntity.value().opt().callbackUrl().isPresent()) {
+            TaskNotification notification = TaskNotification.builder()
+                    .type(TaskNotification.Type.LOG_APPENDED).log(taskLog)
+                    .build();
+
+            this.notifyCallback(
+                    taskEntity.value(),
+                    notification,
+                    adapter.callbackRequester(taskEntity.value().callbackUrl())
+            );
+        }
+
         return TaskLogsPostResponse.builder().status201(Status201.builder().payload(taskLog).build()).build();
     }
 }
