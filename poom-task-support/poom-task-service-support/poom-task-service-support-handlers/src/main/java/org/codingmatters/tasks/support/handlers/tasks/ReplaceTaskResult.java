@@ -29,7 +29,7 @@ public class ReplaceTaskResult extends AbstractTaskHandler implements Function<T
     public TaskResultsPutResponse apply(TaskResultsPutRequest request) {
         Repository<Task, PropertyQuery> repository = this.adapter().tasks();
 
-        Entity<Task> taskEntity = null;
+        Entity<Task> taskEntity;
         try {
             taskEntity = repository.retrieve(request.taskId());
         } catch (RepositoryException e) {
