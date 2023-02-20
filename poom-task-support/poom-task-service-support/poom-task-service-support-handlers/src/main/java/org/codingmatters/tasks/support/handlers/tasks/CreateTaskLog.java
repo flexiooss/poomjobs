@@ -14,7 +14,6 @@ import org.codingmatters.tasks.api.tasklogspostresponse.Status500;
 import org.codingmatters.tasks.api.types.Error;
 import org.codingmatters.tasks.api.types.Task;
 import org.codingmatters.tasks.api.types.TaskLog;
-import org.codingmatters.tasks.api.types.TaskLogCreation;
 import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.codingmatters.tasks.support.handlers.AbstractTaskHandler;
 
