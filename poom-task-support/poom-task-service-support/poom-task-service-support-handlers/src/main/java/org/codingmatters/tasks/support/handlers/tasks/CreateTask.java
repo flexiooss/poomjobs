@@ -41,8 +41,13 @@ public class CreateTask extends AbstractTaskHandler implements Function<TaskColl
         this.jobsClient = jobsClient;
     }
 
-    public <Req, Resp> Function adapted(Class<Req> requestClass, Class<Resp> responseClass) throws UnadatableHandlerException {
-        return new ReflectHandlerAdapter(this, requestClass, responseClass, TaskCollectionPostRequest.class, TaskCollectionPostResponse.class);
+    public <Req, Resp> Function<Req, Resp> adapted(Class<Req> requestClass, Class<Resp> responseClass) {
+        try {
+            return new ReflectHandlerAdapter<>(this, requestClass, responseClass, TaskCollectionPostRequest.class, TaskCollectionPostResponse.class);
+        } catch (UnadatableHandlerException e) {
+            log.error("[GRAVE] error adapting adapter", e);
+            throw new RuntimeException("error adapting handler", e);
+        }
     }
 
     @Override

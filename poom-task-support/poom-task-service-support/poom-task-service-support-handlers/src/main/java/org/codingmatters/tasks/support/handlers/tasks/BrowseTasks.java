@@ -35,8 +35,13 @@ public class BrowseTasks extends AbstractTaskHandler implements Function<TaskCol
         this.maxPageSize = maxPageSize;
     }
 
-    public <Req, Resp> Function adapted(Class<Req> requestClass, Class<Resp> responseClass) throws UnadatableHandlerException {
-        return new ReflectHandlerAdapter(this, requestClass, responseClass, TaskCollectionGetRequest.class, TaskCollectionGetResponse.class);
+    public <Req, Resp> Function<Req, Resp> adapted(Class<Req> requestClass, Class<Resp> responseClass) {
+        try {
+            return new ReflectHandlerAdapter<>(this, requestClass, responseClass, TaskCollectionGetRequest.class, TaskCollectionGetResponse.class);
+        } catch (UnadatableHandlerException e) {
+            log.error("[GRAVE] error adapting adapter", e);
+            throw new RuntimeException("error adapting handler", e);
+        }
     }
 
     @Override

@@ -10,7 +10,12 @@
         <version>1.147.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>poom-task-service-support-adapters</artifactId>
+    <artifactId>poom-task-service-support-demo</artifactId>
+    <packaging>pom</packaging>
 
+    <modules>
+        <module>poom-task-service-support-demo-api</module>
+        <module>poom-task-service-support-demo-handlers</module>
+    </modules>
     
 </project>

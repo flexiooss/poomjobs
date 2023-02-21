@@ -41,7 +41,6 @@ public class CreateTaskTest {
 
     private final Repository<Task, PropertyQuery> repository = InMemoryRepositoryWithPropertyQuery.validating(Task.class);
 
-
     private HandlerResource<JobCollectionPostRequest, JobCollectionPostResponse> jobCreationRequest = new HandlerResource<JobCollectionPostRequest, JobCollectionPostResponse>() {
         @Override
         protected JobCollectionPostResponse defaultResponse(JobCollectionPostRequest jobCollectionPostRequest) {

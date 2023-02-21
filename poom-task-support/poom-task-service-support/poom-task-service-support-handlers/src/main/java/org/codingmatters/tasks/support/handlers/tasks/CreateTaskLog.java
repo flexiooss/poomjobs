@@ -34,8 +34,13 @@ public class CreateTaskLog extends AbstractTaskHandler implements Function<TaskL
         super(adapterProvider, jsonFactory);
     }
 
-    public <Req, Resp> Function adapted(Class<Req> requestClass, Class<Resp> responseClass) throws UnadatableHandlerException {
-        return new ReflectHandlerAdapter(this, requestClass, responseClass, TaskLogsPostRequest.class, TaskLogsPostResponse.class);
+    public <Req, Resp> Function<Req, Resp> adapted(Class<Req> requestClass, Class<Resp> responseClass) {
+        try {
+            return new ReflectHandlerAdapter<>(this, requestClass, responseClass, TaskLogsPostRequest.class, TaskLogsPostResponse.class);
+        } catch (UnadatableHandlerException e) {
+            log.error("[GRAVE] error adapting adapter", e);
+            throw new RuntimeException("error adapting handler", e);
+        }
     }
 
     @Override
