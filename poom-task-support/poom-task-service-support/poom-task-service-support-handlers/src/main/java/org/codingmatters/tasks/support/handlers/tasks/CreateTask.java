@@ -12,6 +12,8 @@ import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.rest.api.client.Requester;
 import org.codingmatters.rest.api.client.ResponseDelegate;
 import org.codingmatters.rest.io.Content;
+import org.codingmatters.tasks.api.TaskCollectionGetRequest;
+import org.codingmatters.tasks.api.TaskCollectionGetResponse;
 import org.codingmatters.tasks.api.TaskCollectionPostRequest;
 import org.codingmatters.tasks.api.TaskCollectionPostResponse;
 import org.codingmatters.tasks.api.taskcollectionpostresponse.Status201;
@@ -22,6 +24,8 @@ import org.codingmatters.tasks.api.types.json.TaskNotificationWriter;
 import org.codingmatters.tasks.api.types.task.Status;
 import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.codingmatters.tasks.support.handlers.AbstractTaskHandler;
+import org.codingmatters.tasks.support.handlers.tasks.adapter.ReflectHandlerAdapter;
+import org.codingmatters.tasks.support.handlers.tasks.adapter.UnadatableHandlerException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,6 +39,10 @@ public class CreateTask extends AbstractTaskHandler implements Function<TaskColl
     public CreateTask(Supplier<TaskEntryPointAdapter> adapterProvider, PoomjobsJobRegistryAPIClient jobsClient, JsonFactory jsonFactory) {
         super(adapterProvider, jsonFactory);
         this.jobsClient = jobsClient;
+    }
+
+    public <Req, Resp> Function adapted(Class<Req> requestClass, Class<Resp> responseClass) throws UnadatableHandlerException {
+        return new ReflectHandlerAdapter(this, requestClass, responseClass, TaskCollectionPostRequest.class, TaskCollectionPostResponse.class);
     }
 
     @Override

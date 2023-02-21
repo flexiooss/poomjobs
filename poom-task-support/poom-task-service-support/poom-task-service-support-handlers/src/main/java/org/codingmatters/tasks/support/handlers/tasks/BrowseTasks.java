@@ -16,6 +16,9 @@ import org.codingmatters.tasks.api.types.Error;
 import org.codingmatters.tasks.api.types.Task;
 import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.codingmatters.tasks.support.handlers.AbstractTaskHandler;
+import org.codingmatters.tasks.support.handlers.tasks.adapter.ReflectHandlerAdapter;
+import org.codingmatters.tasks.support.handlers.tasks.adapter.UnadatableHandlerException;
+import org.codingmatters.value.objects.values.casts.ValueObjectCaster;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -24,15 +27,16 @@ import java.util.function.Supplier;
 public class BrowseTasks extends AbstractTaskHandler implements Function<TaskCollectionGetRequest, TaskCollectionGetResponse> {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(BrowseTasks.class);
 
-    static public <Req, Resp> Function adapter(Class<Req> requestClass, Class<Resp> responseClass) {
-        return null;
-    }
 
     private final int maxPageSize;
 
     public BrowseTasks(Supplier<TaskEntryPointAdapter> adapterProvider, int maxPageSize, JsonFactory jsonFactory) {
         super(adapterProvider, jsonFactory);
         this.maxPageSize = maxPageSize;
+    }
+
+    public <Req, Resp> Function adapted(Class<Req> requestClass, Class<Resp> responseClass) throws UnadatableHandlerException {
+        return new ReflectHandlerAdapter(this, requestClass, responseClass, TaskCollectionGetRequest.class, TaskCollectionGetResponse.class);
     }
 
     @Override

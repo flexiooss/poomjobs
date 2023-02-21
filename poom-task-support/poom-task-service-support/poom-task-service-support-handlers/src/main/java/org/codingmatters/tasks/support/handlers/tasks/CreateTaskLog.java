@@ -7,6 +7,8 @@ import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.date.UTC;
 import org.codingmatters.poom.servives.domain.entities.Entity;
+import org.codingmatters.tasks.api.TaskCollectionGetRequest;
+import org.codingmatters.tasks.api.TaskCollectionGetResponse;
 import org.codingmatters.tasks.api.TaskLogsPostRequest;
 import org.codingmatters.tasks.api.TaskLogsPostResponse;
 import org.codingmatters.tasks.api.tasklogspostresponse.Status201;
@@ -18,6 +20,8 @@ import org.codingmatters.tasks.api.types.TaskLog;
 import org.codingmatters.tasks.api.types.TaskNotification;
 import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.codingmatters.tasks.support.handlers.AbstractTaskHandler;
+import org.codingmatters.tasks.support.handlers.tasks.adapter.ReflectHandlerAdapter;
+import org.codingmatters.tasks.support.handlers.tasks.adapter.UnadatableHandlerException;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -28,6 +32,10 @@ public class CreateTaskLog extends AbstractTaskHandler implements Function<TaskL
 
     public CreateTaskLog(Supplier<TaskEntryPointAdapter> adapterProvider, JsonFactory jsonFactory) {
         super(adapterProvider, jsonFactory);
+    }
+
+    public <Req, Resp> Function adapted(Class<Req> requestClass, Class<Resp> responseClass) throws UnadatableHandlerException {
+        return new ReflectHandlerAdapter(this, requestClass, responseClass, TaskLogsPostRequest.class, TaskLogsPostResponse.class);
     }
 
     @Override
