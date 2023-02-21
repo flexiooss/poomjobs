@@ -6,8 +6,6 @@ import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.servives.domain.entities.Entity;
-import org.codingmatters.tasks.api.TaskLogsPostRequest;
-import org.codingmatters.tasks.api.TaskLogsPostResponse;
 import org.codingmatters.tasks.api.TaskResultsPutRequest;
 import org.codingmatters.tasks.api.TaskResultsPutResponse;
 import org.codingmatters.tasks.api.taskresultsputresponse.Status200;

@@ -18,7 +18,6 @@ import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.codingmatters.tasks.support.handlers.AbstractTaskHandler;
 import org.codingmatters.tasks.support.handlers.tasks.adapter.ReflectHandlerAdapter;
 import org.codingmatters.tasks.support.handlers.tasks.adapter.UnadatableHandlerException;
-import org.codingmatters.value.objects.values.casts.ValueObjectCaster;
 
 import java.util.Optional;
 import java.util.function.Function;

@@ -6,8 +6,6 @@ import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.tasks.api.TaskEntityGetRequest;
 import org.codingmatters.tasks.api.TaskEntityGetResponse;
-import org.codingmatters.tasks.api.TaskLogsPostRequest;
-import org.codingmatters.tasks.api.TaskLogsPostResponse;
 import org.codingmatters.tasks.api.taskentitygetresponse.Status200;
 import org.codingmatters.tasks.api.taskentitygetresponse.Status404;
 import org.codingmatters.tasks.api.taskentitygetresponse.Status500;

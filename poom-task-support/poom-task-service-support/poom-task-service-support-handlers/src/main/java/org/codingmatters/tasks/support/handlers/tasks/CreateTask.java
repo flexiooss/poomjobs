@@ -1,7 +1,6 @@
 package org.codingmatters.tasks.support.handlers.tasks;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.date.UTC;
@@ -9,25 +8,18 @@ import org.codingmatters.poom.servives.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
-import org.codingmatters.rest.api.client.Requester;
-import org.codingmatters.rest.api.client.ResponseDelegate;
-import org.codingmatters.rest.io.Content;
-import org.codingmatters.tasks.api.TaskCollectionGetRequest;
-import org.codingmatters.tasks.api.TaskCollectionGetResponse;
 import org.codingmatters.tasks.api.TaskCollectionPostRequest;
 import org.codingmatters.tasks.api.TaskCollectionPostResponse;
 import org.codingmatters.tasks.api.taskcollectionpostresponse.Status201;
 import org.codingmatters.tasks.api.types.Error;
 import org.codingmatters.tasks.api.types.Task;
 import org.codingmatters.tasks.api.types.TaskNotification;
-import org.codingmatters.tasks.api.types.json.TaskNotificationWriter;
 import org.codingmatters.tasks.api.types.task.Status;
 import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.codingmatters.tasks.support.handlers.AbstractTaskHandler;
 import org.codingmatters.tasks.support.handlers.tasks.adapter.ReflectHandlerAdapter;
 import org.codingmatters.tasks.support.handlers.tasks.adapter.UnadatableHandlerException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.function.Function;
 import java.util.function.Supplier;
