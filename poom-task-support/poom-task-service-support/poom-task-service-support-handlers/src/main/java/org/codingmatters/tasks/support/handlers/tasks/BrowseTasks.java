@@ -23,6 +23,11 @@ import java.util.function.Supplier;
 
 public class BrowseTasks extends AbstractTaskHandler implements Function<TaskCollectionGetRequest, TaskCollectionGetResponse> {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(BrowseTasks.class);
+
+    static public <Req, Resp> Function adapter(Class<Req> requestClass, Class<Resp> responseClass) {
+        return null;
+    }
+
     private final int maxPageSize;
 
     public BrowseTasks(Supplier<TaskEntryPointAdapter> adapterProvider, int maxPageSize, JsonFactory jsonFactory) {
