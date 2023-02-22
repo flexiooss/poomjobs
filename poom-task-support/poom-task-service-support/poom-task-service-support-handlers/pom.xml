@@ -33,6 +33,10 @@
             <groupId>org.codingmatters.rest</groupId>
             <artifactId>cdm-rest-client-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.codingmatters.value.objects</groupId>
+            <artifactId>cdm-value-objects-value-cast</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.codingmatters.poom</groupId>
@@ -47,12 +51,6 @@
         <dependency>
             <groupId>org.codingmatters.rest</groupId>
             <artifactId>cdm-rest-client-tests-support</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.codingmatters.value.objects</groupId>
-            <artifactId>cdm-value-objects-demo</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
