@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.codingmatters.tasks</groupId>
+        <artifactId>poom-task-service-support</artifactId>
+        <version>1.147.0</version>
+    </parent>
+
+    <artifactId>poom-task-service-support-api</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.codingmatters.tasks</groupId>
+            <artifactId>poom-task-api-types</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codingmatters.poom</groupId>
+            <artifactId>poom-services-domain</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codingmatters.poom</groupId>
+            <artifactId>poomjobs-api</artifactId>
+        </dependency>
+    </dependencies>
+    
+</project>

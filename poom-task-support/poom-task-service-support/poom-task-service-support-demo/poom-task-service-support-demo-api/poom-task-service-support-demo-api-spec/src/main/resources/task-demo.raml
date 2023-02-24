@@ -1,0 +1,67 @@
+#%RAML 1.0
+title: task demo api
+version: v1
+description: Poom Task Demo API
+baseUri: https://api.poom.codingmatters.org/task-demo
+mediaType: application/json
+
+annotationTypes: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/annotation-types/codingmatters.raml
+resourceTypes:
+  tasks: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/tasks/tasks-resource-type.raml
+  task: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/tasks/task-resource-type.raml
+  task-logs: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/tasks/task-logs-resource-type.raml
+  task-status: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/tasks/task-status-resource-type.raml
+  task-result: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/tasks/task-result-resource-type.raml
+
+/root:
+  type: { tasks: { task-name: root, task-params: TaskParam } }
+  /{task-id}:
+    type: { task: { task-name: root } }
+    /logs:
+      type: { task-logs: { task-name: root } }
+    /status:
+      type: { task-status: { task-name: root } }
+    /result:
+      type: { task-result: { task-name: root, task-result: TaskResult } }
+
+  /{param}:
+    type: { tasks: { task-name: task-with-param, task-params: TaskParam } }
+    uriParameters:
+      param: string
+    /{task-id}:
+      type: { task: { task-name: task-with-param } }
+      /logs:
+        type: { task-logs: { task-name: task-with-param } }
+      /status:
+        type: { task-status: { task-name: task-with-param } }
+      /result:
+        type: { task-result: { task-name: task-with-param, task-result: TaskResult } }
+
+types:
+
+  TaskParam:
+    type: object
+    properties:
+      paramProp: string
+  TaskResult:
+    type: object
+    properties:
+      resultProp: string
+
+  Task: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/tasks/types/task.raml
+  TaskCreation: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/tasks/types/task-creation.raml
+  TaskStatusChange: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/tasks/types/task-status-change.raml
+  TaskLog: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/tasks/types/task-log.raml
+  TaskLogCreation: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/tasks/types/task-log-creation.raml
+  TaskNotification: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/tasks/types/task-notification.raml
+
+  Message: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/types/message.raml
+  Error: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/types/error-with-messages.raml
+
+traits:
+  rfc7233Browsing: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/traits/collection/rfc7233-browse-collection.raml
+  entityCreation: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/traits/collection/create.raml
+  entityRetrieve: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/traits/entity/retrieve.raml
+  entityReplace: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/traits/entity/replace.raml
+  entityUpdate: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/traits/entity/update.raml
+  entityDelete: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.22.0/apis/core/traits/entity/delete.raml
