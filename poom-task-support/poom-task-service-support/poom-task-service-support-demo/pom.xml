@@ -16,6 +16,7 @@
     <modules>
         <module>poom-task-service-support-demo-api</module>
         <module>poom-task-service-support-demo-handlers</module>
+        <module>poom-task-service-support-demo-jobs</module>
     </modules>
     
 </project>

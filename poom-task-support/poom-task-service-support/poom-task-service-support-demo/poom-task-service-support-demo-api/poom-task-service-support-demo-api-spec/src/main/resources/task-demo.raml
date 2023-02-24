@@ -26,6 +26,8 @@ resourceTypes:
 
   /{param}:
     type: { tasks: { task-name: task-with-param, task-params: TaskParam } }
+    uriParameters:
+      param: string
     /{task-id}:
       type: { task: { task-name: task-with-param } }
       /logs:

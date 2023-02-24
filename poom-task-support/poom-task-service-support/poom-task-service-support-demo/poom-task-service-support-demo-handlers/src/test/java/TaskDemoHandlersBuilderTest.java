@@ -86,7 +86,11 @@ public class TaskDemoHandlersBuilderTest {
         this.callbackRequesterFactory.nextResponse(TestRequesterFactory.Method.POST, 204);
         this.callbackRequesterFactory.nextResponse(TestRequesterFactory.Method.POST, 204);
 
-        TaskDemoApiHandlers handlers = new TaskDemoHandlersBuilder(this.adapterSupplier, this.jobsClient, new JsonFactory()).build();
+        TaskDemoApiHandlers handlers = new TaskDemoHandlersBuilder(
+                this.adapterSupplier,
+                this.jobsClient,
+                new JsonFactory()
+        ).build();
 
 
         String taskId = handlers.rootCollectionPostHandler().apply(RootCollectionPostRequest.builder().callbackUrl("hey, how ya doing ?")

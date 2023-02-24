@@ -37,7 +37,8 @@ public class TaskDemoHandlersBuilder extends TaskDemoApiHandlers.Builder {
     private void configureWithParamHandlers(Supplier<TaskEntryPointAdapter> adapterSupplier, PoomjobsJobRegistryAPIClient jobs, JsonFactory jsonFactory) {
 
         this.taskWithParamCollectionPostHandler(
-                request -> new CreateTask(forParam(request.param(), adapterSupplier), jobs, jsonFactory).adapted(TaskWithParamCollectionPostRequest.class, TaskWithParamCollectionPostResponse.class).apply(request)
+                request -> new CreateTask(forParam(request.param(), adapterSupplier), jobs, jsonFactory).adapted(TaskWithParamCollectionPostRequest.class, TaskWithParamCollectionPostResponse.class)
+                        .apply(request)
         );
         this.taskWithParamCollectionGetHandler(
                 request -> new BrowseTasks(forParam(request.param(), adapterSupplier), 100, jsonFactory).adapted(TaskWithParamCollectionGetRequest.class, TaskWithParamCollectionGetResponse.class).apply(request)

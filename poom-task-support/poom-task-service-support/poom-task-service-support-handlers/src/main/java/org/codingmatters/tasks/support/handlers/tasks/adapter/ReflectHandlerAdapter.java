@@ -13,7 +13,11 @@ public class ReflectHandlerAdapter<Req, Resp, EffectiveReq, EffectiveResp> imple
     private final ValueObjectCaster<EffectiveResp, Resp> responseCaster;
     private final Function<EffectiveReq, EffectiveResp> deleguate;
 
-    public ReflectHandlerAdapter(Function<EffectiveReq, EffectiveResp> deleguate, Class<Req> reqClass, Class<Resp> respClass, Class<EffectiveReq> effectiveReqClass, Class<EffectiveResp> effectiveRespClass) throws UnadatableHandlerException {
+    public ReflectHandlerAdapter(Function<EffectiveReq, EffectiveResp> deleguate,
+                                 Class<Req> reqClass,
+                                 Class<Resp> respClass,
+                                 Class<EffectiveReq> effectiveReqClass,
+                                 Class<EffectiveResp> effectiveRespClass) throws UnadatableHandlerException {
         this.deleguate = deleguate;
         try {
             this.requestCaster = new ValueObjectReflectCaster<>(reqClass, effectiveReqClass);
