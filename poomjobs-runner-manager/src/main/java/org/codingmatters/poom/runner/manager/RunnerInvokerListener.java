@@ -5,7 +5,7 @@ import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Runtime;
-import org.codingmatters.poom.servives.domain.entities.Entity;
+import org.codingmatters.poom.services.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.RunnerCollectionGetResponse;
 import org.codingmatters.poomjobs.api.RunnerPatchResponse;
 import org.codingmatters.poomjobs.api.RunningJobPutResponse;

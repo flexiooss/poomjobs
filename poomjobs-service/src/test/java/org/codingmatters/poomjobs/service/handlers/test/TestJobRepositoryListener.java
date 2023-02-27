@@ -1,7 +1,7 @@
 package org.codingmatters.poomjobs.service.handlers.test;
 
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
-import org.codingmatters.poom.servives.domain.entities.Entity;
+import org.codingmatters.poom.services.domain.entities.Entity;
 import org.codingmatters.poomjobs.service.PoomjobsJobRepositoryListener;
 import org.junit.rules.ExternalResource;
 

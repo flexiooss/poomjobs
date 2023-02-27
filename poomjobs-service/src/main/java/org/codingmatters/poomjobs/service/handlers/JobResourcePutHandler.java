@@ -7,7 +7,7 @@ import org.codingmatters.poom.services.domain.change.Change;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.rest.protocol.ResourcePutProtocol;
-import org.codingmatters.poom.servives.domain.entities.Entity;
+import org.codingmatters.poom.services.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobResourcePatchRequest;
 import org.codingmatters.poomjobs.api.JobResourcePatchResponse;
 import org.codingmatters.poomjobs.api.jobresourcepatchresponse.Status200;

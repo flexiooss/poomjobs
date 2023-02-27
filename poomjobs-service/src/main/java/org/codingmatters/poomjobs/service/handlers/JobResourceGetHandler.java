@@ -4,7 +4,7 @@ import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.rest.protocol.ResourceGetProtocol;
-import org.codingmatters.poom.servives.domain.entities.Entity;
+import org.codingmatters.poom.services.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobResourceGetRequest;
 import org.codingmatters.poomjobs.api.JobResourceGetResponse;
 import org.codingmatters.poomjobs.api.jobresourcegetresponse.Status200;
