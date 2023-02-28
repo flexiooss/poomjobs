@@ -18,6 +18,7 @@
         <module>poom-task-api-types</module>
         <module>poom-task-api-processor</module>
         <module>poom-task-api-client</module>
+        <module>poom-task-api-mongo</module>
     </modules>
     
 </project>
