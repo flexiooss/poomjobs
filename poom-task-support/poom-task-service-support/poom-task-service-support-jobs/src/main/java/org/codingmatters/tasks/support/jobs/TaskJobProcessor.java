@@ -50,7 +50,7 @@ public abstract class TaskJobProcessor<Param, Result> implements JobProcessor {
         }
 
         try {
-            Result result = processor.process(param, notifier);
+            Result result = processor.process(task.id(), param, notifier);
             ObjectValue resultObject;
             try {
                 resultObject = this.resultCaster.cast(result);

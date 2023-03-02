@@ -63,7 +63,7 @@ public class TaskJobProcessorTest {
                 .build(), this.taskClient, Person.class, Book.class) {
             @Override
             protected TaskProcessor<Person, Book> taskProcessor() throws JobProcessingException {
-                return (person, taskNotifier) -> Book.builder().author(person).build();
+                return (id, person, taskNotifier) -> Book.builder().author(person).build();
             }
         };
 
@@ -86,7 +86,7 @@ public class TaskJobProcessorTest {
                 .build(), this.taskClient, Person.class, Book.class) {
             @Override
             protected TaskProcessor<Person, Book> taskProcessor() throws JobProcessingException {
-                return (person, taskNotifier) -> {
+                return (id, person, taskNotifier) -> {
                     taskNotifier.info("that's an info");
                     taskNotifier.error("that's an error");
                     return Book.builder().author(person).build();
@@ -107,7 +107,7 @@ public class TaskJobProcessorTest {
                 .build(), this.taskClient, Person.class, Book.class) {
             @Override
             protected TaskProcessor<Person, Book> taskProcessor() throws JobProcessingException {
-                return (person, taskNotifier) -> {throw new TaskProcessor.TaskFailure("task fails");} ;
+                return (id, person, taskNotifier) -> {throw new TaskProcessor.TaskFailure("task fails");} ;
             }
         };
 
@@ -149,7 +149,7 @@ public class TaskJobProcessorTest {
                 .build(), this.taskClient, Person.class, Book.class) {
             @Override
             protected TaskProcessor<Person, Book> taskProcessor() throws JobProcessingException {
-                return (person, taskNotifier) -> Book.builder().author(person).build();
+                return (id, person, taskNotifier) -> Book.builder().author(person).build();
             }
         };
 
