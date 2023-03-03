@@ -29,8 +29,9 @@ public class TaskNotifierTest {
             error.add(String.format(log, args));
         }
     };
+
     @Test
-    public void given__when__then() throws Exception {
+    public void logsWithToken() throws Exception {
         this.notifier.withToken("12").info("hello %s", "world");
         this.notifier.withToken("12").error("goodby %s", "world");
 

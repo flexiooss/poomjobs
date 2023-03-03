@@ -14,15 +14,13 @@ public class TestTaskNotifier implements TaskNotifier {
     private final List<Status.Run> statusChanges = Collections.synchronizedList(new LinkedList<>());
 
     @Override
-    public void info(String s) {
-        System.out.println("INFO: " + s);
-        logs.add(TaskLogCreation.builder().level(TaskLogCreation.Level.INFO).log(s).build());
+    public void info(String s, Object ... args) {
+        logs.add(TaskLogCreation.builder().level(TaskLogCreation.Level.INFO).log(s, args).build());
     }
 
     @Override
-    public void error(String s) {
-        System.out.println("ERROR: " + s);
-        logs.add(TaskLogCreation.builder().level(TaskLogCreation.Level.ERROR).log(s).build());
+    public void error(String s, Object ... args) {
+        logs.add(TaskLogCreation.builder().level(TaskLogCreation.Level.ERROR).log(s, args).build());
     }
 
     @Override
