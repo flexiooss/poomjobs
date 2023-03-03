@@ -18,7 +18,6 @@ types:
         headers:
             account-id: string
         queryParameters:
-#            range: string
             names:
                type: array
                items: string
@@ -26,31 +25,6 @@ types:
             category: string
             runStatus: string
             exitStatus: string
-#        responses:
-#            200:
-#                description: complete list of jobs or last elements of the list of jobs
-#                headers:
-#                    Content-Range: string
-#                    Accept-Range: string
-#                body: Job[]
-#            206:
-#                description: complete list of jobs or last elements of the list of jobs
-#                headers:
-#                    Content-Range: string
-#                    Accept-Range: string
-#                body: Job[]
-#            404:
-#                description: RESOURCE_NOT_FOUND.
-#                body: Error
-#            416:
-#                description: the specified range is not acceptable. Error code is ILLEGAL_RANGE_SPEC.
-#                headers:
-#                    Content-Range: string
-#                    Accept-Range: string
-#                body: Error
-#            500:
-#                description: UNEXPECTED_ERROR.
-#                body: Error
     post:
         is: [entityCreation: {entityCreationType: JobCreationData, entityType: Job, error: Error}]
         headers:
@@ -90,16 +64,6 @@ types:
                 account-id: string
             description: |
                 If a job with the given jobId, returns the full description of the job.
-#            responses:
-#                200:
-#                    description: a job with the given jobId is found and returned
-#                    body: Job
-#                404:
-#                    description: no job found with the given jobId. Code JOB_NOT_FOUND.
-#                    body: Error
-#                500:
-#                    description: UNEXPECTED_ERROR.
-#                    body: Error
         patch:
             is: [entityUpdate: {entityType: Job, entityUpdateType: JobUpdateData, error: Error}]
 #            body: JobUpdateData

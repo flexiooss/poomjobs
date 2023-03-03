@@ -37,7 +37,7 @@ public class RetrieveTaskTest {
         }
 
         @Override
-        public JobCreationData jobFor(Task task) {
+        public JobSpec jobSpecFor(Task task) {
             return null;
         }
 

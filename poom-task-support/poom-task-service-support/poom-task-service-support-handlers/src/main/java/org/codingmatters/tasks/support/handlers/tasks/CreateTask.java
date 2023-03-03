@@ -7,6 +7,7 @@ import org.codingmatters.poom.services.support.date.UTC;
 import org.codingmatters.poom.services.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
+import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.tasks.api.TaskCollectionPostRequest;
 import org.codingmatters.tasks.api.TaskCollectionPostResponse;
@@ -69,9 +70,14 @@ public class CreateTask extends AbstractTaskHandler implements Function<TaskColl
         }
 
         try {
+            TaskEntryPointAdapter.JobSpec jobSpec = adapter.jobSpecFor(taskEntity.value());
             JobCollectionPostResponse response = this.jobsClient.jobCollection().post(JobCollectionPostRequest.builder()
                     .accountId(adapter.jobAccount())
-                    .payload(adapter.jobFor(taskEntity.value()))
+                    .payload(JobCreationData.builder()
+                            .category(jobSpec.category)
+                            .name(jobSpec.name)
+                            .arguments(taskEntity.id(), jobSpec.tasksUrl)
+                            .build())
                     .build());
             if(response.opt().status201().isPresent()) {
                 log.info("created job {} for task {}", response.status201().xEntityId(), taskEntity.id());

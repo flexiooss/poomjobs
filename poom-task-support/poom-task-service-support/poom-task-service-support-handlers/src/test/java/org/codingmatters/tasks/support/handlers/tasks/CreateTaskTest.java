@@ -66,8 +66,8 @@ public class CreateTaskTest {
         }
 
         @Override
-        public JobCreationData jobFor(Task task) {
-            return JobCreationData.builder().category("test").name("job").arguments("arg1", "arg2").build();
+        public JobSpec jobSpecFor(Task task) {
+            return new JobSpec("test", "job", "taskUrl");
         }
 
         @Override
@@ -130,13 +130,13 @@ public class CreateTaskTest {
 
     @Test
     public void givenJobCreationSucceeds__whenCreatingTaskWithParams__thenJobSubmitted() throws Exception {
-        this.createTask.apply(TaskCollectionPostRequest.builder()
-                        .callbackUrl("http://call.me/back")
-                        .payload(ObjectValue.builder().property("submitted", v -> v.stringValue("value")).build())
+        TaskCollectionPostResponse response = this.createTask.apply(TaskCollectionPostRequest.builder()
+                .callbackUrl("http://call.me/back")
+                .payload(ObjectValue.builder().property("submitted", v -> v.stringValue("value")).build())
                 .build());
 
         assertThat(this.jobCreationRequest.lastRequest().accountId(), is("test-account"));
-        assertThat(this.jobCreationRequest.lastRequest().payload(), is(JobCreationData.builder().category("test").name("job").arguments("arg1", "arg2").build()));
+        assertThat(this.jobCreationRequest.lastRequest().payload(), is(JobCreationData.builder().category("test").name("job").arguments(response.status201().xEntityId(), "taskUrl").build()));
     }
 
     @Test

@@ -38,7 +38,7 @@ public class ReplaceTaskResultTest {
         }
 
         @Override
-        public JobCreationData jobFor(Task task) {
+        public JobSpec jobSpecFor(Task task) {
             return null;
         }
 

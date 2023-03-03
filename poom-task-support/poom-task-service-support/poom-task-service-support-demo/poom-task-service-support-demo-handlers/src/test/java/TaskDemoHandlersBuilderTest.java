@@ -61,8 +61,8 @@ public class TaskDemoHandlersBuilderTest {
         }
 
         @Override
-        public JobCreationData jobFor(Task task) {
-            return JobCreationData.builder().category("test").name("job").arguments("arg1", "arg2").build();
+        public JobSpec jobSpecFor(Task task) {
+            return new JobSpec("test", "job", "task-url");
         }
 
         @Override
