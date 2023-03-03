@@ -7,7 +7,7 @@ import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.domain.repositories.inmemory.InMemoryRepositoryWithPropertyQuery;
 import org.codingmatters.poom.services.support.date.UTC;
 import org.codingmatters.poom.services.tests.DateMatchers;
-import org.codingmatters.poom.servives.domain.entities.Entity;
+import org.codingmatters.poom.services.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.rest.api.client.Requester;
 import org.codingmatters.rest.api.client.test.TestRequesterFactory;
@@ -50,7 +50,7 @@ public class UpdateTaskStatusTest {
         }
 
         @Override
-        public JobCreationData jobFor(Task task) {
+        public JobSpec jobSpecFor(Task task) {
             return null;
         }
 

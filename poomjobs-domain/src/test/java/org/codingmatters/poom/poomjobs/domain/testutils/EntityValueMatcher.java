@@ -1,6 +1,6 @@
 package org.codingmatters.poom.poomjobs.domain.testutils;
 
-import org.codingmatters.poom.servives.domain.entities.Entity;
+import org.codingmatters.poom.services.domain.entities.Entity;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 

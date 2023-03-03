@@ -16,7 +16,7 @@ import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Runtime;
 import org.codingmatters.poom.runner.manager.harness.TestRunnerClientFactory;
 import org.codingmatters.poom.services.domain.repositories.Repository;
-import org.codingmatters.poom.servives.domain.entities.Entity;
+import org.codingmatters.poom.services.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.PoomjobsRunnerAPIHandlers;
 import org.codingmatters.poomjobs.api.RunningJobPutRequest;
 import org.codingmatters.poomjobs.api.RunningJobPutResponse;

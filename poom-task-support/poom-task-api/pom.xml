@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.codingmatters.tasks</groupId>
         <artifactId>poom-task-support</artifactId>
-        <version>1.148.0</version>
+        <version>1.149.0</version>
     </parent>
 
     <artifactId>poom-task-api</artifactId>
@@ -18,6 +18,7 @@
         <module>poom-task-api-types</module>
         <module>poom-task-api-processor</module>
         <module>poom-task-api-client</module>
+        <module>poom-task-api-mongo</module>
     </modules>
     
 </project>

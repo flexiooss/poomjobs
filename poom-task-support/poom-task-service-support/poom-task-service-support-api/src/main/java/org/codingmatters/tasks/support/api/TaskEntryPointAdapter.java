@@ -12,7 +12,19 @@ import java.util.Optional;
 public interface TaskEntryPointAdapter {
     Repository<Task, PropertyQuery> tasks();
     Optional<Repository<TaskLog, PropertyQuery>> taskLogs();
-    JobCreationData jobFor(Task task);
+    JobSpec jobSpecFor(Task task);
     String jobAccount();
     Requester callbackRequester(String callbackUrl);
+
+    class JobSpec {
+        public final String category;
+        public final String name;
+        public final String tasksUrl;
+
+        public JobSpec(String category, String name, String tasksUrl) {
+            this.category = category;
+            this.name = name;
+            this.tasksUrl = tasksUrl;
+        }
+    }
 }

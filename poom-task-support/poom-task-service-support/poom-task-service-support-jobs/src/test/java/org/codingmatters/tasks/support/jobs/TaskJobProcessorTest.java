@@ -59,11 +59,11 @@ public class TaskJobProcessorTest {
     @Test
     public void whenTaskSucceeds__thenNominalStatusChanges_andResultSet_andJobHasSuccessStatus() throws Exception {
         TaskJobProcessor<Person, Book> processor = new TaskJobProcessor<>(Job.builder()
-                .arguments("task-id")
-                .build(), this.taskClient, Person.class, Book.class) {
+                .arguments("task-id", "task-url")
+                .build(), url -> this.taskClient, Person.class, Book.class) {
             @Override
             protected TaskProcessor<Person, Book> taskProcessor() throws JobProcessingException {
-                return (person, taskNotifier) -> Book.builder().author(person).build();
+                return (id, person, taskNotifier) -> Book.builder().author(person).build();
             }
         };
 
@@ -82,11 +82,11 @@ public class TaskJobProcessorTest {
     @Test
     public void whenTaskProcessorLogs__thenLogNotificated() throws Exception {
         new TaskJobProcessor<>(Job.builder()
-                .arguments("task-id")
-                .build(), this.taskClient, Person.class, Book.class) {
+                .arguments("task-id", "task-url")
+                .build(), url -> this.taskClient, Person.class, Book.class) {
             @Override
             protected TaskProcessor<Person, Book> taskProcessor() throws JobProcessingException {
-                return (person, taskNotifier) -> {
+                return (id, person, taskNotifier) -> {
                     taskNotifier.info("that's an info");
                     taskNotifier.error("that's an error");
                     return Book.builder().author(person).build();
@@ -103,11 +103,11 @@ public class TaskJobProcessorTest {
     @Test
     public void whenTaskProcessorFails__thenStatusChangesToFAILURE_andJobHasFailureStatus() throws Exception {
         TaskJobProcessor<Person, Book> processor = new TaskJobProcessor<>(Job.builder()
-                .arguments("task-id")
-                .build(), this.taskClient, Person.class, Book.class) {
+                .arguments("task-id", "task-url")
+                .build(), url -> this.taskClient, Person.class, Book.class) {
             @Override
             protected TaskProcessor<Person, Book> taskProcessor() throws JobProcessingException {
-                return (person, taskNotifier) -> {throw new TaskProcessor.TaskFailure("task fails");} ;
+                return (id, person, taskNotifier) -> {throw new TaskProcessor.TaskFailure("task fails");} ;
             }
         };
 
@@ -126,8 +126,8 @@ public class TaskJobProcessorTest {
     @Test
     public void whenJobProcessingExceptio__thenStatusChangesToFAILURE_andJobHasFailureStatus() throws Exception {
         TaskJobProcessor<Person, Book> processor = new TaskJobProcessor<>(Job.builder()
-                .arguments("task-id")
-                .build(), this.taskClient, Person.class, Book.class) {
+                .arguments("task-id", "task-url")
+                .build(), url -> this.taskClient, Person.class, Book.class) {
             @Override
             protected TaskProcessor<Person, Book> taskProcessor() throws JobProcessingException {
                 throw new JobProcessingException("failed creating task process");
@@ -145,11 +145,11 @@ public class TaskJobProcessorTest {
     @Test
     public void givenTaskFragment__whenTaskSucceeds__thenTaskStatusIsStillRunning_andPartialResultSet_andJobHasSuccessStatus() throws Exception {
         TaskJobProcessor<Person, Book> processor = new TaskFragmentJobProcessor<Person, Book>(Job.builder()
-                .arguments("task-id")
-                .build(), this.taskClient, Person.class, Book.class) {
+                .arguments("task-id", "task-url")
+                .build(), url -> this.taskClient, Person.class, Book.class) {
             @Override
             protected TaskProcessor<Person, Book> taskProcessor() throws JobProcessingException {
-                return (person, taskNotifier) -> Book.builder().author(person).build();
+                return (id, person, taskNotifier) -> Book.builder().author(person).build();
             }
         };
 

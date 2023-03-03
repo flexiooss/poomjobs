@@ -7,7 +7,7 @@ import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.services.domain.change.Change;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.repositories.Repository;
-import org.codingmatters.poom.servives.domain.entities.Entity;
+import org.codingmatters.poom.services.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.RunnerCollectionPostRequest;
 import org.codingmatters.poomjobs.api.RunnerCollectionPostResponse;
 import org.codingmatters.poomjobs.api.types.Error;

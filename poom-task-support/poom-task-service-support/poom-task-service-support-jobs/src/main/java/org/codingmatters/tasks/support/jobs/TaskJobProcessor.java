@@ -15,6 +15,7 @@ import org.codingmatters.value.objects.values.casts.ValueObjectCaster;
 import org.codingmatters.value.objects.values.casts.reflect.ValueObjectReflectCaster;
 
 import java.io.IOException;
+import java.util.function.Function;
 
 public abstract class TaskJobProcessor<Param, Result> implements JobProcessor {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(TaskJobProcessor.class);
@@ -23,11 +24,11 @@ public abstract class TaskJobProcessor<Param, Result> implements JobProcessor {
     private final ValueObjectReflectCaster<Result, ObjectValue> resultCaster;
 
     protected final Job job;
-    private final TaskApiClient taskClient;
+    private final Function<String, TaskApiClient> taskClientProvider;
 
-    public TaskJobProcessor(Job job, TaskApiClient taskClient, Class<Param> paramClass, Class<Result> resultClass) throws ValueObjectCaster.ValueObjectUncastableException {
+    public TaskJobProcessor(Job job, Function<String, TaskApiClient> taskClientProvider, Class<Param> paramClass, Class<Result> resultClass) throws ValueObjectCaster.ValueObjectUncastableException {
         this.job = job;
-        this.taskClient = taskClient;
+        this.taskClientProvider = taskClientProvider;
         this.paramCaster = new ValueObjectReflectCaster<ObjectValue, Param>(ObjectValue.class, paramClass);
         this.resultCaster = new ValueObjectReflectCaster<Result, ObjectValue>(resultClass, ObjectValue.class);
     }
@@ -36,8 +37,9 @@ public abstract class TaskJobProcessor<Param, Result> implements JobProcessor {
 
     @Override
     public Job process() throws JobProcessingException {
-        Task task = this.task(job);
-        ExtendedTaskNotifier notifier = this.taskNotifier(task);
+        TaskApiClient taskClient = this.taskClientProvider.apply(this.job.arguments().get(1));
+        Task task = this.task(taskClient, job);
+        ExtendedTaskNotifier notifier = new ClientTaskNotifier(taskClient, task);
         TaskProcessor<Param, Result> processor = this.taskProcessor();
 
         notifier.updateRunStatus(TaskStatusChange.Run.RUNNING);
@@ -50,7 +52,7 @@ public abstract class TaskJobProcessor<Param, Result> implements JobProcessor {
         }
 
         try {
-            Result result = processor.process(param, notifier);
+            Result result = processor.process(task.id(), param, notifier);
             ObjectValue resultObject;
             try {
                 resultObject = this.resultCaster.cast(result);
@@ -64,9 +66,9 @@ public abstract class TaskJobProcessor<Param, Result> implements JobProcessor {
         }
     }
 
-    private Task task(Job job) throws JobProcessingException {
+    private Task task(TaskApiClient taskClient, Job job) throws JobProcessingException {
         try {
-            TaskEntityGetResponse response = this.taskClient.taskCollection().taskEntity().get(TaskEntityGetRequest.builder()
+            TaskEntityGetResponse response = taskClient.taskCollection().taskEntity().get(TaskEntityGetRequest.builder()
                     .taskId(job.arguments().get(0))
                     .build());
             if(response.opt().status200().isEmpty()) {
@@ -78,10 +80,6 @@ public abstract class TaskJobProcessor<Param, Result> implements JobProcessor {
         }
     }
 
-
-    private ExtendedTaskNotifier taskNotifier(Task task) {
-        return new ClientTaskNotifier(this.taskClient, task);
-    }
 
     protected Job success(ExtendedTaskNotifier notifier, ObjectValue result) {
         notifier.success(result);

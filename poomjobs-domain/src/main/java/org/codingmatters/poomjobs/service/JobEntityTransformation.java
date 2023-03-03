@@ -4,7 +4,7 @@ import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Accounting;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Processing;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
-import org.codingmatters.poom.servives.domain.entities.Entity;
+import org.codingmatters.poom.services.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.types.Job;
 
 /**

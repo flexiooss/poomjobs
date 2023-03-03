@@ -3,7 +3,7 @@ package org.codingmatters.tasks.support.handlers.tasks;
 import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
-import org.codingmatters.poom.servives.domain.entities.Entity;
+import org.codingmatters.poom.services.domain.entities.Entity;
 import org.codingmatters.tasks.api.TaskEntityGetRequest;
 import org.codingmatters.tasks.api.TaskEntityGetResponse;
 import org.codingmatters.tasks.api.taskentitygetresponse.Status200;
