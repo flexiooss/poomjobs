@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poom-services</artifactId>
-        <version>1.133.0</version>
+        <version>1.134.0</version>
     </parent>
 
     <artifactId>poomjobs</artifactId>
@@ -93,7 +93,7 @@
     </dependencies>
 
     <properties>
-        <flexio-commons.version>1.140.0</flexio-commons.version>
+        <flexio-commons.version>1.141.0-SNAPSHOT</flexio-commons.version>
     </properties>
 
     <dependencyManagement>
