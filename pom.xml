@@ -93,7 +93,7 @@
     </dependencies>
 
     <properties>
-        <flexio-commons.version>1.141.0-SNAPSHOT</flexio-commons.version>
+        <flexio-commons.version>1.141.0</flexio-commons.version>
     </properties>
 
     <dependencyManagement>
