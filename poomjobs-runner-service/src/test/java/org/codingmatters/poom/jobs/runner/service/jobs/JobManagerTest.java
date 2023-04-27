@@ -76,9 +76,8 @@ public class JobManagerTest {
     }
 
     @Test
-    public void givenUpdatingJob__whenPatchFails__thenRuntimeExceptionWithLogTokenMessage() throws Exception {
+    public void givenUpdatingJob__whenPatchFails__thenJobUpdateFailureWithLogTokenMessage() throws Exception {
         List<JobResourcePatchResponse> responses = Arrays.asList(
-                JobResourcePatchResponse.builder().status400(Status400.builder().build()).build(),
                 JobResourcePatchResponse.builder().status404(Status404.builder().build()).build(),
                 JobResourcePatchResponse.builder().status500(Status500.builder().build()).build()
         );
@@ -98,5 +97,24 @@ public class JobManagerTest {
                             .exit(org.codingmatters.poomjobs.api.types.job.Status.Exit.SUCCESS))
                     .build());
         }
+    }
+
+    @Test
+    public void givenUpdatingJob__whenPatchFails_andResponseCodeIs400__thenJobUpdateFailureWithLogTokenMessage() throws Exception {
+        JobResourcePatchResponse response = JobResourcePatchResponse.builder().status400(Status400.builder().build()).build();
+        this.jobPatch.nextResponse(request -> response);
+
+        this.thrown.expect(JobProcessorRunner.JobUpdateFailure.class);
+        this.thrown.expectMessage(startsWith("job update failed due to version mismatch"));
+
+        this.manager.update(Job.builder()
+                .id("job-id")
+                .accounting(builder -> builder.accountId("account"))
+                .version("version")
+                .result("job result")
+                .status(builder -> builder
+                        .run(org.codingmatters.poomjobs.api.types.job.Status.Run.DONE)
+                        .exit(org.codingmatters.poomjobs.api.types.job.Status.Exit.SUCCESS))
+                .build());
     }
 }
