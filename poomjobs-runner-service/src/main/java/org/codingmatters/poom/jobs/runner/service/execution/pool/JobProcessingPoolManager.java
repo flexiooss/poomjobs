@@ -64,13 +64,13 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
         } catch (LockingFailed e) {
             return RunningJobPutResponse.builder().status409(status -> status.payload(error -> error
                     .code(Error.Code.ENTITY_UPDATE_NOT_ALLOWED)
-                    .token(log.tokenized().info("cannot reserve job : {}", e.getMessage()))
+                    .token(log.tokenized().info("cannot reserve job : " + job, e))
                     .description("failed reserving job")
             )).build();
         } catch (PoolBusyException e) {
             return RunningJobPutResponse.builder().status409(status -> status.payload(error -> error
                     .code(Error.Code.OVERLOADED)
-                    .token(log.tokenized().info("runner became busy : {}", e.getMessage()))
+                    .token(log.tokenized().info("runner became busy for job " + job, e))
                     .description("runner busy, come back later")
             )).build();
         }
@@ -89,9 +89,9 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
                 try {
                     this.pool.process(pendingJob, "pending job");
                 } catch (LockingFailed e) {
-                    log.debug("process pending job - cannot lock job, ignoring");
+                    log.debug("process pending job - cannot lock job, ignoring", e);
                 } catch (PoolBusyException e) {
-                    log.debug("process pending job - pool became busy, stopping assigning pending");
+                    log.debug("process pending job - pool became busy, stopping assigning pending", e);
                     return;
                 }
             }
