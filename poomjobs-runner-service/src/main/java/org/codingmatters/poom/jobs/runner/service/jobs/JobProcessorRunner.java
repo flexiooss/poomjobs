@@ -89,4 +89,14 @@ public class JobProcessorRunner {
             super(message, cause);
         }
     }
+
+    public static class JobUpdateInvalid extends Exception {
+        public JobUpdateInvalid(String message) {
+            super(message);
+        }
+
+        public JobUpdateInvalid(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 }

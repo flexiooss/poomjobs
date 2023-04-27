@@ -2,10 +2,7 @@ package org.codingmatters.poom.jobs.runner.service.jobs;
 
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.Env;
-import org.codingmatters.poomjobs.api.JobCollectionGetResponse;
-import org.codingmatters.poomjobs.api.JobResourcePatchRequest;
-import org.codingmatters.poomjobs.api.JobResourcePatchResponse;
-import org.codingmatters.poomjobs.api.ValueList;
+import org.codingmatters.poomjobs.api.*;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 import org.codingmatters.poomjobs.api.types.job.optional.OptionalStatus;
@@ -35,7 +32,11 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
 
     @Override
     public Job update(Job job) throws JobProcessorRunner.JobUpdateFailure {
-        return this.update(job, false);
+        try {
+            return this.update(job, false);
+        } catch (JobProcessorRunner.JobUpdateInvalid e) {
+            throw new JobProcessorRunner.JobUpdateFailure("job update failed due to version mismatch", e);
+        }
     }
 
     public Job reserve(Job job) throws JobProcessorRunner.JobUpdateFailure {
@@ -43,13 +44,37 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
                 .run(org.codingmatters.poomjobs.api.types.job.Status.Run.RUNNING)
                 .build()
         );
-        Job result = this.update(
-                job,
-                true
-        );
+        Job result = null;
+        boolean doIt = true;
+        while(doIt) {
+            doIt = false;
+            try {
+                result = this.update(
+                        job,
+                        true
+                );
+            } catch (JobProcessorRunner.JobUpdateInvalid e) {
+                try {
+                    job = this.retrieve(job.id());
+                } catch (IOException ex) {
+                    throw new JobProcessorRunner.JobUpdateFailure("failed updating job to latest version : " + job.id(), e);
+                }
+                if (job.status().run().equals(org.codingmatters.poomjobs.api.types.job.Status.Run.PENDING)) {
+                    job = job.withStatus(org.codingmatters.poomjobs.api.types.job.Status.builder()
+                            .run(org.codingmatters.poomjobs.api.types.job.Status.Run.RUNNING)
+                            .build()
+                    );
+                    doIt = true;
+                    log.info("job version was outdated, retrying with updated version {}", job);
+                } else {
+                    throw new JobProcessorRunner.JobUpdateFailure("job reserved by another runner", e);
+                }
+            }
+        }
         log.debug("reserved job: {}", job);
         return result;
     }
+
 
     @Override
     public Job release(Job job) throws JobProcessorRunner.JobUpdateFailure {
@@ -57,15 +82,20 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
                 .run(org.codingmatters.poomjobs.api.types.job.Status.Run.PENDING)
                 .build()
         );
-        Job result = this.update(
-                job,
-                true
-        );
+        Job result = null;
+        try {
+            result = this.update(
+                    job,
+                    true
+            );
+        } catch (JobProcessorRunner.JobUpdateInvalid e) {
+            throw new JobProcessorRunner.JobUpdateFailure("job release impossible while version changed in between" + job, e);
+        }
         log.debug("released job: {}", job);
         return result;
     }
 
-    private Job update(Job job, boolean strictly) throws JobProcessorRunner.JobUpdateFailure {
+    private Job update(Job job, boolean strictly) throws JobProcessorRunner.JobUpdateFailure, JobProcessorRunner.JobUpdateInvalid {
         int tried = 0;
         JobResourcePatchResponse response = null;
         while(tried < JOB_UPDATE_MAX_RETRIES && response == null) {
@@ -83,6 +113,8 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
             throw new JobProcessorRunner.JobUpdateFailure(String.format(
                     "Failed updating job, tried %s time, will not retry.", tried
             ));
+        } else if(response.opt().status400().isPresent()) {
+            throw new JobProcessorRunner.JobUpdateInvalid("Failed updating job, got invalid change response : " + response.status400());
         } else if(response.opt().status200().isEmpty()) {
             throw new JobProcessorRunner.JobUpdateFailure("Failed updating job, got response : " + response);
         } else {
@@ -104,6 +136,19 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
                 .build());
         log.debug("job patch response " + response);
         return response;
+    }
+
+    private Job retrieve(String jobId) throws IOException {
+        JobResourceGetResponse response = this.client.jobCollection().jobResource().get(JobResourceGetRequest.builder()
+                .accountId(this.accountId)
+                .jobId(jobId)
+                .build());
+        if(response.opt().status200().isPresent()) {
+            return response.status200().payload();
+        } else {
+            log.error("unexpected response while retrieving job {} : {}", jobId, response);
+            throw new IOException(String.format("unexpected response while retrieving job %s : %s", jobId, response));
+        }
     }
 
     private Status translated(OptionalStatus status) {
