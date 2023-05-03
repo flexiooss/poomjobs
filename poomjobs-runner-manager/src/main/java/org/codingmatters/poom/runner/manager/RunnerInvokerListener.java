@@ -68,6 +68,7 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
                         ;
                 log.debug("runner candidates: {}", candidates);
                 if(! candidates.isEmpty()) {
+                    boolean someDisconnected = false;
                     for (Runner candidate : candidates) {
                         log.debug("trying candidate: {}", candidate);
                         PoomjobsRunnerAPIClient runner = this.runnerClient(candidate);
@@ -92,7 +93,11 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
                             }
                         } catch(IOException e) {
                             this.disconnectRunner(candidate, e);
+                            someDisconnected = true;
                         }
+                    }
+                    if(someDisconnected) {
+                        start = 0;
                     }
                 } else {
                     log.info("no runner ready for job {}", entity.id());
