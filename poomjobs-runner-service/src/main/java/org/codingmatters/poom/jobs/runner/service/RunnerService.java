@@ -52,7 +52,7 @@ public class RunnerService {
     public interface OptionsSetup {
         OptionsSetup ttl(long ttl);
         OptionsSetup contextSetup(JobContextSetup contextSetup);
-        EndpointSetup handlers(PathHandler pathHandlers);
+        OptionsSetup handlers(PathHandler pathHandlers);
         OptionsSetup exitOnUnrecoverableError(boolean exit);
         RunnerService build();
     }
