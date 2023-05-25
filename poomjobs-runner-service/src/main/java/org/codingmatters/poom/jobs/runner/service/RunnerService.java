@@ -47,12 +47,12 @@ public class RunnerService {
         EndpointSetup concurrency(int concurrentJobCount);
     }
     public interface EndpointSetup {
-        EndpointSetup handlers(PathHandler pathHandlers);
         OptionsSetup endpoint(String host, int port);
     }
     public interface OptionsSetup {
         OptionsSetup ttl(long ttl);
         OptionsSetup contextSetup(JobContextSetup contextSetup);
+        EndpointSetup handlers(PathHandler pathHandlers);
         OptionsSetup exitOnUnrecoverableError(boolean exit);
         RunnerService build();
     }
