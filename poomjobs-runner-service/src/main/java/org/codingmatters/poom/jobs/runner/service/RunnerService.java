@@ -101,7 +101,7 @@ public class RunnerService {
         }
 
         @Override
-        public EndpointSetup handlers(PathHandler pathHandlers) {
+        public OptionsSetup handlers(PathHandler pathHandlers) {
             this.pathHandlers = pathHandlers;
             return this;
         }
