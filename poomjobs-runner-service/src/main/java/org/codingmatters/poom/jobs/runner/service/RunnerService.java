@@ -52,6 +52,7 @@ public class RunnerService {
     public interface OptionsSetup {
         OptionsSetup ttl(long ttl);
         OptionsSetup contextSetup(JobContextSetup contextSetup);
+        OptionsSetup handlers(PathHandler pathHandlers);
         OptionsSetup exitOnUnrecoverableError(boolean exit);
         RunnerService build();
     }
@@ -72,6 +73,7 @@ public class RunnerService {
         private long ttl = DEFAULT_TTL;
         private JobContextSetup contextSetup = JobContextSetup.NOOP;
         private boolean exitOnUnrecoverableError = true;
+        private PathHandler pathHandlers;
 
 
         @Override
@@ -95,6 +97,12 @@ public class RunnerService {
         public EndpointSetup concurrency(int concurrentJobCount) {
             this.concurrentJobCount = concurrentJobCount;
 
+            return this;
+        }
+
+        @Override
+        public OptionsSetup handlers(PathHandler pathHandlers) {
+            this.pathHandlers = pathHandlers;
             return this;
         }
 
@@ -135,6 +143,7 @@ public class RunnerService {
                     this.jobNames,
                     this.jobProcessorFactory,
                     this.contextSetup,
+                    this.pathHandlers != null ? this.pathHandlers : Handlers.path(),
                     this.jobRequestEndpointHost,
                     this.jobRequestEndpointPort
             );
@@ -169,6 +178,8 @@ public class RunnerService {
 
     private final ExecutorService statusManagerExecutor = Executors.newSingleThreadExecutor();
 
+    private final PathHandler pathHandlers;
+
     public RunnerService(
             PoomjobsRunnerRegistryAPIClient runnerRegistryClient,
             PoomjobsJobRegistryAPIClient jobRegistryClient,
@@ -176,6 +187,7 @@ public class RunnerService {
             long ttl,
             String jobCategory, String[] jobNames, JobProcessor.Factory jobProcessorFactory,
             JobContextSetup contextSetup,
+            PathHandler pathHandlers,
             String jobRequestEndpointHost, int jobRequestEndpointPort
     ) {
         this.runnerRegistryClient = runnerRegistryClient;
@@ -186,6 +198,7 @@ public class RunnerService {
         this.jobNames = jobNames;
         this.jobProcessorFactory = jobProcessorFactory;
         this.contextSetup = contextSetup;
+        this.pathHandlers = pathHandlers;
         this.jobRequestEndpointPort = jobRequestEndpointPort;
         this.jobRequestEndpointHost = jobRequestEndpointHost;
         this.jobRequestEndpointUrl = Env.mandatory(Env.SERVICE_URL).asString();
@@ -251,8 +264,8 @@ public class RunnerService {
         this.jobProcessingPoolManager.start();
     }
 
+
     private void startJobRequestEndpoint() {
-        PathHandler pathHandlers = Handlers.path();
         pathHandlers.addPrefixPath( "/", new CdmHttpUndertowHandler( new PoomjobsRunnerAPIProcessor(
                 "",
                 new JsonFactory(),
