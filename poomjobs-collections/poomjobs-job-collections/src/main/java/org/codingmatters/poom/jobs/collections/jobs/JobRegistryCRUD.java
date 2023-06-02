@@ -48,9 +48,15 @@ public class JobRegistryCRUD implements PagedCollectionAdapter.CRUD<Job, JobCrea
     }
 
     @Override
+    public String entityType() {
+        return Job.class.getSimpleName();
+    }
+
+    @Override
     public String entityRepositoryUrl() {
         return this.url;
     }
+
 
     @Override
     public Entity<Job> createEntityFrom(JobCreationData jobCreationData) throws BadRequestException, ForbiddenException, NotFoundException, UnauthorizedException, UnexpectedException, MethodNotAllowedException {
