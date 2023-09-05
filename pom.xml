@@ -17,6 +17,10 @@
     <description>Distributed Job Queue Framework</description>
     <packaging>pom</packaging>
     <url>https://github.com/flexiooss/poomjobs</url>
+    
+    <properties>
+        <flexio-commons.version>1.160.0-SNAPSHOT</flexio-commons.version>
+    </properties>
 
     <licenses>
         <license>
@@ -91,10 +95,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <properties>
-        <flexio-commons.version>1.160.0-SNAPSHOT</flexio-commons.version>
-    </properties>
 
     <dependencyManagement>
         <dependencies>
