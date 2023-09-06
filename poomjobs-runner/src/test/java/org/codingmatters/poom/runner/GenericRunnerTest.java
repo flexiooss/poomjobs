@@ -216,7 +216,7 @@ public class GenericRunnerTest {
         this.jobRegistryPool = Executors.newFixedThreadPool(5);
 
         this.jobRegistry = new PoomjobsJobRegistryAPIHandlersClient(
-                new PoomjobsJobRegistryAPI(this.jobRepository).handlers(),
+                new PoomjobsJobRegistryAPI(this.jobRepository, new JsonFactory()).handlers(),
                 this.jobRegistryPool
         );
     }
@@ -229,7 +229,7 @@ public class GenericRunnerTest {
         this.runnerRegistryPool = Executors.newFixedThreadPool(5);
 
         this.runnerRegistry = new PoomjobsRunnerRegistryAPIHandlersClient(
-                new PoomjobsRunnerRegistryAPI(this.runnerRepository).handlers(),
+                new PoomjobsRunnerRegistryAPI(this.runnerRepository, new JsonFactory()).handlers(),
                 this.runnerRegistryPool
         );
     }

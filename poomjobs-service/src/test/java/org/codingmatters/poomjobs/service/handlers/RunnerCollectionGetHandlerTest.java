@@ -1,5 +1,6 @@
 package org.codingmatters.poomjobs.service.handlers;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.RunnerRepository;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerCriteria;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
@@ -21,7 +22,7 @@ import static org.junit.Assert.assertThat;
  */
 public class RunnerCollectionGetHandlerTest {
     private final Repository<RunnerValue, RunnerQuery> repository = RunnerRepository.createInMemory();
-    private PoomjobsRunnerRegistryAPI api = new PoomjobsRunnerRegistryAPI(repository);
+    private PoomjobsRunnerRegistryAPI api = new PoomjobsRunnerRegistryAPI(repository, new JsonFactory());
     private RunnerCollectionGetHandler handler = (RunnerCollectionGetHandler) this.api.handlers().runnerCollectionGetHandler();
 
     @Test

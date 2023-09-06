@@ -1,5 +1,6 @@
 package org.codingmatters.poom.client;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
@@ -25,7 +26,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class PoomjobsJobRegistryAPIHandlersClientTest {
 
     private final Repository<JobValue, PropertyQuery> jobRepository = JobRepository.createInMemory();
-    private PoomjobsJobRegistryAPI serverApi = new PoomjobsJobRegistryAPI(jobRepository);
+    private PoomjobsJobRegistryAPI serverApi = new PoomjobsJobRegistryAPI(jobRepository, new JsonFactory());
     private PoomjobsJobRegistryAPIClient apiClient;
     private ExecutorService executor;
 
