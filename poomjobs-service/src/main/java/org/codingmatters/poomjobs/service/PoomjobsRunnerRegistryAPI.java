@@ -5,7 +5,6 @@ import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poomjobs.api.PoomjobsRunnerRegistryAPIHandlers;
-import org.codingmatters.poomjobs.service.api.PoomjobsJobRegistryAPIProcessor;
 import org.codingmatters.poomjobs.service.api.PoomjobsRunnerRegistryAPIProcessor;
 import org.codingmatters.poomjobs.service.handlers.RunnerCollectionGetHandler;
 import org.codingmatters.poomjobs.service.handlers.RunnerCollectionPostHandler;
@@ -44,7 +43,7 @@ public class PoomjobsRunnerRegistryAPI implements Api {
 
     @Override
     public String name() {
-        return "poomjobs-runner";
+        return "poomjobs-runners";
     }
 
     @Override
@@ -59,6 +58,6 @@ public class PoomjobsRunnerRegistryAPI implements Api {
 
     @Override
     public String path() {
-        return "/poomjobs-runner/v1";
+        return "/" + this.name() + "/v1";
     }
 }

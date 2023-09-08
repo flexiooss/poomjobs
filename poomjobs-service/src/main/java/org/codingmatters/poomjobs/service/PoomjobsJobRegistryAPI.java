@@ -61,6 +61,6 @@ public class PoomjobsJobRegistryAPI implements Api {
 
     @Override
     public String path() {
-        return "/poomjobs-jobs/v1";
+        return "/" + this.name() + "/v1";
     }
 }
