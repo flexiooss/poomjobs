@@ -91,7 +91,7 @@ public class RunnerInvokerListenerTest {
         this.runnerRegistryPool = Executors.newFixedThreadPool(5);
 
         this.runnerRegistry = new PoomjobsRunnerRegistryAPIHandlersClient(
-                new PoomjobsRunnerRegistryAPI(this.runnerRepository).handlers(),
+                new PoomjobsRunnerRegistryAPI(this.runnerRepository, new JsonFactory()).handlers(),
                 this.runnerRegistryPool
         );
     }

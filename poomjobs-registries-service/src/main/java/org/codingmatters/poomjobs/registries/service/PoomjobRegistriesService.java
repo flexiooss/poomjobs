@@ -79,7 +79,7 @@ public class PoomjobRegistriesService {
         this.port = port;
         this.clientPool = clientPool;
 
-        this.runnerRegistryAPI = new PoomjobsRunnerRegistryAPI(this.runnerRepository);
+        this.runnerRegistryAPI = new PoomjobsRunnerRegistryAPI(this.runnerRepository, new JsonFactory());
         this.runnerRegistryClient = new PoomjobsRunnerRegistryAPIHandlersClient(
                 this.runnerRegistryAPI.handlers(),
                 this.clientPool
@@ -88,7 +88,8 @@ public class PoomjobRegistriesService {
         this.jobRegistryAPI = new PoomjobsJobRegistryAPI(
                 this.jobRepository,
                 new RunnerInvokerListener(runnerRegistryClient, new DefaultRunnerClientFactory(this.jsonFactory, OkHttpClientWrapper.build()), listenerPool),
-                null
+                null,
+                new JsonFactory()
         );
     }
 

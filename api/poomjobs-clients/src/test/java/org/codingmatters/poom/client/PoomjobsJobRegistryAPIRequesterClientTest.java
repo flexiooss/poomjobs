@@ -31,7 +31,7 @@ public class PoomjobsJobRegistryAPIRequesterClientTest {
 
 
     private final Repository<JobValue, PropertyQuery> jobRepository = JobRepository.createInMemory();
-    private PoomjobsJobRegistryAPI serverApi = new PoomjobsJobRegistryAPI(jobRepository);
+    private PoomjobsJobRegistryAPI serverApi = new PoomjobsJobRegistryAPI(jobRepository, new JsonFactory());
     private PoomjobsJobRegistryAPIProcessor processor = new PoomjobsJobRegistryAPIProcessor("/poom", new JsonFactory(), this.serverApi.handlers());
     private PoomjobsJobRegistryAPIClient apiClient;
 
