@@ -184,6 +184,9 @@ public class MultithreadedRunnerIntegrationTest {
         log.info("\n\n\noneJob_concurrency\n\n\n");
         this.createAndStartRunnerServiceWithConcurrency(10);
 
+        log.info(">>>>>>>>>>>>>>>>>>>>>>");
+        log.info(">>>>>>>>>>>>>>>>>>>>>>");
+        log.info(">>>>>>>>>>>>>>>>>>>>>>");
         this.jobRegistryClient.jobCollection().post(JobCollectionPostRequest.builder()
                 .accountId("blurp")
                 .payload(JobCreationData.builder()
@@ -191,6 +194,9 @@ public class MultithreadedRunnerIntegrationTest {
                         .build())
                 .build());
 
+        log.info("<<<<<<<<<<<<<<<<<<<<<<");
+        log.info("<<<<<<<<<<<<<<<<<<<<<<");
+        log.info("<<<<<<<<<<<<<<<<<<<<<<");
 
         Eventually.timeout(10, TimeUnit.SECONDS).assertThat(
                 () -> this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange(),
