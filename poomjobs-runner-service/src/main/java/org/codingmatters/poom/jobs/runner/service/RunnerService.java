@@ -296,9 +296,7 @@ public class RunnerService {
             @Override
             public Processor processor() {
                 return (requestDelegate, responseDelegate) -> {
-                    log.info("///////////////////////");
                     processor.process(requestDelegate, responseDelegate);
-                    log.info("***********************");
                 };
             }
 
