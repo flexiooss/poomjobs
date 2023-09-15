@@ -308,8 +308,7 @@ public class RunnerService {
 
         this.runtime = this.containerRuntimeBuilder
                 .onShutdown(this::onStop)
-//                .build(new NettyApiContainerRuntime(this.jobRequestEndpointHost, this.jobRequestEndpointPort, log))
-                .build(new UndertowApiContainerRuntime(this.jobRequestEndpointHost, this.jobRequestEndpointPort, log))
+                .build(new NettyApiContainerRuntime(this.jobRequestEndpointHost, this.jobRequestEndpointPort, log))
         ;
 
         try {
