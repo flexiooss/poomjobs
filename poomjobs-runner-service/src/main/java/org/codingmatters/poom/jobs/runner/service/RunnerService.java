@@ -1,9 +1,6 @@
 package org.codingmatters.poom.jobs.runner.service;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import io.undertow.Handlers;
-import io.undertow.Undertow;
-import io.undertow.server.handlers.PathHandler;
 import org.codingmatters.poom.containers.ApiContainerRuntime;
 import org.codingmatters.poom.containers.ApiContainerRuntimeBuilder;
 import org.codingmatters.poom.containers.ServerShutdownException;
@@ -26,7 +23,6 @@ import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poomjobs.service.api.PoomjobsRunnerAPIProcessor;
 import org.codingmatters.rest.api.Api;
 import org.codingmatters.rest.api.Processor;
-import org.codingmatters.rest.undertow.CdmHttpUndertowHandler;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
