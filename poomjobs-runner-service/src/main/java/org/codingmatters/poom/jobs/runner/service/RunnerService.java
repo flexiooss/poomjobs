@@ -9,7 +9,6 @@ import org.codingmatters.poom.containers.ApiContainerRuntimeBuilder;
 import org.codingmatters.poom.containers.ServerShutdownException;
 import org.codingmatters.poom.containers.ServerStartupException;
 import org.codingmatters.poom.containers.runtime.netty.NettyApiContainerRuntime;
-import org.codingmatters.poom.containers.runtime.undertow.UndertowApiContainerRuntime;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerServiceInitializationException;
 import org.codingmatters.poom.jobs.runner.service.execution.pool.JobProcessingPoolManager;
 import org.codingmatters.poom.jobs.runner.service.jobs.JobManager;
