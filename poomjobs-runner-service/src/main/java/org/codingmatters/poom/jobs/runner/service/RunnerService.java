@@ -4,6 +4,12 @@ import com.fasterxml.jackson.core.JsonFactory;
 import io.undertow.Handlers;
 import io.undertow.Undertow;
 import io.undertow.server.handlers.PathHandler;
+import org.codingmatters.poom.containers.ApiContainerRuntime;
+import org.codingmatters.poom.containers.ApiContainerRuntimeBuilder;
+import org.codingmatters.poom.containers.ServerShutdownException;
+import org.codingmatters.poom.containers.ServerStartupException;
+import org.codingmatters.poom.containers.runtime.netty.NettyApiContainerRuntime;
+import org.codingmatters.poom.containers.runtime.undertow.UndertowApiContainerRuntime;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerServiceInitializationException;
 import org.codingmatters.poom.jobs.runner.service.execution.pool.JobProcessingPoolManager;
 import org.codingmatters.poom.jobs.runner.service.jobs.JobManager;
@@ -19,6 +25,8 @@ import org.codingmatters.poomjobs.api.types.runnerdata.Competencies;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poomjobs.service.api.PoomjobsRunnerAPIProcessor;
+import org.codingmatters.rest.api.Api;
+import org.codingmatters.rest.api.Processor;
 import org.codingmatters.rest.undertow.CdmHttpUndertowHandler;
 
 import java.io.IOException;
@@ -52,7 +60,7 @@ public class RunnerService {
     public interface OptionsSetup {
         OptionsSetup ttl(long ttl);
         OptionsSetup contextSetup(JobContextSetup contextSetup);
-        OptionsSetup handlers(PathHandler pathHandlers);
+        OptionsSetup containerRuntimeBuilder(ApiContainerRuntimeBuilder containerRuntimeBuilder);
         OptionsSetup exitOnUnrecoverableError(boolean exit);
         RunnerService build();
     }
@@ -73,7 +81,7 @@ public class RunnerService {
         private long ttl = DEFAULT_TTL;
         private JobContextSetup contextSetup = JobContextSetup.NOOP;
         private boolean exitOnUnrecoverableError = true;
-        private PathHandler pathHandlers;
+        private ApiContainerRuntimeBuilder containerRuntimeBuilder;
 
 
         @Override
@@ -101,8 +109,8 @@ public class RunnerService {
         }
 
         @Override
-        public OptionsSetup handlers(PathHandler pathHandlers) {
-            this.pathHandlers = pathHandlers;
+        public OptionsSetup containerRuntimeBuilder(ApiContainerRuntimeBuilder containerRuntimeBuilder) {
+            this.containerRuntimeBuilder = containerRuntimeBuilder;
             return this;
         }
 
@@ -143,7 +151,7 @@ public class RunnerService {
                     this.jobNames,
                     this.jobProcessorFactory,
                     this.contextSetup,
-                    this.pathHandlers != null ? this.pathHandlers : Handlers.path(),
+                    this.containerRuntimeBuilder != null ? this.containerRuntimeBuilder : new ApiContainerRuntimeBuilder(),
                     this.jobRequestEndpointHost,
                     this.jobRequestEndpointPort
             );
@@ -166,7 +174,6 @@ public class RunnerService {
     private final String jobRequestEndpointHost;
 
     private String runnerId;
-    private Undertow jobRequestEndpointServer;
     private final String jobRequestEndpointUrl;
 
     private JobManager jobManager;
@@ -178,7 +185,8 @@ public class RunnerService {
 
     private final ExecutorService statusManagerExecutor = Executors.newSingleThreadExecutor();
 
-    private final PathHandler pathHandlers;
+    private final ApiContainerRuntimeBuilder containerRuntimeBuilder;
+    private ApiContainerRuntime runtime;
 
     public RunnerService(
             PoomjobsRunnerRegistryAPIClient runnerRegistryClient,
@@ -187,8 +195,9 @@ public class RunnerService {
             long ttl,
             String jobCategory, String[] jobNames, JobProcessor.Factory jobProcessorFactory,
             JobContextSetup contextSetup,
-            PathHandler pathHandlers,
-            String jobRequestEndpointHost, int jobRequestEndpointPort
+            ApiContainerRuntimeBuilder containerRuntimeBuilder,
+            String jobRequestEndpointHost,
+            int jobRequestEndpointPort
     ) {
         this.runnerRegistryClient = runnerRegistryClient;
         this.jobRegistryClient = jobRegistryClient;
@@ -198,7 +207,7 @@ public class RunnerService {
         this.jobNames = jobNames;
         this.jobProcessorFactory = jobProcessorFactory;
         this.contextSetup = contextSetup;
-        this.pathHandlers = pathHandlers;
+        this.containerRuntimeBuilder = containerRuntimeBuilder;
         this.jobRequestEndpointPort = jobRequestEndpointPort;
         this.jobRequestEndpointHost = jobRequestEndpointHost;
         this.jobRequestEndpointUrl = Env.mandatory(Env.SERVICE_URL).asString();
@@ -266,18 +275,47 @@ public class RunnerService {
 
 
     private void startJobRequestEndpoint() {
-        pathHandlers.addPrefixPath( "/", new CdmHttpUndertowHandler( new PoomjobsRunnerAPIProcessor(
+        Processor processor = new PoomjobsRunnerAPIProcessor(
                 "",
                 new JsonFactory(),
                 new PoomjobsRunnerAPIHandlers.Builder()
                         .runningJobPutHandler(this.jobProcessingPoolManager::jobExecutionRequested)
                         .build()
-        )));
-        this.jobRequestEndpointServer = Undertow.builder()
-                .addHttpListener(this.jobRequestEndpointPort, this.jobRequestEndpointHost)
-                .setHandler(pathHandlers)
-                .build();
-        this.jobRequestEndpointServer.start();
+        );
+        this.containerRuntimeBuilder.withApi(new Api() {
+            @Override
+            public String name() {
+                return "runner";
+            }
+
+            @Override
+            public String version() {
+                return Api.versionFrom(PoomjobsRunnerAPIProcessor.class);
+            }
+
+            @Override
+            public Processor processor() {
+                return (requestDelegate, responseDelegate) -> {
+                    processor.process(requestDelegate, responseDelegate);
+                };
+            }
+
+            @Override
+            public String path() {
+                return "/";
+            }
+        });
+
+        this.runtime = this.containerRuntimeBuilder
+                .onShutdown(this::onStop)
+                .build(new NettyApiContainerRuntime(this.jobRequestEndpointHost, this.jobRequestEndpointPort, log))
+        ;
+
+        try {
+            this.runtime.handle().start();
+        } catch (ServerStartupException e) {
+            throw new RuntimeException("error starting container runtime", e);
+        }
     }
 
     private void createJobManager() {
@@ -291,13 +329,18 @@ public class RunnerService {
 
     public void stop() {
         try {
+            this.runtime.handle().stop();
+        } catch (ServerShutdownException e) {
+            throw new RuntimeException("error stopping container runtime", e);
+        }
+    }
+
+    private void onStop() {
+        try {
             this.runnerStatusManager.stop();
         } catch (Exception e) {}
         try {
             this.statusManagerExecutor.shutdown();
-        } catch (Exception e) {}
-        try {
-            this.jobRequestEndpointServer.stop();
         } catch (Exception e) {}
         try {
             this.jobProcessingPoolManager.stop(10 * 1000L);

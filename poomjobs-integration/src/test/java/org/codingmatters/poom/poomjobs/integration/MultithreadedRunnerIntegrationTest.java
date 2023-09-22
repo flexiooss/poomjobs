@@ -65,7 +65,6 @@ public class MultithreadedRunnerIntegrationTest {
 
         this.runnerRegistryClient = new PoomjobsRunnerRegistryAPIRequesterClient(new OkHttpRequesterFactory(httpClientWrapper, () -> runnerRegistryUrl), jsonFactory, () -> runnerRegistryUrl);
         this.jobRegistryClient = new PoomjobsJobRegistryAPIRequesterClient(new OkHttpRequesterFactory(httpClientWrapper, () -> jobRegistryUrl), jsonFactory, () -> jobRegistryUrl);
-
     }
 
     private void createAndStartRunnerServiceWithConcurrency(int concurrency) throws IOException, InterruptedException {
@@ -190,7 +189,6 @@ public class MultithreadedRunnerIntegrationTest {
                         .category("c").name("short")
                         .build())
                 .build());
-
 
         Eventually.timeout(10, TimeUnit.SECONDS).assertThat(
                 () -> this.jobRegistryClient.jobCollection().get(get -> get.runStatus("DONE")).status200().contentRange(),

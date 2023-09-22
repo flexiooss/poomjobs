@@ -84,7 +84,7 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
                                         candidate.callback());
                                 return;
                             } else {
-                                log.info("runner {} refused the job {}/{} with response: {} (runner : {})",
+                                log.info("runner refused the job ; runner {} job {}/{} with response: {} (runner : {})",
                                         candidate.id(),
                                         entity.value().category(),
                                         entity.value().name(),
