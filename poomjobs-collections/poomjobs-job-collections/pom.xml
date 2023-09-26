@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.codingmatters.poom.jobs.collections</groupId>
         <artifactId>poomjobs-collections</artifactId>
-        <version>1.172.0-SNAPSHOT</version>
+        <version>1.172.0</version>
     </parent>
 
     <artifactId>poomjobs-job-collections</artifactId>
