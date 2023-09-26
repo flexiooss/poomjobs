@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poomjobs</artifactId>
-        <version>1.171.0</version>
+        <version>1.172.0</version>
     </parent>
 
     <artifactId>poomjobs-runner-service</artifactId>
@@ -24,6 +24,14 @@
         <dependency>
             <groupId>org.codingmatters.poom.containers</groupId>
             <artifactId>poom-services-containers-runtime</artifactId>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.codingmatters.poom.containers.netty</groupId>-->
+<!--            <artifactId>poom-services-containers-netty-runtime</artifactId>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>org.codingmatters.poom.containers</groupId>
+            <artifactId>poom-services-containers-undertow-runtime</artifactId>
         </dependency>
         <dependency>
             <groupId>org.codingmatters.poom.containers.netty</groupId>
