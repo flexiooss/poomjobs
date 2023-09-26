@@ -209,11 +209,18 @@ public class RunnerService {
     }
 
     public void run() throws RunnerServiceInitializationException {
+        this.run((host, port, logger) -> new NettyApiContainerRuntime(host, port, logger));
+    }
+    public void run(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
         this.registerRunner();
         this.createJobManager();
         this.createRunnerStatusManager();
         this.createJobProcessingPoolManager();
-        this.startJobRequestEndpoint();
+        try {
+            this.startJobRequestEndpoint(runtimeInitializer.initialize(this.jobRequestEndpointHost, this.jobRequestEndpointPort, log));
+        } catch (Exception e) {
+            throw new RunnerServiceInitializationException("failed initializing runtime", e);
+        }
 
         synchronized (this.stopMonitor) {
             try {
@@ -269,7 +276,7 @@ public class RunnerService {
     }
 
 
-    private void startJobRequestEndpoint() {
+    private void startJobRequestEndpoint(ApiContainerRuntime withRuntime) {
         Processor processor = new PoomjobsRunnerAPIProcessor(
                 "",
                 new JsonFactory(),
@@ -303,7 +310,7 @@ public class RunnerService {
 
         this.runtime = this.containerRuntimeBuilder
                 .onShutdown(this::onStop)
-                .build(new NettyApiContainerRuntime(this.jobRequestEndpointHost, this.jobRequestEndpointPort, log))
+                .build(withRuntime)
         ;
 
         try {
@@ -344,6 +351,11 @@ public class RunnerService {
         synchronized (this.stopMonitor) {
             this.stopMonitor.notify();
         }
+    }
+
+
+    public interface RuntimeInitializer {
+        ApiContainerRuntime initialize(String host, int port, CategorizedLogger log) throws Exception;
     }
 
 }
