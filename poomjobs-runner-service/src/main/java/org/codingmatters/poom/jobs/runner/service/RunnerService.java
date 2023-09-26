@@ -5,7 +5,7 @@ import org.codingmatters.poom.containers.ApiContainerRuntime;
 import org.codingmatters.poom.containers.ApiContainerRuntimeBuilder;
 import org.codingmatters.poom.containers.ServerShutdownException;
 import org.codingmatters.poom.containers.ServerStartupException;
-import org.codingmatters.poom.containers.runtime.netty.NettyApiContainerRuntime;
+import org.codingmatters.poom.containers.runtime.undertow.UndertowApiContainerRuntime;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerServiceInitializationException;
 import org.codingmatters.poom.jobs.runner.service.execution.pool.JobProcessingPoolManager;
 import org.codingmatters.poom.jobs.runner.service.jobs.JobManager;
@@ -209,7 +209,7 @@ public class RunnerService {
     }
 
     public void run() throws RunnerServiceInitializationException {
-        this.run((host, port, logger) -> new NettyApiContainerRuntime(host, port, logger));
+        this.run((host, port, logger) -> new UndertowApiContainerRuntime(host, port, logger));
     }
     public void run(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
         this.registerRunner();
