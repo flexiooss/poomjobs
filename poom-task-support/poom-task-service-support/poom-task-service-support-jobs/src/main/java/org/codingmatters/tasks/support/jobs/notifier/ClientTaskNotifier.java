@@ -39,7 +39,7 @@ public class ClientTaskNotifier implements ExtendedTaskNotifier {
                     .taskId(this.task.id())
                     .payload(result)
                     .build());
-            if(response.opt().status200().isEmpty()) {
+            if (response.opt().status200().isEmpty()) {
                 log.error("[GRAVE] while changing task result, unexpected response from api : {}", response);
             }
         } catch (IOException e) {
@@ -58,12 +58,14 @@ public class ClientTaskNotifier implements ExtendedTaskNotifier {
     }
 
     @Override
-    public void info(String log, Object ... args) {
+    public void info(String log, Object... args) {
+        ClientTaskNotifier.log.info(log, args);
         this.log(TaskLogCreation.builder().level(TaskLogCreation.Level.INFO).log(log, args).build());
     }
 
     @Override
-    public void error(String log, Object ... args) {
+    public void error(String log, Object... args) {
+        ClientTaskNotifier.log.error(log, args);
         this.log(TaskLogCreation.builder().level(TaskLogCreation.Level.ERROR).log(log, args).build());
     }
 
@@ -73,7 +75,7 @@ public class ClientTaskNotifier implements ExtendedTaskNotifier {
                     .taskId(this.task.id())
                     .payload(TaskStatusChange.builder().run(run).exit(exit).build())
                     .build());
-            if(response.opt().status201().isEmpty()) {
+            if (response.opt().status201().isEmpty()) {
                 log.error("[GRAVE] while changing task status, unexpected response from api : {}", response);
             }
         } catch (IOException e) {
@@ -87,7 +89,7 @@ public class ClientTaskNotifier implements ExtendedTaskNotifier {
                     .taskId(this.task.id())
                     .payload(logCreation)
                     .build());
-            if(response.opt().status201().isEmpty()) {
+            if (response.opt().status201().isEmpty()) {
                 log.error("[GRAVE] while appending task log, unexpected response from api : {}", response);
             }
         } catch (IOException e) {
