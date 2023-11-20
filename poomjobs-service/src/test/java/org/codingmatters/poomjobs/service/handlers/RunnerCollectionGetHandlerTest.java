@@ -15,7 +15,7 @@ import org.codingmatters.poomjobs.service.PoomjobsRunnerRegistryAPI;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Created by nelt on 7/12/17.
@@ -115,7 +115,7 @@ public class RunnerCollectionGetHandlerTest {
                 response.status416().payload(),
                 is(Error.builder()
                         .token("error-token")
-                        .description("start must be before end of range")
+                        .description("malformed range expression, start is after end : 10-9")
                         .code(Error.Code.ILLEGAL_RANGE_SPEC)
                         .build())
         );
