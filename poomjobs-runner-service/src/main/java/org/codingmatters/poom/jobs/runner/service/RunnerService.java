@@ -5,6 +5,7 @@ import org.codingmatters.poom.containers.ApiContainerRuntime;
 import org.codingmatters.poom.containers.ApiContainerRuntimeBuilder;
 import org.codingmatters.poom.containers.ServerShutdownException;
 import org.codingmatters.poom.containers.ServerStartupException;
+import org.codingmatters.poom.containers.runtime.netty.NettyApiContainerRuntime;
 import org.codingmatters.poom.containers.runtime.undertow.UndertowApiContainerRuntime;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerServiceInitializationException;
 import org.codingmatters.poom.jobs.runner.service.execution.pool.JobProcessingPoolManager;
@@ -34,6 +35,8 @@ public class RunnerService {
 
     private static final long MIN_TTL = 1000L;
     public static final long DEFAULT_TTL = 30 * 1000L;
+
+    public static final String SERVICE_RUNTIME = "SERVICE_RUNTIME";
 
     static public JobSetup setup() {
         return new Builder();
@@ -209,8 +212,17 @@ public class RunnerService {
     }
 
     public void run() throws RunnerServiceInitializationException {
-        this.run((host, port, logger) -> new UndertowApiContainerRuntime(host, port, logger));
+        this.run(this::createRunime);
     }
+
+    private ApiContainerRuntime createRunime(String host, int port, CategorizedLogger logger) {
+        if(Env.optional(SERVICE_RUNTIME).orElse(new Env.Var("UNDERTOW")).asString().equals("NETTY")) {
+            return new NettyApiContainerRuntime(host, port, logger);
+        } else {
+            return new UndertowApiContainerRuntime(host, port, logger);
+        }
+    }
+
     public void run(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
         this.registerRunner();
         this.createJobManager();
