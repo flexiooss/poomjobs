@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>api</artifactId>
-        <version>1.180.0</version>
+        <version>1.181.0</version>
     </parent>
 
     <artifactId>poomjobs-api</artifactId>
