@@ -3,6 +3,7 @@ package org.codingmatters.tasks.support.jobs;
 import org.codingmatters.tasks.api.types.TaskLogCreation;
 import org.codingmatters.tasks.api.types.TaskStatusChange;
 import org.codingmatters.tasks.api.types.task.Status;
+import org.codingmatters.value.objects.values.ObjectValue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,6 +13,7 @@ public class TestTaskNotifier implements TaskNotifier {
 
     private final List<TaskLogCreation> logs = Collections.synchronizedList(new LinkedList<>());
     private final List<Status.Run> statusChanges = Collections.synchronizedList(new LinkedList<>());
+    private final List<ObjectValue> resultChanges = Collections.synchronizedList(new LinkedList<>());
 
     @Override
     public void info(String s, Object ... args) {
@@ -29,12 +31,21 @@ public class TestTaskNotifier implements TaskNotifier {
         this.statusChanges.add(Status.Run.valueOf(run.name()));
     }
 
+    @Override
+    public void partialResult(ObjectValue result) {
+        this.resultChanges.add(result);
+    }
+
     public List<TaskLogCreation> logs() {
         return new ArrayList<>(this.logs);
     }
 
     public List<Status.Run> statusChangeHistory() {
         return new ArrayList<>(this.statusChanges);
+    }
+
+    public List<ObjectValue> resultChangeHistory() {
+        return new ArrayList<>(this.resultChanges);
     }
 
     public Status.Run lastStatus() {

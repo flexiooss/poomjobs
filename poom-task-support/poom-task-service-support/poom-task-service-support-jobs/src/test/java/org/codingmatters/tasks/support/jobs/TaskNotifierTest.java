@@ -1,6 +1,7 @@
 package org.codingmatters.tasks.support.jobs;
 
 import org.codingmatters.tasks.api.types.TaskStatusChange;
+import org.codingmatters.value.objects.values.ObjectValue;
 import org.junit.Test;
 
 import java.util.LinkedList;
@@ -18,6 +19,9 @@ public class TaskNotifierTest {
     private final TaskNotifier notifier = new TaskNotifier() {
         @Override
         public void updateRunStatus(TaskStatusChange.Run status) {}
+
+        @Override
+        public void partialResult(ObjectValue result) {}
 
         @Override
         public void info(String log, Object... args) {
