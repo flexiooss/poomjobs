@@ -50,7 +50,7 @@ public class BrowseTasks extends AbstractTaskHandler implements Function<TaskCol
         Rfc7233Pager.Page<Task> page;
         try {
             page = Rfc7233Pager.forRequestedRange(request.range())
-                    .unit(Task.class.getName()).maxPageSize(this.maxPageSize)
+                    .unit(Task.class.getSimpleName()).maxPageSize(this.maxPageSize)
                     .pager(repository).page(this.query(request));
         } catch (RepositoryException e) {
             return TaskCollectionGetResponse.builder().status500(Status500.builder().payload(Error.builder()
