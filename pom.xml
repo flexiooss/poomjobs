@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poom-services</artifactId>
-        <version>1.165.0-SNAPSHOT</version>
+        <version>1.167.0</version>
     </parent>
 
     <artifactId>poomjobs</artifactId>
@@ -19,7 +19,7 @@
     <url>https://github.com/flexiooss/poomjobs</url>
 
     <properties>
-        <flexio-commons.version>1.175.0-SNAPSHOT</flexio-commons.version>
+        <flexio-commons.version>1.175.0</flexio-commons.version>
     </properties>
 
     <licenses>
@@ -46,14 +46,22 @@
         <repository>
             <id>codingmatters-snapshots</id>
             <url>https://mvn.ci.flexio.io/codingmatters-snapshots/</url>
-            <releases><enabled>false</enabled></releases>
-            <snapshots><enabled>true</enabled></snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>codingmatters-releases</id>
             <url>https://mvn.ci.flexio.io/codingmatters-releases/</url>
-            <releases><enabled>true</enabled></releases>
-            <snapshots><enabled>false</enabled></snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
     </repositories>
 
@@ -61,14 +69,22 @@
         <pluginRepository>
             <id>codingmatters-snapshots</id>
             <url>https://mvn.ci.flexio.io/codingmatters-snapshots/</url>
-            <releases><enabled>false</enabled></releases>
-            <snapshots><enabled>true</enabled></snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </pluginRepository>
         <pluginRepository>
             <id>codingmatters-releases</id>
             <url>https://mvn.ci.flexio.io/codingmatters-releases/</url>
-            <releases><enabled>true</enabled></releases>
-            <snapshots><enabled>false</enabled></snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </pluginRepository>
     </pluginRepositories>
 
