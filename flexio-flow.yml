@@ -2,4 +2,4 @@ level: dev
 schemes:
 - maven
 topics: []
-version: 1.188.0
+version: 1.189.0
