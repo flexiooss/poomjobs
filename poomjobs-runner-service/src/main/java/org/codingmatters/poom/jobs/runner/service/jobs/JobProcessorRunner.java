@@ -4,6 +4,7 @@ import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
+import org.codingmatters.poom.services.support.Env;
 import org.codingmatters.poom.services.support.logging.LoggingContext;
 import org.codingmatters.poomjobs.api.ValueList;
 import org.codingmatters.poomjobs.api.types.Job;
@@ -14,15 +15,27 @@ import org.codingmatters.poomjobs.api.types.job.Status;
  */
 public class JobProcessorRunner {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(JobProcessorRunner.class);
+    private static final String JOB_START_STOP_POLICY = "JOB_START_STOP_POLICY";
 
     private final JobUpdater updatedJobConsumer;
     private final JobProcessor.Factory processorFactory;
     private final JobContextSetup contextSetup;
+    private final JobStartStopLogPolicy jobStartStopLogPolicy;
 
     public JobProcessorRunner(JobUpdater updatedJobConsumer, JobProcessor.Factory processorFactory, JobContextSetup contextSetup) {
         this.updatedJobConsumer = updatedJobConsumer;
         this.processorFactory = processorFactory;
         this.contextSetup = contextSetup;
+
+        JobStartStopLogPolicy policy;
+        try {
+            policy = JobStartStopLogPolicy.valueOf(
+                    Env.optional(JOB_START_STOP_POLICY).orElse(new Env.Var(JobStartStopLogPolicy.INFO.name())).asString()
+            );
+        } catch (IllegalArgumentException e) {
+            policy = JobStartStopLogPolicy.INFO;
+        }
+        this.jobStartStopLogPolicy = policy;
     }
 
     public void runWith(Job job) throws JobProcessingException, JobUpdateFailure {
@@ -32,7 +45,12 @@ public class JobProcessorRunner {
             }
             JobProcessor processor = this.processorFactory.createFor(job);
             this.contextSetup.setup(job, processor);
-            log.info("starting processing job {}", job);
+
+            if(this.jobStartStopLogPolicy.equals(JobStartStopLogPolicy.DEBUG)) {
+                log.debug("starting processing job {}", job);
+            } else {
+                log.info("starting processing job {}", job);
+            }
             Job updated;
             try {
                 updated = processor.process();
@@ -47,7 +65,11 @@ public class JobProcessorRunner {
             log.debug("job processed, will update status with {}", updated);
             updated = this.updatedJobConsumer.update(updated);
 
-            log.info("job processed : {}", updated);
+            if(this.jobStartStopLogPolicy.equals(JobStartStopLogPolicy.DEBUG)) {
+                log.debug("job processed : {}", updated);
+            } else {
+                log.info("job processed : {}", updated);
+            }
         }
     }
 
