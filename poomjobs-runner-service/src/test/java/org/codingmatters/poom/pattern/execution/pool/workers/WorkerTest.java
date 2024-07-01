@@ -82,7 +82,7 @@ public class WorkerTest {
             this.pool.submit(worker);
 
             Eventually.defaults().assertThat(() -> processed, contains("to-process"));
-            assertFalse(worker.isBusy());
+            Eventually.defaults().assertThat(() -> worker.isBusy(), is(false));
         } finally {
             worker.stop();
         }
