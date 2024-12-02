@@ -7,11 +7,11 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poom-services</artifactId>
-        <version>1.205.0</version>
+        <version>1.206.0</version>
     </parent>
 
     <artifactId>poomjobs</artifactId>
-    <version>1.225.0</version>
+    <version>1.226.0</version>
 
     <name>Poor Man's Jobs</name>
     <description>Distributed Job Queue Framework</description>
@@ -19,7 +19,7 @@
     <url>https://github.com/flexiooss/poomjobs</url>
 
     <properties>
-        <flexio-commons.version>1.211.0</flexio-commons.version>
+        <flexio-commons.version>1.212.0</flexio-commons.version>
     </properties>
 
     <licenses>
@@ -126,129 +126,129 @@
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-api-spec</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-api</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-service</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-clients</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-processor</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-domain</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom.jobs.collections</groupId>
                 <artifactId>poomjobs-job-collections</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-runner</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-runner-manager</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-registries-service</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-runner-service</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.poom</groupId>
                 <artifactId>poomjobs-integration</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <!-- TASKS -->
             <dependency>
                 <groupId>org.codingmatters.tasks</groupId>
                 <artifactId>poom-task-api-spec</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.tasks</groupId>
                 <artifactId>poom-task-api-types</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.tasks</groupId>
                 <artifactId>poom-task-api-processor</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.tasks</groupId>
                 <artifactId>poom-task-api-client</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.tasks</groupId>
                 <artifactId>poom-task-api-mongo</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.tasks</groupId>
                 <artifactId>poom-task-service-support-handlers</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.tasks</groupId>
                 <artifactId>poom-task-service-support-api</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.tasks</groupId>
                 <artifactId>poom-task-service-support-jobs</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
 
             <dependency>
                 <groupId>org.codingmatters.tasks</groupId>
                 <artifactId>poom-task-service-support-demo-api-spec</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.tasks</groupId>
                 <artifactId>poom-task-service-support-demo-api-types</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.tasks</groupId>
                 <artifactId>poom-task-service-support-demo-handlers</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.tasks</groupId>
                 <artifactId>poom-task-service-support-demo-jobs</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
             <dependency>
                 <groupId>org.codingmatters.tasks</groupId>
                 <artifactId>poom-task-tests</artifactId>
-                <version>1.225.0</version>
+                <version>1.226.0</version>
             </dependency>
 
             <!--// BOM-->
