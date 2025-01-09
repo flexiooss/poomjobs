@@ -8,6 +8,7 @@ import org.codingmatters.poom.services.domain.entities.Entity;
 import org.codingmatters.poomjobs.api.JobCollectionPostRequest;
 import org.codingmatters.poomjobs.api.JobCollectionPostResponse;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
+import org.codingmatters.poomjobs.api.types.ValueList;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.tasks.api.TaskCollectionPostRequest;
 import org.codingmatters.tasks.api.TaskCollectionPostResponse;
@@ -22,6 +23,8 @@ import org.codingmatters.tasks.support.handlers.tasks.adapter.ReflectHandlerAdap
 import org.codingmatters.tasks.support.handlers.tasks.adapter.UnadatableHandlerException;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -71,12 +74,17 @@ public class CreateTask extends AbstractTaskHandler implements Function<TaskColl
 
         try {
             TaskEntryPointAdapter.JobSpec jobSpec = adapter.jobSpecFor(taskEntity.value());
+            org.codingmatters.poomjobs.api.types.ValueList.Builder<String> arguments = org.codingmatters.poomjobs.api.types.ValueList.<String>builder()
+                    .with(taskEntity.id(), jobSpec.tasksUrl);
+            if(jobSpec.additionalArgs != null && jobSpec.additionalArgs.length > 0) {
+                arguments = arguments.with(jobSpec.additionalArgs);
+            }
             JobCollectionPostResponse response = this.jobsClient.jobCollection().post(JobCollectionPostRequest.builder()
                     .accountId(adapter.jobAccount())
                     .payload(JobCreationData.builder()
                             .category(jobSpec.category)
                             .name(jobSpec.name)
-                            .arguments(taskEntity.id(), jobSpec.tasksUrl)
+                            .arguments(arguments.build())
                             .build())
                     .build());
             if(response.opt().status201().isPresent()) {

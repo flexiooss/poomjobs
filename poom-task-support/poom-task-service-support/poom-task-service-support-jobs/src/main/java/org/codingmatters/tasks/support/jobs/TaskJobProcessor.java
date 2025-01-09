@@ -15,6 +15,8 @@ import org.codingmatters.value.objects.values.casts.ValueObjectCaster;
 import org.codingmatters.value.objects.values.casts.reflect.ValueObjectReflectCaster;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Function;
 
 public abstract class TaskJobProcessor<Param, Result> implements JobProcessor {
@@ -52,7 +54,11 @@ public abstract class TaskJobProcessor<Param, Result> implements JobProcessor {
         }
 
         try {
-            Result result = processor.process(task.id(), param, notifier);
+            List<String> args = new LinkedList<>();
+            for (int i = 2; i < this.job.arguments().size(); i++) {
+                args.add(this.job.arguments().get(i));
+            }
+            Result result = processor.process(task.id(), param, notifier, args.toArray(new String[0]));
             ObjectValue resultObject;
             try {
                 resultObject = this.resultCaster.cast(result);
