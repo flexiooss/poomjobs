@@ -20,11 +20,13 @@ public interface TaskEntryPointAdapter {
         public final String category;
         public final String name;
         public final String tasksUrl;
+        public final String[] additionalArgs;
 
-        public JobSpec(String category, String name, String tasksUrl) {
+        public JobSpec(String category, String name, String tasksUrl, String ... additionalArgs) {
             this.category = category;
             this.name = name;
             this.tasksUrl = tasksUrl;
+            this.additionalArgs = additionalArgs;
         }
     }
 }
