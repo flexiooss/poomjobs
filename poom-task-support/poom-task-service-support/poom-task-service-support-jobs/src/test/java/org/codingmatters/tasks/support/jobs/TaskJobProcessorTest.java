@@ -63,7 +63,7 @@ public class TaskJobProcessorTest {
                 .build(), url -> this.taskClient, Person.class, Book.class) {
             @Override
             protected TaskProcessor<Person, Book> taskProcessor() throws JobProcessingException {
-                return (id, person, taskNotifier) -> Book.builder().author(person).build();
+                return (id, person, taskNotifier, args) -> Book.builder().author(person).build();
             }
         };
 
@@ -86,7 +86,7 @@ public class TaskJobProcessorTest {
                 .build(), url -> this.taskClient, Person.class, Book.class) {
             @Override
             protected TaskProcessor<Person, Book> taskProcessor() throws JobProcessingException {
-                return (id, person, taskNotifier) -> {
+                return (id, person, taskNotifier, args) -> {
                     taskNotifier.info("that's an info");
                     taskNotifier.error("that's an error");
                     return Book.builder().author(person).build();
@@ -107,7 +107,7 @@ public class TaskJobProcessorTest {
                 .build(), url -> this.taskClient, Person.class, Book.class) {
             @Override
             protected TaskProcessor<Person, Book> taskProcessor() throws JobProcessingException {
-                return (id, person, taskNotifier) -> {throw new TaskProcessor.TaskFailure("task fails");} ;
+                return (id, person, taskNotifier, args) -> {throw new TaskProcessor.TaskFailure("task fails");} ;
             }
         };
 
@@ -149,7 +149,7 @@ public class TaskJobProcessorTest {
                 .build(), url -> this.taskClient, Person.class, Book.class) {
             @Override
             protected TaskProcessor<Person, Book> taskProcessor() throws JobProcessingException {
-                return (id, person, taskNotifier) -> Book.builder().author(person).build();
+                return (id, person, taskNotifier, args) -> Book.builder().author(person).build();
             }
         };
 
@@ -162,5 +162,26 @@ public class TaskJobProcessorTest {
         assertThat(this.result.get().toMap(), is(Book.builder().author(Person.builder().name("author name").build()).build().toMap()));
         assertThat(this.logs, is(empty()));
         assertThat(job.status(), is(Status.builder().run(Status.Run.DONE).exit(Status.Exit.SUCCESS).build()));
+    }
+
+
+    @Test
+    public void whenAdditionalArgumentsInJobCall__thenArgumentsPassedToTask() throws Exception {
+        AtomicReference<String[]> taskArguments = new AtomicReference<>();
+        TaskJobProcessor<Person, Book> processor = new TaskJobProcessor<>(Job.builder()
+                .arguments("task-id", "task-url", "arg1", "arg2", "arg3")
+                .build(), url -> this.taskClient, Person.class, Book.class) {
+            @Override
+            protected TaskProcessor<Person, Book> taskProcessor() throws JobProcessingException {
+                return (id, person, taskNotifier, args) -> {
+                    taskArguments.set(args);
+                    return Book.builder().author(person).build();
+                };
+            }
+        };
+
+        processor.process();
+
+        assertThat(taskArguments.get(), arrayContaining("arg1", "arg2", "arg3"));
     }
 }

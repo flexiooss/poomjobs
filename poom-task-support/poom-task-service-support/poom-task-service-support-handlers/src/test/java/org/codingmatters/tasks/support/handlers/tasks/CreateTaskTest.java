@@ -54,6 +54,8 @@ public class CreateTaskTest {
     private final TestRequesterFactory callbackRequesterFactory = new TestRequesterFactory(() -> "");
     private final AtomicReference<String> lastCallback = new AtomicReference<>();
 
+    private AtomicReference<TaskEntryPointAdapter.JobSpec> nextJobSpec = new AtomicReference<>(new TaskEntryPointAdapter.JobSpec("test", "job", "taskUrl"));
+
     private final CreateTask createTask = new CreateTask(() -> new TaskEntryPointAdapter() {
         @Override
         public Repository<Task, PropertyQuery> tasks() {
@@ -67,7 +69,7 @@ public class CreateTaskTest {
 
         @Override
         public JobSpec jobSpecFor(Task task) {
-            return new JobSpec("test", "job", "taskUrl");
+            return nextJobSpec.get();
         }
 
         @Override
@@ -137,6 +139,23 @@ public class CreateTaskTest {
 
         assertThat(this.jobCreationRequest.lastRequest().accountId(), is("test-account"));
         assertThat(this.jobCreationRequest.lastRequest().payload(), is(JobCreationData.builder().category("test").name("job").arguments(response.status201().xEntityId(), "taskUrl").build()));
+    }
+
+    @Test
+    public void givenJobCreationSucceeds__whenCreatingTaskWithParams_andAdditionalArguments__thenJobSubmitted() throws Exception {
+        this.nextJobSpec.set(new TaskEntryPointAdapter.JobSpec("test", "job", "taskUrl",
+                "arg1", "arg2", "arg3"
+                ));
+
+        TaskCollectionPostResponse response = this.createTask.apply(TaskCollectionPostRequest.builder()
+                .callbackUrl("http://call.me/back")
+                .payload(ObjectValue.builder().property("submitted", v -> v.stringValue("value")).build())
+                .build());
+
+        assertThat(this.jobCreationRequest.lastRequest().accountId(), is("test-account"));
+        assertThat(this.jobCreationRequest.lastRequest().payload(), is(JobCreationData.builder().category("test").name("job")
+                .arguments(response.status201().xEntityId(), "taskUrl", "arg1", "arg2", "arg3")
+                .build()));
     }
 
     @Test
