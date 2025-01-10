@@ -39,7 +39,7 @@ public abstract class TaskJobProcessor<Param, Result> implements JobProcessor {
 
     @Override
     public Job process() throws JobProcessingException {
-        TaskApiClient taskClient = this.taskClientProvider.apply(this.job.arguments().get(1));
+        TaskApiClient taskClient = this.taskClientProvider.apply(this.job.arguments().get(0));
         Task task = this.task(taskClient, job);
         ExtendedTaskNotifier notifier = new ClientTaskNotifier(taskClient, task);
         TaskProcessor<Param, Result> processor = this.taskProcessor();
