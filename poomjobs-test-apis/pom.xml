@@ -5,27 +5,54 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.codingmatters.tasks</groupId>
-        <artifactId>poom-task-api</artifactId>
+        <groupId>org.codingmatters.poom</groupId>
+        <artifactId>poomjobs</artifactId>
         <version>1.243.0</version>
     </parent>
 
-    <artifactId>poom-task-api-types</artifactId>
+    <groupId>org.codingmatters.poom.test.apis</groupId>
+    <artifactId>poomjobs-test-apis</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>org.codingmatters.value.objects</groupId>
-            <artifactId>cdm-value-objects-values</artifactId>
+            <groupId>org.codingmatters.poom</groupId>
+            <artifactId>poom-services-test-support</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codingmatters.poom</groupId>
+            <artifactId>poomjobs-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codingmatters.poom</groupId>
+            <artifactId>poomjobs-clients</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codingmatters.tasks</groupId>
+            <artifactId>poom-task-api-types</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codingmatters.tasks</groupId>
+            <artifactId>poom-task-api-client</artifactId>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-
             <plugin>
-                <groupId>org.codingmatters.rest</groupId>
-                <artifactId>cdm-rest-maven-plugin</artifactId>
+                <groupId>org.codingmatters.poom.api.test</groupId>
+                <artifactId>poom-services-api-test-generation-maven-plugin</artifactId>
                 <dependencies>
+                    <dependency>
+                        <groupId>org.codingmatters.poom</groupId>
+                        <artifactId>poomjobs-api-spec</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
                     <dependency>
                         <groupId>org.codingmatters.tasks</groupId>
                         <artifactId>poom-task-api-spec</artifactId>
@@ -34,19 +61,14 @@
                 </dependencies>
                 <executions>
                     <execution>
-                        <id>api-types-gen</id>
+                        <id>test-apis-from-reactor</id>
                         <phase>generate-sources</phase>
                         <goals>
-                            <goal>generate-api-types</goal>
+                            <goal>test-api-from-reactor-descriptors</goal>
                         </goals>
-                        <configuration>
-                            <destination-package>org.codingmatters.tasks.api</destination-package>
-                            <api-spec-resource>tasks.raml</api-spec-resource>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -58,7 +80,7 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>${project.build.directory}/generated-sources</source>
+                                <source>target/generated-sources</source>
                             </sources>
                         </configuration>
                     </execution>
@@ -66,5 +88,6 @@
             </plugin>
         </plugins>
     </build>
+
 
 </project>
