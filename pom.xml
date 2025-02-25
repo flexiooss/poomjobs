@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poom-services</artifactId>
-        <version>1.223.0</version>
+        <version>1.224.0</version>
     </parent>
 
     <artifactId>poomjobs</artifactId>
@@ -19,7 +19,7 @@
     <url>https://github.com/flexiooss/poomjobs</url>
 
     <properties>
-        <flexio-commons.version>1.227.0</flexio-commons.version>
+        <flexio-commons.version>1.228.0</flexio-commons.version>
     </properties>
 
     <licenses>
