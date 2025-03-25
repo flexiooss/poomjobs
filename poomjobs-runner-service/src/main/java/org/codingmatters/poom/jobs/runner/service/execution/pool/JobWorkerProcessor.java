@@ -15,7 +15,11 @@ public class JobWorkerProcessor implements WorkerProcessor<Job> {
     private final JobProcessorRunner jobProcessorRunner;
 
     public JobWorkerProcessor(JobProcessorRunner.JobUpdater updatedJobConsumer, JobProcessor.Factory processorFactory, JobContextSetup contextSetup) {
-        this.jobProcessorRunner = new JobProcessorRunner(updatedJobConsumer,processorFactory, contextSetup);
+        this.jobProcessorRunner = new JobProcessorRunner(updatedJobConsumer, processorFactory, contextSetup);
+    }
+
+    public void shutdownProperly() {
+        this.jobProcessorRunner.shutdownProperlyAllProcessors();
     }
 
     @Override

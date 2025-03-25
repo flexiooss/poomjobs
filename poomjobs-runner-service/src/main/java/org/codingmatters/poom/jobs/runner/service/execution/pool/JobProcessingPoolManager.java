@@ -23,6 +23,7 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
     private final ProcessingPool<Job> pool;
     private final String jobRequestEndpointUrl;
     private final RunnerStatusManager statusManager;
+    private final JobWorkerProcessor jobWorkerProcessor;
 
     public JobProcessingPoolManager(
             int poolSize,
@@ -35,18 +36,19 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
         this.jobManager = jobManager;
         this.jobRequestEndpointUrl = jobRequestEndpointUrl;
         this.statusManager = statusManager;
+        this.jobWorkerProcessor = new JobWorkerProcessor(this.jobManager, processorFactory, contextSetup);
         this.pool = new WorkerProcessingPool<>(
                 poolSize,
                 new JobProcessableManager(this.jobManager),
-                new JobWorkerProcessor(this.jobManager, processorFactory, contextSetup),
+                jobWorkerProcessor,
                 this
-                );
+        );
     }
 
     @Override
     public void accepting() {
         this.processPendingJobs();
-        if(this.pool.status().equals(ProcessingPool.Status.ACCEPTING)) {
+        if (this.pool.status().equals(ProcessingPool.Status.ACCEPTING)) {
             this.statusManager.becameIdle();
         }
     }
@@ -80,9 +82,9 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
     }
 
     private void processPendingJobs() {
-        while(this.pool.status().equals(ProcessingPool.Status.ACCEPTING)) {
+        while (this.pool.status().equals(ProcessingPool.Status.ACCEPTING)) {
             ValueList<Job> jobs = this.jobManager.pendingJobs();
-            if(jobs.isEmpty()) {
+            if (jobs.isEmpty()) {
                 return;
             }
             for (Job pendingJob : jobs) {
@@ -109,6 +111,7 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
     }
 
     public void stop(long timeout) {
+        this.jobWorkerProcessor.shutdownProperly();
         this.pool.stop(timeout);
     }
 }

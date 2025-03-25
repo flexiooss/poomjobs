@@ -47,8 +47,7 @@ public class JobManagerTest {
             new PoomjobsJobRegistryAPIHandlers.Builder()
                     .jobResourcePatchHandler(this.jobPatch)
                     .jobCollectionGetHandler(this.jobsGet)
-                    .build(),
-            Executors.newSingleThreadExecutor()
+                    .build()
     );
     private final JobManager manager = new JobManager(this.apiClient, "account", "test-category", new String [] {"job1", "job2"});
 
