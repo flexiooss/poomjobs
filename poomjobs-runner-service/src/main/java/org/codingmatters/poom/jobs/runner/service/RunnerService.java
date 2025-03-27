@@ -64,10 +64,15 @@ public class RunnerService {
 
     public interface OptionsSetup {
         OptionsSetup ttl(long ttl);
+
         OptionsSetup contextSetup(JobContextSetup contextSetup);
+
         OptionsSetup containerRuntimeBuilder(ApiContainerRuntimeBuilder containerRuntimeBuilder);
+
         OptionsSetup exitOnUnrecoverableError(boolean exit);
+
         EndpointSetup processorShutdownProperly(int processorShutdownProperly);
+
         RunnerService build();
     }
 
@@ -378,10 +383,9 @@ public class RunnerService {
             long timeoutMs = TimeUnit.SECONDS.toMillis(timeoutSeconds);
             log.info("Stopping thread pool with timeout(ms) " + timeoutMs);
             this.jobProcessingPoolManager.stop(timeoutMs);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("Error stopping runner", e);
         }
-
         synchronized (this.stopMonitor) {
             this.stopMonitor.notify();
         }

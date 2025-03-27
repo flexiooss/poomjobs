@@ -1,6 +1,5 @@
 package org.codingmatters.poom.pattern.execution.pool.workers;
 
-import org.codingmatters.poom.pattern.execution.pool.workers.exceptions.WorkerProcessorException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -40,7 +39,7 @@ public class Worker<P> implements Runnable {
     }
 
     public boolean submit(P processable, String reason) {
-        if(this.status.getAndSet(Status.BUSY) == Status.IDLE) {
+        if (this.status.getAndSet(Status.BUSY) == Status.IDLE) {
             this.listener.busy();
             this.current.set(new ProcessableWithReason<>(processable, reason));
             synchronized (this.current) {
@@ -54,8 +53,8 @@ public class Worker<P> implements Runnable {
 
     @Override
     public void run() {
-        if(! this.running.getAndSet(true)) {
-            while(this.running.get()) {
+        if (!this.running.getAndSet(true)) {
+            while (this.running.get()) {
                 synchronized (this.current) {
                     if (this.current.get() == null) {
                         try {
@@ -65,7 +64,7 @@ public class Worker<P> implements Runnable {
                         }
                     }
                     ProcessableWithReason<P> processable = this.current.getAndSet(null);
-                    if(processable != null) {
+                    if (processable != null) {
                         try {
                             log.debug("run {} - delegating processable processing : {}", processable.reason, processable.processable);
                             this.workerProcessor.process(processable.processable);
