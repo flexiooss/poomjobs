@@ -37,10 +37,6 @@
             <groupId>org.codingmatters.poom.containers.netty</groupId>
             <artifactId>poom-services-containers-netty-runtime</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.flexio.services</groupId>
-            <artifactId>flexio-services-support</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

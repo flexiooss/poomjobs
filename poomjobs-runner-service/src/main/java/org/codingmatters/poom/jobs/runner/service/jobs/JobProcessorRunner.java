@@ -1,6 +1,5 @@
 package org.codingmatters.poom.jobs.runner.service.jobs;
 
-import io.flexio.services.support.api.ApiService;
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
@@ -70,7 +69,6 @@ public class JobProcessorRunner {
     public void runWith(Job job) throws JobProcessingException, JobUpdateFailure {
         JobProcessor processor = null;
         try (LoggingContext loggingContext = LoggingContext.start()) {
-            ApiService.propagator().toLog().propagate();
             synchronized (runningJobs) {
                 runningJobs.add(job);
             }
