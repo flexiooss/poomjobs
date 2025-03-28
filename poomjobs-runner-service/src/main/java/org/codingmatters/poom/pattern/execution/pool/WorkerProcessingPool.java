@@ -111,7 +111,7 @@ public class WorkerProcessingPool<P> implements ProcessingPool<P>, WorkerListene
                 try {
                     log.info("Stopping workers " + timeout + " ms");
                     boolean terminated = this.pool.awaitTermination(timeout, TimeUnit.MILLISECONDS);
-                    log.info("Pool terminated : " + terminated);
+                    log.info("Pool terminated after timeout: " + terminated);
                 } catch (Exception e) {
                     log.error("Interrupted while awaiting shutdown", e);
                 }

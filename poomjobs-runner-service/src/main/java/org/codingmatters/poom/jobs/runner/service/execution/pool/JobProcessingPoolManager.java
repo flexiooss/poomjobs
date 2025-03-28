@@ -113,5 +113,6 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
     public void stop(long timeout) {
         this.jobWorkerProcessor.shutdownProperly();
         this.pool.stop(timeout);
+        this.jobWorkerProcessor.updateAllRemainingJobToFailure();
     }
 }
