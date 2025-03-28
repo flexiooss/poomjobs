@@ -7,6 +7,10 @@ import org.codingmatters.poomjobs.api.types.Job;
 public interface JobProcessor {
     Job process() throws JobProcessingException;
 
+    default void shutDownProperly() {
+
+    }
+
     interface Factory {
         JobProcessor createFor(Job job);
     }

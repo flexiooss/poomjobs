@@ -28,6 +28,7 @@ import org.codingmatters.rest.api.Processor;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class RunnerService {
@@ -35,8 +36,10 @@ public class RunnerService {
 
     private static final long MIN_TTL = 1000L;
     public static final long DEFAULT_TTL = 30 * 1000L;
+    public static final String PROCESS_SHUTDOWN_PROPERLY_TIMEOUT_IN_SECONDS = "PROCESS_SHUTDOWN_PROPERLY_TIMEOUT_IN_SECONDS";
 
     public static final String SERVICE_RUNTIME = "SERVICE_RUNTIME";
+    private final Integer timeoutSeconds;
 
     static public JobSetup setup() {
         return new Builder();
@@ -44,22 +47,32 @@ public class RunnerService {
 
 
     public interface JobSetup {
-        ClientsSetup jobs(String category, String [] names, JobProcessor.Factory factory);
+        ClientsSetup jobs(String category, String[] names, JobProcessor.Factory factory);
     }
+
     public interface ClientsSetup {
         RunnerSetup clients(PoomjobsRunnerRegistryAPIClient runnerRegistryClient, PoomjobsJobRegistryAPIClient jobRegistryClient);
     }
+
     public interface RunnerSetup {
         EndpointSetup concurrency(int concurrentJobCount);
     }
+
     public interface EndpointSetup {
         OptionsSetup endpoint(String host, int port);
     }
+
     public interface OptionsSetup {
         OptionsSetup ttl(long ttl);
+
         OptionsSetup contextSetup(JobContextSetup contextSetup);
+
         OptionsSetup containerRuntimeBuilder(ApiContainerRuntimeBuilder containerRuntimeBuilder);
+
         OptionsSetup exitOnUnrecoverableError(boolean exit);
+
+        EndpointSetup processorShutdownProperly(int processorShutdownProperly);
+
         RunnerService build();
     }
 
@@ -80,7 +93,7 @@ public class RunnerService {
         private JobContextSetup contextSetup = JobContextSetup.NOOP;
         private boolean exitOnUnrecoverableError = true;
         private ApiContainerRuntimeBuilder containerRuntimeBuilder;
-
+        private Integer timeoutSeconds = Env.optional(PROCESS_SHUTDOWN_PROPERLY_TIMEOUT_IN_SECONDS).orElse(Env.Var.value("20")).asInteger();
 
         @Override
         public ClientsSetup jobs(String category, String[] names, JobProcessor.Factory factory) {
@@ -116,13 +129,12 @@ public class RunnerService {
         public OptionsSetup endpoint(String host, int port) {
             this.jobRequestEndpointHost = host;
             this.jobRequestEndpointPort = port;
-
             return this;
         }
 
         @Override
         public OptionsSetup ttl(long ttl) {
-            this.ttl = Math.max(MIN_TTL, ttl);;
+            this.ttl = Math.max(MIN_TTL, ttl);
             return this;
         }
 
@@ -139,6 +151,12 @@ public class RunnerService {
         }
 
         @Override
+        public EndpointSetup processorShutdownProperly(int processorShutdownProperly) {
+            this.timeoutSeconds = processorShutdownProperly;
+            return this;
+        }
+
+        @Override
         public RunnerService build() {
             return new RunnerService(
                     this.runnerRegistryClient,
@@ -151,7 +169,8 @@ public class RunnerService {
                     this.contextSetup,
                     this.containerRuntimeBuilder != null ? this.containerRuntimeBuilder : new ApiContainerRuntimeBuilder(),
                     this.jobRequestEndpointHost,
-                    this.jobRequestEndpointPort
+                    this.jobRequestEndpointPort,
+                    this.timeoutSeconds
             );
         }
     }
@@ -195,7 +214,8 @@ public class RunnerService {
             JobContextSetup contextSetup,
             ApiContainerRuntimeBuilder containerRuntimeBuilder,
             String jobRequestEndpointHost,
-            int jobRequestEndpointPort
+            int jobRequestEndpointPort,
+            Integer runnerShutdownProperlyTimeoutSeconds
     ) {
         this.runnerRegistryClient = runnerRegistryClient;
         this.jobRegistryClient = jobRegistryClient;
@@ -209,6 +229,7 @@ public class RunnerService {
         this.jobRequestEndpointPort = jobRequestEndpointPort;
         this.jobRequestEndpointHost = jobRequestEndpointHost;
         this.jobRequestEndpointUrl = Env.mandatory(Env.SERVICE_URL).asString();
+        this.timeoutSeconds = runnerShutdownProperlyTimeoutSeconds;
     }
 
     public void run() throws RunnerServiceInitializationException {
@@ -216,7 +237,7 @@ public class RunnerService {
     }
 
     private ApiContainerRuntime createRunime(String host, int port, CategorizedLogger logger) {
-        if(Env.optional(SERVICE_RUNTIME).orElse(new Env.Var("UNDERTOW")).asString().equals("NETTY")) {
+        if (Env.optional(SERVICE_RUNTIME).orElse(new Env.Var("UNDERTOW")).asString().equals("NETTY")) {
             return new NettyApiContainerRuntime(host, port, logger);
         } else {
             return new UndertowApiContainerRuntime(host, port, logger);
@@ -234,16 +255,18 @@ public class RunnerService {
             throw new RunnerServiceInitializationException("failed initializing runtime", e);
         }
 
+        log.info("Started, wait monitor");
         synchronized (this.stopMonitor) {
             try {
+                log.info("waiting monitor");
                 this.stopMonitor.wait();
-                log.info("runner service stop requested...");
+                log.info("runner service stopped successfully ...");
             } catch (InterruptedException e) {
-                log.error("runner service was interrupted");
+                log.error("runner service was interrupted", e);
             }
         }
 
-        if(this.errorToken.get() != null) {
+        if (this.errorToken.get() != null) {
             throw new RuntimeException("error in runner service, see logs with " + this.errorToken.get());
         }
     }
@@ -351,15 +374,18 @@ public class RunnerService {
 
     private void onStop() {
         try {
+            log.info("Stopping runner status manager");
             this.runnerStatusManager.stop();
-        } catch (Exception e) {}
-        try {
-            this.statusManagerExecutor.shutdown();
-        } catch (Exception e) {}
-        try {
-            this.jobProcessingPoolManager.stop(10 * 1000L);
-        } catch (Exception e) {}
 
+            log.info("Stopping runner status executor ( stop notifying status )");
+            this.statusManagerExecutor.shutdown();
+
+            long timeoutMs = TimeUnit.SECONDS.toMillis(timeoutSeconds);
+            log.info("Stopping thread pool with timeout(ms) " + timeoutMs);
+            this.jobProcessingPoolManager.stop(timeoutMs);
+        } catch (Throwable e) {
+            log.error("Error stopping runner", e);
+        }
         synchronized (this.stopMonitor) {
             this.stopMonitor.notify();
         }

@@ -1,7 +1,7 @@
 package org.codingmatters.poom.jobs.runner.service.jobs;
 
-import org.codingmatters.poom.jobs.runner.service.jobs.JobProcessorRunner;
 import org.codingmatters.poom.runner.JobContextSetup;
+import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.job.Status;
@@ -9,6 +9,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -33,7 +38,7 @@ public class JobProcessorRunnerTest {
             job -> () -> {
                 processedJob.set(job);
                 JobProcessingException exception = nextJobProcessingException.get();
-                if(exception != null) throw exception;
+                if (exception != null) throw exception;
                 return job.withStatus(nextJobStatus.get());
             },
             JobContextSetup.NOOP
@@ -135,4 +140,57 @@ public class JobProcessorRunnerTest {
 
         assertThat(this.updatedJob.get(), is(nullValue()));
     }
+
+    @Test
+    public void testRunnerShutdown() throws JobProcessorRunner.JobUpdateFailure, JobProcessingException, InterruptedException {
+        AtomicBoolean shotDown = new AtomicBoolean(false);
+
+        JobProcessorRunner runner = new JobProcessorRunner(
+                job -> {
+                    updatedJob.set(job);
+                    return job;
+                },
+                job -> new JobProcessor() {
+                    @Override
+                    public void shutDownProperly() {
+                        shotDown.set(true);
+                    }
+
+                    @Override
+                    public Job process() throws JobProcessingException {
+                        do {
+                            try {
+                                System.out.println("Running...");
+                                Thread.sleep(500);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                                throw new JobProcessingException("Error ", e);
+                            }
+                        } while (!shotDown.get());
+                        System.out.println("Job end");
+                        return job.withStatus(Status.builder().exit(Status.Exit.SUCCESS).run(Status.Run.DONE).build());
+                    }
+                },
+                JobContextSetup.NOOP
+        );
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.submit(() -> {
+            try {
+                runner.runWith(Job.builder().status(Status.builder().run(Status.Run.RUNNING).build()).build());
+            } catch (Exception e) {
+                throw new AssertionError("should execute", e);
+            }
+        });
+
+        boolean terminated = executor.awaitTermination(2, TimeUnit.SECONDS);
+        assertThat(terminated, is(false));
+        assertThat(runner.runningProcessors().size(), is(1));
+
+        runner.shutdownProperlyAllProcessors();
+        executor.shutdown();
+        terminated = executor.awaitTermination(3, TimeUnit.SECONDS);
+        assertThat(terminated, is(true));
+        assertThat(runner.runningProcessors().size(), is(0));
+    }
+
 }

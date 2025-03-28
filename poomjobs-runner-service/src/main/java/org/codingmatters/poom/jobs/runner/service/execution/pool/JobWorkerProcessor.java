@@ -15,7 +15,7 @@ public class JobWorkerProcessor implements WorkerProcessor<Job> {
     private final JobProcessorRunner jobProcessorRunner;
 
     public JobWorkerProcessor(JobProcessorRunner.JobUpdater updatedJobConsumer, JobProcessor.Factory processorFactory, JobContextSetup contextSetup) {
-        this.jobProcessorRunner = new JobProcessorRunner(updatedJobConsumer,processorFactory, contextSetup);
+        this.jobProcessorRunner = new JobProcessorRunner(updatedJobConsumer, processorFactory, contextSetup);
     }
 
     @Override
@@ -28,4 +28,13 @@ public class JobWorkerProcessor implements WorkerProcessor<Job> {
             log.error("[GRAVE] job was executed, but got update failure, job final status may be wrong : " + job.withStatus((Status) null), e);
         }
     }
+
+    public void shutdownProperly() {
+        this.jobProcessorRunner.shutdownProperlyAllProcessors();
+    }
+
+    public void updateAllRemainingJobToFailure() {
+        this.jobProcessorRunner.updateAllRemainingJobToFailure();
+    }
+
 }

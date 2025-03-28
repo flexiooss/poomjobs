@@ -10,6 +10,10 @@ import org.codingmatters.poomjobs.api.ValueList;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.job.Status;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * takes a reserved Job (status = RUNNING), executes it
  */
@@ -21,6 +25,9 @@ public class JobProcessorRunner {
     private final JobProcessor.Factory processorFactory;
     private final JobContextSetup contextSetup;
     private final JobStartStopLogPolicy jobStartStopLogPolicy;
+
+    private final List<JobProcessor> runningProcessors = Collections.synchronizedList(new ArrayList<>());
+    private final List<Job> runningJobs = Collections.synchronizedList(new ArrayList<>());
 
     public JobProcessorRunner(JobUpdater updatedJobConsumer, JobProcessor.Factory processorFactory, JobContextSetup contextSetup) {
         this.updatedJobConsumer = updatedJobConsumer;
@@ -38,21 +45,51 @@ public class JobProcessorRunner {
         this.jobStartStopLogPolicy = policy;
     }
 
+    public void shutdownProperlyAllProcessors() {
+        synchronized (runningProcessors) {
+            for (JobProcessor runningProcessor : runningProcessors) {
+                runningProcessor.shutDownProperly();
+            }
+        }
+    }
+
+    public void updateAllRemainingJobToFailure() {
+        synchronized (runningJobs) {
+            for (Job runningJob : runningJobs) {
+                try {
+                    log.info("Job did not finished in time ! setting result failure for job " + runningJob.id());
+                    updatedJobConsumer.update(withErrorStatus(runningJob));
+                } catch (JobUpdateFailure e) {
+                    log.error("[GRAVE] could not set result of interrupted job " + runningJob.id(), e);
+                }
+            }
+        }
+    }
+
     public void runWith(Job job) throws JobProcessingException, JobUpdateFailure {
-        try(LoggingContext loggingContext = LoggingContext.start()) {
+        JobProcessor processor = null;
+        try (LoggingContext loggingContext = LoggingContext.start()) {
+            synchronized (runningJobs) {
+                runningJobs.add(job);
+            }
+
             if (!Status.Run.RUNNING.equals(job.opt().status().run().orElse(null))) {
                 throw new JobProcessingException("Job has not been reserved, will not execute. Run status should be RUNNING, was : " + job.opt().status().run().orElse(null));
             }
-            JobProcessor processor = this.processorFactory.createFor(job);
+            processor = this.processorFactory.createFor(job);
+            synchronized (runningProcessors) {
+                runningProcessors.add(processor);
+            }
             this.contextSetup.setup(job, processor);
 
-            if(this.jobStartStopLogPolicy.equals(JobStartStopLogPolicy.DEBUG)) {
+            if (this.jobStartStopLogPolicy.equals(JobStartStopLogPolicy.DEBUG)) {
                 log.debug("starting processing job {}", job);
             } else {
                 log.info("starting processing job {}", job);
             }
             Job updated;
             try {
+
                 updated = processor.process();
                 updated = this.withFinalStatus(updated);
             } catch (JobProcessingException e) {
@@ -65,10 +102,19 @@ public class JobProcessorRunner {
             log.debug("job processed, will update status with {}", updated);
             updated = this.updatedJobConsumer.update(updated);
 
-            if(this.jobStartStopLogPolicy.equals(JobStartStopLogPolicy.DEBUG)) {
+            if (this.jobStartStopLogPolicy.equals(JobStartStopLogPolicy.DEBUG)) {
                 log.debug("job processed : {}", updated);
             } else {
                 log.info("job processed : {}", updated);
+            }
+        } finally {
+            synchronized (runningJobs) {
+                runningJobs.remove(job);
+            }
+            synchronized (runningProcessors) {
+                if (processor != null) {
+                    runningProcessors.remove(processor);
+                }
             }
         }
     }
@@ -98,7 +144,9 @@ public class JobProcessorRunner {
 
     public interface PendingJobManager {
         ValueList<Job> pendingJobs();
+
         Job reserve(Job job) throws JobProcessorRunner.JobUpdateFailure;
+
         Job release(Job reserved) throws JobUpdateFailure;
     }
 
@@ -120,5 +168,9 @@ public class JobProcessorRunner {
         public JobUpdateInvalid(String message, Throwable cause) {
             super(message, cause);
         }
+    }
+
+    public List<JobProcessor> runningProcessors() {
+        return runningProcessors;
     }
 }

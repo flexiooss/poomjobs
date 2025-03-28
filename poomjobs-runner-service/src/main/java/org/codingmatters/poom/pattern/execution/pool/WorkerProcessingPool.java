@@ -36,7 +36,7 @@ public class WorkerProcessingPool<P> implements ProcessingPool<P>, WorkerListene
         this.manager = manager;
         this.listener = listener;
         for (int i = 0; i < poolSize; i++) {
-            this.workers.add(new Worker(workerProcessor, this));
+            this.workers.add(new Worker<>(workerProcessor, this));
         }
     }
 
@@ -47,11 +47,11 @@ public class WorkerProcessingPool<P> implements ProcessingPool<P>, WorkerListene
 
         boolean submitted = false;
         Iterator<Worker<P>> wks = this.workers.iterator();
-        while(wks.hasNext() && ! submitted) {
+        while (wks.hasNext() && !submitted) {
             submitted = wks.next().submit(locked, reason);
         }
 
-        if(submitted) {
+        if (submitted) {
             log.debug("process {} - processable submitted : {}", reason, locked);
         } else {
             try {
@@ -72,23 +72,24 @@ public class WorkerProcessingPool<P> implements ProcessingPool<P>, WorkerListene
 
     @Override
     public void busy() {
-        if(this.workingCount.incrementAndGet() == this.poolSize) {
+        if (this.workingCount.incrementAndGet() == this.poolSize) {
             this.listener.full();
         }
     }
 
     @Override
     public void idle() {
-        if(this.workingCount.decrementAndGet() == this.poolSize - 1) {
+        if (this.workingCount.decrementAndGet() == this.poolSize - 1) {
             this.listener.accepting();
         }
     }
 
 
     private ExecutorService pool;
+
     @Override
     public void start() {
-        if(! this.running.getAndSet(true)) {
+        if (!this.running.getAndSet(true)) {
             this.pool = Executors.newFixedThreadPool(this.poolSize);
             for (Worker worker : this.workers) {
                 this.pool.submit(worker);
@@ -98,17 +99,32 @@ public class WorkerProcessingPool<P> implements ProcessingPool<P>, WorkerListene
 
     @Override
     public void stop(long timeout) {
-        if(this.running.getAndSet(false)) {
-            this.workers.forEach(w -> w.stop());
-            this.pool.shutdown();
-            try {
-                this.pool.awaitTermination(timeout, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-                log.error("interrupted while awaiting shutdown");
+        try {
+            log.info("Stopping Worker Pool");
+            if (this.running.getAndSet(false)) {
+                log.info("Stop all workers");
+                for (Worker<P> worker : this.workers) {
+                    worker.stop();
+                }
+                log.info("shutdown pool");
+                this.pool.shutdown();
+                try {
+                    log.info("Stopping workers " + timeout + " ms");
+                    boolean terminated = this.pool.awaitTermination(timeout, TimeUnit.MILLISECONDS);
+                    log.info("Pool terminated after timeout: " + terminated);
+                } catch (Exception e) {
+                    log.error("Interrupted while awaiting shutdown", e);
+                }
+                if (!this.pool.isTerminated()) {
+                    log.info("Force pool shutdown now");
+                    this.pool.shutdownNow();
+                }
+            } else {
+                log.info("Not running");
             }
-            if(! this.pool.isTerminated()) {
-                this.pool.shutdownNow();
-            }
+            log.info("Worker pool stopped");
+        } catch (Throwable t) {
+            log.error("Error shutting down", t);
         }
     }
 }
