@@ -29,6 +29,7 @@ public class ClientTaskNotifier implements ExtendedTaskNotifier {
 
     @Override
     public void success(ObjectValue result) {
+        log.info("task succeeded wih result {} - {}", result, this.task);
         this.result(result);
         this.statusChange(TaskStatusChange.Run.DONE, TaskStatusChange.Exit.SUCCESS);
     }
@@ -54,6 +55,7 @@ public class ClientTaskNotifier implements ExtendedTaskNotifier {
 
     @Override
     public void partialResult(ObjectValue result) {
+        log.info("task partial result {} - {}", result, this.task);
         this.result(result);
     }
 
@@ -71,20 +73,27 @@ public class ClientTaskNotifier implements ExtendedTaskNotifier {
 
     private void statusChange(TaskStatusChange.Run run, TaskStatusChange.Exit exit) {
         try {
+            log.info("changing task status to {}/{} - task : {}", run, exit, this.task);
             TaskStatusChangesPostResponse response = this.taskClient.taskCollection().taskEntity().taskStatusChanges().post(TaskStatusChangesPostRequest.builder()
                     .taskId(this.task.id())
                     .payload(TaskStatusChange.builder().run(run).exit(exit).build())
                     .build());
             if (response.opt().status201().isEmpty()) {
-                log.error("[GRAVE] while changing task status, unexpected response from api : {}", response);
+                log.error("[GRAVE] while changing task status to {}/{}, unexpected response from api : {}", run, exit, response);
             }
         } catch (IOException e) {
-            log.error("[GRAVE] while changing task status, failed accessing task api");
+            log.error(String.format("[GRAVE] while changing task status to %s/%s, failed accessing task api", run, exit), e);
         }
     }
 
     private void log(TaskLogCreation logCreation) {
         try {
+            switch (logCreation.level()) {
+                case INFO -> log.info("{}", logCreation.log());
+                case ERROR -> log.error("{}", logCreation.log());
+                default -> log.info("[{}] {}", logCreation.level(), logCreation.log());
+            }
+            log.info("", this.task);
             TaskLogsPostResponse response = this.taskClient.taskCollection().taskEntity().taskLogs().post(TaskLogsPostRequest.builder()
                     .taskId(this.task.id())
                     .payload(logCreation)
