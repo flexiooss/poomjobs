@@ -68,6 +68,7 @@ public abstract class TaskJobProcessor<Param, Result> implements JobProcessor {
             }
             return this.success(notifier, resultObject);
         } catch (TaskProcessor.TaskFailure e) {
+                log.error("task failure : " + task, e);
             return this.failure(notifier);
         }
     }
