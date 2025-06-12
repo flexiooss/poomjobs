@@ -1,6 +1,7 @@
 package org.codingmatters.poom.poomjobs.integration.lt.jobs;
 
 import org.codingmatters.poom.runner.JobProcessor;
+import org.codingmatters.poom.runner.exception.JobMonitorError;
 import org.codingmatters.poom.services.support.Env;
 import org.codingmatters.poomjobs.api.types.Job;
 
@@ -21,7 +22,7 @@ public class LTJobFactory implements JobProcessor.Factory {
     static private Random RAND = new Random();
 
     @Override
-    public JobProcessor createFor(Job job) {
+    public JobProcessor createFor(Job job, JobProcessor.JobMonitor monitor) {
         if(job.name().equals(JobName.QUICK.name())) {
             return this.quick(job);
         } else if(job.name().equals(JobName.SLOW.name())) {

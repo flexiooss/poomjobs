@@ -9,7 +9,7 @@ public class TestJobFactory implements JobProcessor.Factory {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(TestJobFactory.class);
 
     @Override
-    public JobProcessor createFor(Job job) {
+    public JobProcessor createFor(Job job, JobProcessor.JobMonitor monitor) {
         return () -> {
             log.info("PROCESSING TEST JOB {} : ", job.arguments(), job);
             try {
