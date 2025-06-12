@@ -9,11 +9,10 @@ import org.codingmatters.poom.pattern.execution.pool.workers.WorkerListener;
 import org.codingmatters.poom.pattern.execution.pool.workers.WorkerProcessor;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -86,6 +85,7 @@ public class WorkerProcessingPool<P> implements ProcessingPool<P>, WorkerListene
 
 
     private ExecutorService pool;
+    private Map<Worker, Future> workerTasks = new HashMap<>();
 
     @Override
     public void start() {
@@ -105,6 +105,10 @@ public class WorkerProcessingPool<P> implements ProcessingPool<P>, WorkerListene
                 log.info("Stop all workers");
                 for (Worker<P> worker : this.workers) {
                     worker.stop();
+                    Future task = this.workerTasks.get(worker);
+                    if(task != null) {
+                        task.cancel(true);
+                    }
                 }
                 log.info("shutdown pool");
                 this.pool.shutdown();

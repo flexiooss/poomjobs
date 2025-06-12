@@ -13,6 +13,7 @@ import org.codingmatters.poomjobs.api.types.job.Status;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * takes a reserved Job (status = RUNNING), executes it
@@ -28,6 +29,8 @@ public class JobProcessorRunner {
 
     private final List<JobProcessor> runningProcessors = Collections.synchronizedList(new ArrayList<>());
     private final List<Job> runningJobs = Collections.synchronizedList(new ArrayList<>());
+
+    private final AtomicBoolean shutdownRequested = new AtomicBoolean(false);
 
     public JobProcessorRunner(JobUpdater updatedJobConsumer, JobProcessor.Factory processorFactory, JobContextSetup contextSetup) {
         this.updatedJobConsumer = updatedJobConsumer;
@@ -46,11 +49,12 @@ public class JobProcessorRunner {
     }
 
     public void shutdownProperlyAllProcessors() {
-        synchronized (runningProcessors) {
-            for (JobProcessor runningProcessor : runningProcessors) {
-                runningProcessor.shutDownProperly();
-            }
-        }
+        this.shutdownRequested.set(true);
+//        synchronized (runningProcessors) {
+//            for (JobProcessor runningProcessor : runningProcessors) {
+//                runningProcessor.shutDownProperly();
+//            }
+//        }
     }
 
     public void updateAllRemainingJobToFailure() {
@@ -76,7 +80,7 @@ public class JobProcessorRunner {
             if (!Status.Run.RUNNING.equals(job.opt().status().run().orElse(null))) {
                 throw new JobProcessingException("Job has not been reserved, will not execute. Run status should be RUNNING, was : " + job.opt().status().run().orElse(null));
             }
-            processor = this.processorFactory.createFor(job);
+            processor = this.processorFactory.createFor(job, () -> this.shutdownRequested.get());
             synchronized (runningProcessors) {
                 runningProcessors.add(processor);
             }
