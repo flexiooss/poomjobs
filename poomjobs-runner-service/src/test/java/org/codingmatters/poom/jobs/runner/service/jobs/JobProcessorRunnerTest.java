@@ -35,10 +35,10 @@ public class JobProcessorRunnerTest {
                 updatedJob.set(job);
                 return job;
             },
-            job -> () -> {
+            (job, monitor) -> () -> {
                 processedJob.set(job);
                 JobProcessingException exception = nextJobProcessingException.get();
-                if (exception != null) throw exception;
+                if (exception != null) {throw exception;}
                 return job.withStatus(nextJobStatus.get());
             },
             JobContextSetup.NOOP
@@ -143,19 +143,12 @@ public class JobProcessorRunnerTest {
 
     @Test
     public void testRunnerShutdown() throws JobProcessorRunner.JobUpdateFailure, JobProcessingException, InterruptedException {
-        AtomicBoolean shotDown = new AtomicBoolean(false);
-
         JobProcessorRunner runner = new JobProcessorRunner(
                 job -> {
                     updatedJob.set(job);
                     return job;
                 },
-                job -> new JobProcessor() {
-                    @Override
-                    public void shutDownProperly() {
-                        shotDown.set(true);
-                    }
-
+                (job, monitor) -> new JobProcessor() {
                     @Override
                     public Job process() throws JobProcessingException {
                         do {
@@ -166,7 +159,7 @@ public class JobProcessorRunnerTest {
                                 e.printStackTrace();
                                 throw new JobProcessingException("Error ", e);
                             }
-                        } while (!shotDown.get());
+                        } while (!monitor.isShutdownRequested());
                         System.out.println("Job end");
                         return job.withStatus(Status.builder().exit(Status.Exit.SUCCESS).run(Status.Run.DONE).build());
                     }
@@ -184,13 +177,13 @@ public class JobProcessorRunnerTest {
 
         boolean terminated = executor.awaitTermination(2, TimeUnit.SECONDS);
         assertThat(terminated, is(false));
-        assertThat(runner.runningProcessors().size(), is(1));
+        assertThat(runner.runningJobs().size(), is(1));
 
         runner.shutdownProperlyAllProcessors();
         executor.shutdown();
         terminated = executor.awaitTermination(3, TimeUnit.SECONDS);
         assertThat(terminated, is(true));
-        assertThat(runner.runningProcessors().size(), is(0));
+        assertThat(runner.runningJobs().size(), is(0));
     }
 
 }

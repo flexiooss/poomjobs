@@ -2,6 +2,7 @@ package org.codingmatters.poom.jobs.runner.service.jobs;
 
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
+import org.codingmatters.poom.runner.exception.JobMonitorError;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.Env;
@@ -13,6 +14,8 @@ import org.codingmatters.poomjobs.api.types.job.Status;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * takes a reserved Job (status = RUNNING), executes it
@@ -26,8 +29,9 @@ public class JobProcessorRunner {
     private final JobContextSetup contextSetup;
     private final JobStartStopLogPolicy jobStartStopLogPolicy;
 
-    private final List<JobProcessor> runningProcessors = Collections.synchronizedList(new ArrayList<>());
     private final List<Job> runningJobs = Collections.synchronizedList(new ArrayList<>());
+
+    private final AtomicBoolean shutdownRequested;
 
     public JobProcessorRunner(JobUpdater updatedJobConsumer, JobProcessor.Factory processorFactory, JobContextSetup contextSetup) {
         this.updatedJobConsumer = updatedJobConsumer;
@@ -43,14 +47,12 @@ public class JobProcessorRunner {
             policy = JobStartStopLogPolicy.INFO;
         }
         this.jobStartStopLogPolicy = policy;
+        this.shutdownRequested = new AtomicBoolean(false);
     }
 
     public void shutdownProperlyAllProcessors() {
-        synchronized (runningProcessors) {
-            for (JobProcessor runningProcessor : runningProcessors) {
-                runningProcessor.shutDownProperly();
-            }
-        }
+        log.info("Shutdown requested !");
+        this.shutdownRequested.set(true);
     }
 
     public void updateAllRemainingJobToFailure() {
@@ -58,7 +60,7 @@ public class JobProcessorRunner {
             for (Job runningJob : runningJobs) {
                 try {
                     log.info("Job did not finished in time ! setting result failure for job " + runningJob.id());
-                    updatedJobConsumer.update(withErrorStatus(runningJob));
+                    updatedJobConsumer.update(withAbortedStatus(runningJob));
                 } catch (JobUpdateFailure e) {
                     log.error("[GRAVE] could not set result of interrupted job " + runningJob.id(), e);
                 }
@@ -76,10 +78,7 @@ public class JobProcessorRunner {
             if (!Status.Run.RUNNING.equals(job.opt().status().run().orElse(null))) {
                 throw new JobProcessingException("Job has not been reserved, will not execute. Run status should be RUNNING, was : " + job.opt().status().run().orElse(null));
             }
-            processor = this.processorFactory.createFor(job);
-            synchronized (runningProcessors) {
-                runningProcessors.add(processor);
-            }
+            processor = this.processorFactory.createFor(job, this.shutdownRequested::get);
             this.contextSetup.setup(job, processor);
 
             if (this.jobStartStopLogPolicy.equals(JobStartStopLogPolicy.DEBUG)) {
@@ -89,9 +88,11 @@ public class JobProcessorRunner {
             }
             Job updated;
             try {
-
                 updated = processor.process();
                 updated = this.withFinalStatus(updated);
+            } catch (JobMonitorError e) {
+                log.info("Job " + job.id() + " aborted with status " + e.exit());
+                updated = this.monitor(job, e.exit());
             } catch (JobProcessingException e) {
                 throw e;
             } catch (Exception e) {
@@ -111,11 +112,19 @@ public class JobProcessorRunner {
             synchronized (runningJobs) {
                 runningJobs.remove(job);
             }
-            synchronized (runningProcessors) {
-                if (processor != null) {
-                    runningProcessors.remove(processor);
-                }
-            }
+        }
+    }
+
+    private Job monitor(Job job, Status.Exit exit) {
+        if (exit == Status.Exit.ABORTED) {
+            return job.withStatus(Status.builder()
+                    .run(Status.Run.PENDING)
+                    .build());
+        } else {
+            return job.withStatus(Status.builder()
+                    .run(Status.Run.DONE)
+                    .exit(Optional.ofNullable(exit).orElse(Status.Exit.FAILURE))
+                    .build());
         }
     }
 
@@ -124,6 +133,15 @@ public class JobProcessorRunner {
                 Status.builder()
                         .run(Status.Run.DONE)
                         .exit(job.opt().status().exit().orElse(Status.Exit.SUCCESS))
+                        .build()
+        );
+    }
+
+    private Job withAbortedStatus(Job job) {
+        return job.withStatus(
+                Status.builder()
+                        .run(Status.Run.DONE)
+                        .exit(job.opt().status().exit().orElse(Status.Exit.ABORTED))
                         .build()
         );
     }
@@ -170,7 +188,7 @@ public class JobProcessorRunner {
         }
     }
 
-    public List<JobProcessor> runningProcessors() {
-        return runningProcessors;
+    public List<Job> runningJobs() {
+        return runningJobs;
     }
 }

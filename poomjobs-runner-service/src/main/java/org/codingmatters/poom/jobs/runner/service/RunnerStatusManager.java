@@ -60,12 +60,12 @@ public class RunnerStatusManager implements Runnable {
 
     @Override
     public void run() {
-        while(this.running.get()) {
+        while (this.running.get()) {
             synchronized (this.nextStatus) {
                 try {
                     this.nextStatus.wait(this.nextTimeout());
                 } catch (InterruptedException e) {}
-                if(this.running.get()) {
+                if (this.running.get()) {
                     RunnerStatusData statusData = this.nextStatus.get();
                     this.patchRunnerStatus(statusData);
                 }
@@ -74,7 +74,7 @@ public class RunnerStatusManager implements Runnable {
     }
 
     private long nextTimeout() {
-        if(this.maxTimeout > this.minTimeout) {
+        if (this.maxTimeout > this.minTimeout) {
             return this.minTimeout + this.random.nextInt((int) (this.maxTimeout - this.minTimeout));
         } else {
             return this.minTimeout;
@@ -89,13 +89,10 @@ public class RunnerStatusManager implements Runnable {
                     .build());
             log.debug("status manager - status updated to {}", statusData);
             this.lastStatus.set(statusData);
-            if(response.opt().status200().isEmpty()) {
-                log.error("[GRAVE] unexpected response from runner registry while patching runner status");
-            } else {
-                log.debug("runner status patched to {}", statusData);
-            }
+            response.opt().status200().orElseThrow(() -> new IOException("Bad response code " + response));
+            log.debug("runner status patched to {}", statusData);
         } catch (IOException e) {
-            log.error("[GRAVE] while patching runner status, failed reaching runner registry");
+            log.error("[GRAVE] while patching runner status, failed reaching runner registry", e);
         }
     }
 }

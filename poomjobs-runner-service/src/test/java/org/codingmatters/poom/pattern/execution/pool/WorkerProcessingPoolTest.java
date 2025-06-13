@@ -115,8 +115,10 @@ public class WorkerProcessingPoolTest {
     }
 
     @Test
-    public void whenNotStarted__thenStatusAccepting() throws Exception {
+    public void whenNotStarted__thenStatusFull_andThenStart_thenIsAccepting() throws Exception {
         ProcessingPool<String> pool = new WorkerProcessingPool<>(5, YES_MANAGER, YES_PROCESSOR, ProcessingPoolListener.NOOP);
+        assertThat(pool.status(), is(ProcessingPool.Status.FULL));
+        pool.start();
         assertThat(pool.status(), is(ProcessingPool.Status.ACCEPTING));
     }
 
