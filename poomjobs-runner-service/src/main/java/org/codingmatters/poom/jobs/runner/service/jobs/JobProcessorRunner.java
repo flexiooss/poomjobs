@@ -51,6 +51,7 @@ public class JobProcessorRunner {
     }
 
     public void shutdownProperlyAllProcessors() {
+        log.info("Shutdown requested !");
         this.shutdownRequested.set(true);
     }
 

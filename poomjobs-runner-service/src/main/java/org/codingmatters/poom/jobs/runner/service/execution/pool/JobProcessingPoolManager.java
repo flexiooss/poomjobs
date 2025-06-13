@@ -87,6 +87,7 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
             if (jobs.isEmpty()) {
                 return;
             }
+            log.info("found " + jobs.size() + " pending job");
             for (Job pendingJob : jobs) {
                 try {
                     this.pool.process(pendingJob, "pending job");

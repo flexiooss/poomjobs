@@ -66,7 +66,11 @@ public class WorkerProcessingPool<P> implements ProcessingPool<P>, WorkerListene
 
     @Override
     public Status status() {
-        return this.workingCount.get() >= this.poolSize ? Status.FULL : Status.ACCEPTING;
+        if (running.get()) {
+            return this.workingCount.get() >= this.poolSize ? Status.FULL : Status.ACCEPTING;
+        } else {
+            return Status.FULL;
+        }
     }
 
     @Override
@@ -106,7 +110,7 @@ public class WorkerProcessingPool<P> implements ProcessingPool<P>, WorkerListene
                 for (Worker<P> worker : this.workers) {
                     worker.stop();
                     Future task = this.workerTasks.get(worker);
-                    if(task != null) {
+                    if (task != null) {
                         task.cancel(true);
                     }
                 }

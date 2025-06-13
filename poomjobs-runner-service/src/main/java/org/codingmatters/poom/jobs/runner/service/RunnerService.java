@@ -245,27 +245,31 @@ public class RunnerService {
     }
 
     public void run(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
+        log.info("Register Runner");
         this.registerRunner();
+        log.info("Create job manager");
         this.createJobManager();
+        log.info("Create runner status manager");
         this.createRunnerStatusManager();
+        log.info("Create job processing pool manager");
         this.createJobProcessingPoolManager();
+        log.info("Start job request endpoint");
         try {
             this.startJobRequestEndpoint(runtimeInitializer.initialize(this.jobRequestEndpointHost, this.jobRequestEndpointPort, log));
         } catch (Exception e) {
             throw new RunnerServiceInitializationException("failed initializing runtime", e);
         }
-
-        log.info("Started, wait monitor");
+        log.info("start pool manager");
+        this.jobProcessingPoolManager.start();
+        log.info("runner started successfully...");
         synchronized (this.stopMonitor) {
             try {
-                log.info("waiting monitor");
                 this.stopMonitor.wait();
                 log.info("runner service stopped successfully ...");
             } catch (InterruptedException e) {
                 log.error("runner service was interrupted", e);
             }
         }
-
         if (this.errorToken.get() != null) {
             throw new RuntimeException("error in runner service, see logs with " + this.errorToken.get());
         }
@@ -307,7 +311,6 @@ public class RunnerService {
                 this.jobRequestEndpointUrl,
                 this.runnerStatusManager
         );
-        this.jobProcessingPoolManager.start();
     }
 
 
