@@ -43,7 +43,7 @@ public class JobRegistryCRUDTest {
         }
 
         @Override
-        public void jobUpdated(Entity<JobValue> entity) {
+        public void jobUpdated(Entity<JobValue> entity, JobValue value) {
             updated.add(entity);
         }
     });

@@ -129,7 +129,7 @@ public class JobRegistryCRUD implements PagedCollectionAdapter.CRUD<Job, JobCrea
             } catch (RepositoryException e) {
                 throw this.unexpectedException("error updating job", e);
             }
-            listener.jobUpdated(updated);
+            listener.jobUpdated(updated, entity.value());
             return new ImmutableEntity<>(updated.id(), updated.version(), JobEntityTransformation.transform(updated).asJob());
         } else {
             throw new BadRequestException(Error.builder()

@@ -26,7 +26,7 @@ public class TestJobRepositoryListener extends ExternalResource implements Poomj
     }
 
     @Override
-    public void jobUpdated(Entity<JobValue> entity) {
+    public void jobUpdated(Entity<JobValue> entity, JobValue value) {
         this.justUpdated.set(entity);
 
     }

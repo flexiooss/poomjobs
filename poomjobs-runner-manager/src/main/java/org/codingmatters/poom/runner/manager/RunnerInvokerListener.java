@@ -41,7 +41,7 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
     }
 
     @Override
-    public void jobUpdated(Entity<JobValue> entity) {
+    public void jobUpdated(Entity<JobValue> entity, JobValue value) {
         if(Status.Run.PENDING.equals(entity.value().opt().status().run().orElse(Status.Run.DONE))) {
             this.listenerPool.submit(() -> this.findRunnerAndDeleguateJob(entity));
         }
