@@ -3,12 +3,10 @@ package org.codingmatters.poom.runner.manager;
 import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.tests.Eventually;
-import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIHandlersClient;
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.RunnerRepository;
-import org.codingmatters.poom.poomjobs.domain.values.jobs.JobQuery;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
@@ -172,7 +170,7 @@ public class RunnerInvokerListenerTest {
                 .name("TEST")
                 .status(status -> status.run(Status.Run.PENDING))
                 .build());
-        this.runnerInvokerListener.jobUpdated(jobEntity);
+        this.runnerInvokerListener.jobUpdated(jobEntity, jobEntity.value());
 
         Eventually.defaults().assertThat(() -> runnerRequestJob.get().id(), is(jobEntity.id()));
     }
@@ -204,7 +202,7 @@ public class RunnerInvokerListenerTest {
                 .name("TEST")
                 .status(status -> status.run(Status.Run.RUNNING))
                 .build());
-        this.runnerInvokerListener.jobUpdated(jobEntity);
+        this.runnerInvokerListener.jobUpdated(jobEntity, jobEntity.value());
 
         Eventually.defaults().assertThat(() -> runnerRequestJob.get(), is(nullValue()));
     }

@@ -70,7 +70,7 @@ public class JobResourcePutHandler implements ResourcePutProtocol<JobValue, JobQ
 
     @Override
     public JobResourcePatchResponse entityUpdated(Entity<JobValue> entity) {
-        this.jobRepositoryListener.jobUpdated(entity);
+        this.jobRepositoryListener.jobUpdated(entity, entity.value());
         return JobResourcePatchResponse.builder()
                 .status200(Status200.builder()
                         .payload(JobEntityTransformation.transform(entity).asJob())

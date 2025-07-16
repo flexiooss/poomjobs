@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poomjobs</artifactId>
-        <version>1.264.0</version>
+        <version>1.265.0</version>
         <relativePath>../</relativePath>
     </parent>
 
@@ -15,6 +15,10 @@
     <name>${project.groupId}:${project.artifactId}</name>
 
     <dependencies>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-jvm</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.codingmatters.poom</groupId>
             <artifactId>poomjobs-clients</artifactId>
