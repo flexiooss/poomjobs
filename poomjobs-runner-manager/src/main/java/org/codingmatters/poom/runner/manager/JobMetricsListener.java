@@ -1,27 +1,25 @@
 package org.codingmatters.poom.runner.manager;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.Metric;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
-import org.codingmatters.poom.runner.manager.metrics.ResettingCounter;
 import org.codingmatters.poom.runner.manager.metrics.AverageTimeCounter;
+import org.codingmatters.poom.runner.manager.metrics.ResettingCounter;
 import org.codingmatters.poom.services.domain.entities.Entity;
 import org.codingmatters.poomjobs.service.PoomjobsJobRepositoryListener;
-import com.codahale.metrics.MetricSet;
-
-import static com.codahale.metrics.MetricRegistry.name;
+import org.codingmatters.value.objects.values.ObjectValue;
 
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 /*
 flexio.services.jobs.<category>.<name>.count
 flexio.services.jobs.<category>.<name>.averageWaitTime
 flexio.services.jobs.<category>.<name>.averageRunTime
 */
-public class JobMetricsListener implements PoomjobsJobRepositoryListener, MetricSet {
+public class JobMetricsListener implements PoomjobsJobRepositoryListener, Supplier<ObjectValue> {
 
     /*
      de ceux qui sont créés en charge pendant la periode
@@ -54,8 +52,7 @@ public class JobMetricsListener implements PoomjobsJobRepositoryListener, Metric
         String name = entity.value().name();
         count.putIfAbsent(category, new HashMap<>());
         count.get(category).putIfAbsent(name, new ResettingCounter());
-        Counter c = count.get(category).get(name);
-        c.inc();
+        count.get(category).get(name).inc();
     }
 
     @Override
@@ -82,14 +79,14 @@ public class JobMetricsListener implements PoomjobsJobRepositoryListener, Metric
     }
 
     @Override
-    public Map<String, Metric> getMetrics() {
-        Map<String, Metric> metrics = new HashMap<>();
+    public ObjectValue get() {
+        ObjectValue.Builder builder = ObjectValue.builder();
         for (Map.Entry<String, Map<String, Counter>> entry : count.entrySet()) {
             String category = entry.getKey();
             Map<String, Counter> byJobName = entry.getValue();
             for (Map.Entry<String, Counter> categoryEntry : byJobName.entrySet()) {
                 String name = categoryEntry.getKey();
-                metrics.put(name(category, name, "count"), categoryEntry.getValue());
+                builder.property(String.format("%s/%s/count", category, name), val -> val.longValue(categoryEntry.getValue().getCount()));
             }
         }
 
@@ -98,7 +95,7 @@ public class JobMetricsListener implements PoomjobsJobRepositoryListener, Metric
             Map<String, AverageTimeCounter> byJobName = entry.getValue();
             for (Map.Entry<String, AverageTimeCounter> categoryEntry : byJobName.entrySet()) {
                 String name = categoryEntry.getKey();
-                metrics.put(name(category, name, "averageWaitTime"), categoryEntry.getValue());
+                builder.property(String.format("%s/%s/averageWaitTime", category, name), val -> val.doubleValue(categoryEntry.getValue().getValue()));
             }
         }
 
@@ -107,10 +104,10 @@ public class JobMetricsListener implements PoomjobsJobRepositoryListener, Metric
             Map<String, AverageTimeCounter> byJobName = entry.getValue();
             for (Map.Entry<String, AverageTimeCounter> categoryEntry : byJobName.entrySet()) {
                 String name = categoryEntry.getKey();
-                metrics.put(name(category, name, "averageRunTime"), categoryEntry.getValue());
+                builder.property(String.format("%s/%s/averageRunTime", category, name), val -> val.doubleValue(categoryEntry.getValue().getValue()));
             }
         }
-        return metrics;
+        return builder.build();
     }
 
 }
