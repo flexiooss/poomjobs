@@ -19,7 +19,7 @@
     <url>https://github.com/flexiooss/poomjobs</url>
 
     <properties>
-        <flexio-commons.version>1.248.0</flexio-commons.version>
+        <flexio-commons.version>1.249.0</flexio-commons.version>
     </properties>
 
     <licenses>
