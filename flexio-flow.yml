@@ -1,5 +1,5 @@
-level: stable
+level: dev
 schemes:
 - maven
 topics: []
-version: 1.277.0
+version: 1.278.0
