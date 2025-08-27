@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.codingmatters.tasks</groupId>
         <artifactId>poom-task-api</artifactId>
-        <version>1.277.0</version>
+        <version>1.278.0</version>
     </parent>
 
     <artifactId>poom-task-api-mongo</artifactId>
