@@ -1,4 +1,4 @@
-package org.codingmatters.tasks.support.jobs;
+package org.codingmatters.tasks.context;
 
 public interface TaskLogger {
     void info(String log, Object... args);

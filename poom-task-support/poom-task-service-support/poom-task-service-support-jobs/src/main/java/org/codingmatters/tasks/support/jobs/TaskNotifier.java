@@ -1,12 +1,14 @@
 package org.codingmatters.tasks.support.jobs;
 
 import org.codingmatters.tasks.api.types.TaskStatusChange;
-import org.codingmatters.tasks.api.types.task.Status;
+import org.codingmatters.tasks.context.TaskLogger;
 import org.codingmatters.value.objects.values.ObjectValue;
 
 public interface TaskNotifier extends TaskLogger {
     void updateRunStatus(TaskStatusChange.Run status);
+
     void partialResult(ObjectValue result);
+
     default TaskLogger withToken(String token) {
         return new TaskLogger() {
             @Override
