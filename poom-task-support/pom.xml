@@ -16,6 +16,7 @@
 
     <modules>
         <module>poom-task-api</module>
+        <module>poom-task-context</module>
         <module>poom-task-service-support</module>
         <module>poom-task-tests</module>
     </modules>

@@ -9,6 +9,7 @@ import org.codingmatters.tasks.api.TaskEntityGetResponse;
 import org.codingmatters.tasks.api.types.Task;
 import org.codingmatters.tasks.api.types.TaskStatusChange;
 import org.codingmatters.tasks.client.TaskApiClient;
+import org.codingmatters.tasks.context.TaskContext;
 import org.codingmatters.tasks.support.jobs.notifier.ClientTaskNotifier;
 import org.codingmatters.value.objects.values.ObjectValue;
 import org.codingmatters.value.objects.values.casts.ValueObjectCaster;
@@ -42,6 +43,8 @@ public abstract class TaskJobProcessor<Param, Result> implements JobProcessor {
         TaskApiClient taskClient = this.taskClientProvider.apply(this.job.arguments().get(1));
         Task task = this.task(taskClient, job);
         ExtendedTaskNotifier notifier = new ClientTaskNotifier(taskClient, task);
+        TaskContext.setupLog(notifier);
+
         TaskProcessor<Param, Result> processor = this.taskProcessor();
 
         notifier.updateRunStatus(TaskStatusChange.Run.RUNNING);
