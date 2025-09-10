@@ -26,7 +26,6 @@ import java.util.function.Supplier;
 public class BrowseTasks extends AbstractTaskHandler implements Function<TaskCollectionGetRequest, TaskCollectionGetResponse> {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(BrowseTasks.class);
 
-
     private final int maxPageSize;
 
     public BrowseTasks(Supplier<TaskEntryPointAdapter> adapterProvider, int maxPageSize, JsonFactory jsonFactory) {

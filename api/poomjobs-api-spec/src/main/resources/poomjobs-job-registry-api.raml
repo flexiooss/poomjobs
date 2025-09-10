@@ -4,83 +4,83 @@ version: v1
 baseUri: https://api.codingmatters.org/poomjobs
 mediaType: application/json
 
-annotationTypes: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.26.0/apis/core/annotation-types/codingmatters.raml
+annotationTypes: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.35.0/apis/core/annotation-types/codingmatters.raml
 
 
 types:
   !include poomjobs-types.raml
 
 /jobs:
-    displayName: JobCollection
-    (paged-collection):
+  displayName: JobCollection
+  (paged-collection):
+  get:
+    is: [ rfc7233Browsing: { entityType: Job, error: Error } ]
+    headers:
+      account-id: string
+    queryParameters:
+      names:
+        type: array
+        items: string
+
+      category: string
+      runStatus: string
+      exitStatus: string
+  post:
+    is: [ entityCreation: { entityCreationType: JobCreationData, entityType: Job, error: Error } ]
+    headers:
+      account-id: string
+      x-extension: string
+    #        body: JobCreationData
+    description: |
+      A job is created from the minimal information provided with
+      the payload JobCreationData.
+      * The created job will have it's submission date setted.
+      * The job accounting information will be initialized given the account-id header.
+      * The job will have its run status setted to PENDING.
+  #        responses:
+  #            201:
+  #                description: new job created
+  #                headers:
+  #                    Location: string
+  #            400:
+  #                description: request is not acceptable. Code ILLEGAL_JOB_SPEC.
+  #                body: Error
+  #            404:
+  #                description: RESOURCE_NOT_FOUND.
+  #                body: Error
+  #            500:
+  #                description: UNEXPECTED_ERROR.
+  #                body: Error
+  /{jobId}:
+    displayName: JobResource
+    (paged-collection-entity):
+    uriParameters:
+      jobId:
+        type: string
+        required: true
     get:
-        is: [rfc7233Browsing: {entityType: Job, error: Error}]
-        headers:
-            account-id: string
-        queryParameters:
-            names:
-               type: array
-               items: string
-
-            category: string
-            runStatus: string
-            exitStatus: string
-    post:
-        is: [entityCreation: {entityCreationType: JobCreationData, entityType: Job, error: Error}]
-        headers:
-            account-id: string
-            x-extension: string
-#        body: JobCreationData
-        description: |
-          A job is created from the minimal information provided with
-          the payload JobCreationData.
-          * The created job will have it's submission date setted.
-          * The job accounting information will be initialized given the account-id header.
-          * The job will have its run status setted to PENDING.
-#        responses:
-#            201:
-#                description: new job created
-#                headers:
-#                    Location: string
-#            400:
-#                description: request is not acceptable. Code ILLEGAL_JOB_SPEC.
-#                body: Error
-#            404:
-#                description: RESOURCE_NOT_FOUND.
-#                body: Error
-#            500:
-#                description: UNEXPECTED_ERROR.
-#                body: Error
-    /{jobId}:
-        displayName: JobResource
-        (paged-collection-entity):
-        uriParameters:
-            jobId:
-                type: string
-                required: true
-        get:
-            is: [entityRetrieve: {entityType: Job, error: Error}]
-            headers:
-                account-id: string
-            description: |
-                If a job with the given jobId, returns the full description of the job.
-        patch:
-            is: [entityUpdate: {entityType: Job, entityUpdateType: JobUpdateData, error: Error}]
-#            body: JobUpdateData
-            headers:
-                account-id: string
-                current-version: string
-                strict: boolean
-            description: |
-                The job with the given jobId is updated provided the payload JobUpdateData.
-                The job change is only valid if :
-                * the job is not in the DONE run status.
-                * the job changes from RUNNING to DONE run status and the job exit status is set
-
-                The following changes are applied to the job :
-                * if the run status is PENDING, when the run status is changed to RUNNING, the the started date is
-                setted
-                * if run status is RUNNING, when the run status is changed to DONE, then the finished date is setted
+      is: [ entityRetrieve: { entityType: Job, error: Error } ]
+      headers:
+        account-id: string
+      description: |
+        If a job with the given jobId, returns the full description of the job.
+    patch:
+      is: [ entityUpdate: { entityType: Job, entityUpdateType: JobUpdateData, error: Error } ]
+      #            body: JobUpdateData
+      headers:
+        account-id: string
+        current-version: string
+        strict: boolean
+      description: |
+        The job with the given jobId is updated provided the payload JobUpdateData.
+        The job change is only valid if :
+        * the job is not in the DONE run status.
+        * the job changes from RUNNING to DONE run status and the job exit status is set
+        
+        The following changes are applied to the job :
+        * if the run status is PENDING, when the run status is changed to RUNNING, the the started date is
+        setted
+        * if run status is RUNNING, when the run status is changed to DONE, then the finished date is setted
 
 #            responses:
 #                200:
@@ -98,9 +98,9 @@ types:
 
 
 traits:
-    rfc7233Browsing: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.26.0/apis/core/traits/collection/rfc7233-browse-collection.raml
-    entityCreation: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.26.0/apis/core/traits/collection/create.raml
-    entityRetrieve: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.26.0/apis/core/traits/entity/retrieve.raml
-    entityReplace: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.26.0/apis/core/traits/entity/replace.raml
-    entityUpdate: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.26.0/apis/core/traits/entity/update.raml
-    entityDelete: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.26.0/apis/core/traits/entity/delete.raml
+  rfc7233Browsing: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.35.0/apis/core/traits/collection/rfc7233-browse-collection.raml
+  entityCreation: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.35.0/apis/core/traits/collection/create.raml
+  entityRetrieve: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.35.0/apis/core/traits/entity/retrieve.raml
+  entityReplace: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.35.0/apis/core/traits/entity/replace.raml
+  entityUpdate: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.35.0/apis/core/traits/entity/update.raml
+  entityDelete: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.35.0/apis/core/traits/entity/delete.raml
