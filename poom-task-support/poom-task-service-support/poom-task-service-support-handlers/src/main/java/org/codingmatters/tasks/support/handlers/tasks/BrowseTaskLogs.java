@@ -81,9 +81,9 @@ public class BrowseTaskLogs extends AbstractTaskHandler implements Function<Task
     private PropertyQuery query(TaskLogsGetRequest request) {
         PropertyQuery.Builder result = PropertyQuery.builder();
         if (request.opt().filter().isPresent() && !request.filter().trim().isEmpty()) {
-            result.filter("%s == '%s' && (%s)", TaskLog.names_().taskId(), request.taskId(), request.filter());
+            result.filter("taskId == '%s' && (%s)", request.taskId(), request.filter());
         } else {
-            result.filter("%s == '%s'", TaskLog.names_().taskId(), request.taskId());
+            result.filter("taskId == '%s'", request.taskId());
         }
         return result.build();
     }
