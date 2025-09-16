@@ -2,4 +2,4 @@ level: stable
 schemes:
 - maven
 topics: []
-version: 1.283.0
+version: 1.284.0
