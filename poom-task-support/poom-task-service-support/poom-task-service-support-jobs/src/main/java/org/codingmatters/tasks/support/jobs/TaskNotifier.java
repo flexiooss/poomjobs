@@ -17,6 +17,11 @@ public interface TaskNotifier extends TaskLogger {
             }
 
             @Override
+            public void warn(String log, Object... args) {
+                TaskNotifier.this.warn(log + " (support token : " + token + ")", args);
+            }
+
+            @Override
             public void error(String log, Object... args) {
                 TaskNotifier.this.error(log + " (support token : " + token + ")", args);
             }

@@ -66,6 +66,12 @@ public class ClientTaskNotifier implements ExtendedTaskNotifier {
     }
 
     @Override
+    public void warn(String log, Object... args) {
+        ClientTaskNotifier.log.warn(String.format(log, args));
+        this.log(TaskLogCreation.builder().level(TaskLogCreation.Level.WARN).log(log, args).build());
+    }
+
+    @Override
     public void error(String log, Object... args) {
         ClientTaskNotifier.log.error(log, args);
         this.log(TaskLogCreation.builder().level(TaskLogCreation.Level.ERROR).log(log, args).build());
