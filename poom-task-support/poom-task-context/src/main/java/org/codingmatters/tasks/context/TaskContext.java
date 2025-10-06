@@ -21,6 +21,11 @@ public class TaskContext {
         }
 
         @Override
+        public void warn(String log, Object... args) {
+            logger.warn(String.format(log, args));
+        }
+
+        @Override
         public void error(String log, Object... args) {
             logger.error(String.format(log, args));
         }

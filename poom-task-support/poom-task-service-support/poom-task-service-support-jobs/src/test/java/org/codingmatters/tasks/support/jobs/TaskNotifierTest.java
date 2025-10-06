@@ -6,26 +6,32 @@ import org.junit.Test;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertThrows;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.contains;
 
 public class TaskNotifierTest {
     private final List<String> info = new LinkedList<>();
+    private final List<String> warn = new LinkedList<>();
     private final List<String> error = new LinkedList<>();
 
     private final TaskNotifier notifier = new TaskNotifier() {
         @Override
-        public void updateRunStatus(TaskStatusChange.Run status) {}
+        public void updateRunStatus(TaskStatusChange.Run status) {
+        }
 
         @Override
-        public void partialResult(ObjectValue result) {}
+        public void partialResult(ObjectValue result) {
+        }
 
         @Override
         public void info(String log, Object... args) {
             info.add(String.format(log, args));
+        }
+
+        @Override
+        public void warn(String log, Object... args) {
+            warn.add(String.format(log, args));
         }
 
         @Override
@@ -37,9 +43,11 @@ public class TaskNotifierTest {
     @Test
     public void logsWithToken() throws Exception {
         this.notifier.withToken("12").info("hello %s", "world");
+        this.notifier.withToken("12").warn("not so %s", "good");
         this.notifier.withToken("12").error("goodby %s", "world");
 
         assertThat(this.info, contains("hello world (support token : 12)"));
+        assertThat(this.warn, contains("not so good (support token : 12)"));
         assertThat(this.error, contains("goodby world (support token : 12)"));
     }
 }
