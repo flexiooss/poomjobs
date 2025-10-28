@@ -21,6 +21,10 @@
             <groupId>org.codingmatters.rest</groupId>
             <artifactId>cdm-rest-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.instrumentation</groupId>
+            <artifactId>opentelemetry-instrumentation-annotations</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
