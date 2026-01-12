@@ -11,11 +11,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class WorkerTest {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(WorkerTest.class);
@@ -24,7 +24,7 @@ public class WorkerTest {
     static private final List<String> processed = Collections.synchronizedList(new LinkedList<>());
     static private final List<String> statusChanges = Collections.synchronizedList(new LinkedList<>());
 
-    static private  final WorkerProcessor<String> NOOP_PROCESSOR = processable -> {};
+    static private final WorkerProcessor<String> NOOP_PROCESSOR = processable -> {};
     static private final WorkerProcessor<String> ACCUMULATING_PROCESSOR = processable -> {
         processed.add(processable);
         log.info("PROCESSED {}", processable);

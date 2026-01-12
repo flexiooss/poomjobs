@@ -39,6 +39,14 @@ public class WorkerProcessingPool<P> implements ProcessingPool<P>, WorkerListene
         }
     }
 
+    public int poolSize() {
+        return poolSize;
+    }
+
+    public AtomicInteger workingCount() {
+        return workingCount;
+    }
+
     @Override
     public void process(P p, String reason) throws LockingFailed, PoolBusyException {
         P locked = this.manager.lock(p);

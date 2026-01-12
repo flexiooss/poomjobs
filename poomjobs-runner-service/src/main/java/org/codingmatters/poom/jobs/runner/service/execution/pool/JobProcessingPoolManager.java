@@ -1,6 +1,6 @@
 package org.codingmatters.poom.jobs.runner.service.execution.pool;
 
-import org.codingmatters.poom.jobs.runner.service.RunnerStatusManager;
+import org.codingmatters.poom.jobs.runner.service.StatusManager;
 import org.codingmatters.poom.jobs.runner.service.jobs.JobManager;
 import org.codingmatters.poom.pattern.execution.pool.ProcessingPool;
 import org.codingmatters.poom.pattern.execution.pool.ProcessingPoolListener;
@@ -20,9 +20,9 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(JobProcessingPoolManager.class);
 
     private final JobManager jobManager;
-    private final ProcessingPool<Job> pool;
+    private final WorkerProcessingPool<Job> pool;
     private final String jobRequestEndpointUrl;
-    private final RunnerStatusManager statusManager;
+    private final StatusManager statusManager;
     private final JobWorkerProcessor jobWorkerProcessor;
 
     public JobProcessingPoolManager(
@@ -31,7 +31,7 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
             JobProcessor.Factory processorFactory,
             JobContextSetup contextSetup,
             String jobRequestEndpointUrl,
-            RunnerStatusManager statusManager
+            StatusManager statusManager
     ) {
         this.jobManager = jobManager;
         this.jobRequestEndpointUrl = jobRequestEndpointUrl;
@@ -43,6 +43,10 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
                 jobWorkerProcessor,
                 this
         );
+    }
+
+    public WorkerProcessingPool<Job> pool() {
+        return pool;
     }
 
     @Override
@@ -85,6 +89,7 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
         while (this.pool.status().equals(ProcessingPool.Status.ACCEPTING)) {
             ValueList<Job> jobs = this.jobManager.pendingJobs();
             if (jobs.isEmpty()) {
+                System.out.println("No pending jobs");
                 return;
             }
             log.info("found " + jobs.size() + " pending job");

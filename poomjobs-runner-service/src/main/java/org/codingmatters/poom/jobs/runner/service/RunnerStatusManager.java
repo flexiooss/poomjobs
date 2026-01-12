@@ -11,7 +11,7 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class RunnerStatusManager implements Runnable {
+public class RunnerStatusManager implements Runnable, StatusManager {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(RunnerStatusManager.class);
 
     private final PoomjobsRunnerRegistryAPIClient runnerRegistryClient;
