@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
 public class TestTaskNotifier implements TaskNotifier {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(TestTaskNotifier.class);
 
@@ -18,14 +19,21 @@ public class TestTaskNotifier implements TaskNotifier {
     private final List<ObjectValue> resultChanges = Collections.synchronizedList(new LinkedList<>());
 
     @Override
-    public void info(String s, Object ... args) {
+    public void info(String s, Object... args) {
         TaskLogCreation taskLog = TaskLogCreation.builder().level(TaskLogCreation.Level.INFO).log(s, args).build();
         logs.add(taskLog);
         log.info("{}", taskLog);
     }
 
     @Override
-    public void error(String s, Object ... args) {
+    public void warn(String s, Object... args) {
+        TaskLogCreation taskLog = TaskLogCreation.builder().level(TaskLogCreation.Level.WARN).log(s, args).build();
+        logs.add(taskLog);
+        log.warn("{}", taskLog);
+    }
+
+    @Override
+    public void error(String s, Object... args) {
         TaskLogCreation taskLog = TaskLogCreation.builder().level(TaskLogCreation.Level.ERROR).log(s, args).build();
         logs.add(taskLog);
         log.error("{}", taskLog);

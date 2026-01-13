@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.codingmatters.poom</groupId>
         <artifactId>poomjobs</artifactId>
-        <version>1.272.0-SNAPSHOT</version>
+        <version>1.305.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>poomjobs-service</artifactId>
@@ -42,14 +42,14 @@
             <groupId>org.codingmatters.poom.jobs.collections</groupId>
             <artifactId>poomjobs-job-collections</artifactId>
         </dependency>
-
-
-
         <dependency>
             <groupId>org.codingmatters.poom</groupId>
             <artifactId>poom-services-support</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>io.opentelemetry.instrumentation</groupId>
+            <artifactId>opentelemetry-instrumentation-annotations</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.codingmatters.poom</groupId>
             <artifactId>poom-services-logging</artifactId>
@@ -66,7 +66,7 @@
                     <dependency>
                         <groupId>org.codingmatters.poom</groupId>
                         <artifactId>poomjobs-api-spec</artifactId>
-                        <version>1.272.0-SNAPSHOT</version>
+                        <version>1.305.0-SNAPSHOT</version>
                     </dependency>
                 </dependencies>
                 <executions>

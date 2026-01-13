@@ -1,109 +1,109 @@
 Job:
-    type: object
-    properties:
-        id: string
-        version: string
+  type: object
+  properties:
+    id: string
+    version: string
 
-        category: string
-        name: string
+    category: string
+    name: string
 
-        arguments:
-            type: array
-            items: string
-        result: string
+    arguments:
+      type: array
+      items: string
+    result: string
 
-        accounting:
-            type: object
-            properties:
-                accountId: string
-                extension: string
+    accounting:
+      type: object
+      properties:
+        accountId: string
+        extension: string
 
-        status:
-            type: object
-            properties:
-                run:
-                    enum: [PENDING, RUNNING, DONE]
-                exit:
-                    enum: [SUCCESS, FAILURE, ABORTED]
+    status:
+      type: object
+      properties:
+        run:
+          enum: [ PENDING, RUNNING, DONE ]
+        exit:
+          enum: [ SUCCESS, FAILURE, ABORTED ]
 
-        processing:
-            type: object
-            properties:
-                submitted: datetime-only
-                started: datetime-only
-                finished: datetime-only
+    processing:
+      type: object
+      properties:
+        submitted: datetime-only
+        started: datetime-only
+        finished: datetime-only
 
-        context: object
+    context: object
 
 JobCreationData:
-    type: object
-    properties:
+  type: object
+  properties:
 
-        category: string
-        name: string
+    category: string
+    name: string
 
-        arguments:
-            type: array
-            items: string
+    arguments:
+      type: array
+      items: string
 
 JobUpdateData:
-    type: object
-    properties:
-        result: string
+  type: object
+  properties:
+    result: string
 
-        status:
-            type: object
-            properties:
-                run:
-                    enum: [RUNNING, PENDING, DONE]
-                exit:
-                    enum: [SUCCESS, FAILURE]
+    status:
+      type: object
+      properties:
+        run:
+          enum: [ RUNNING, PENDING, DONE ]
+        exit:
+          enum: [ SUCCESS, FAILURE ]
 
 Runner:
-    type: object
-    properties:
-        id: string
-        callback: string
-        competencies:
-            type: object
-            properties:
-                categories:
-                    type: array
-                    items: string
-                names:
-                    type: array
-                    items: string
-        ttl: integer
-        runtime:
-            type: object
-            properties:
-                status:
-                    enum: [IDLE, RUNNING, DISCONNECTED]
-                created: datetime-only
-                last-ping: datetime-only
-RunnerData:
-    type: object
-    properties:
-        callback: string
-        ttl: integer
-        competencies:
-            type: object
-            properties:
-                categories:
-                    type: array
-                    items: string
-                names:
-                    type: array
-                    items: string
-RunnerStatusData:
-    type: object
-    properties:
+  type: object
+  properties:
+    id: string
+    callback: string
+    competencies:
+      type: object
+      properties:
+        categories:
+          type: array
+          items: string
+        names:
+          type: array
+          items: string
+    ttl: integer
+    runtime:
+      type: object
+      properties:
         status:
-          enum: [IDLE, RUNNING, DISCONNECTED]
+          enum: [ IDLE, RUNNING, DISCONNECTED ]
+        created: datetime-only
+        last-ping: datetime-only
+RunnerData:
+  type: object
+  properties:
+    callback: string
+    ttl: integer
+    competencies:
+      type: object
+      properties:
+        categories:
+          type: array
+          items: string
+        names:
+          type: array
+          items: string
+RunnerStatusData:
+  type: object
+  properties:
+    status:
+      enum: [ IDLE, RUNNING, DISCONNECTED ]
 
 
-Message: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.26.0/apis/core/types/message.raml
-Error: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.26.0/apis/core/types/error-with-messages.raml
+Message: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.36.0/apis/core/types/message.raml
+Error: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.36.0/apis/core/types/error-with-messages.raml
 
 #Error:
 #    type: object

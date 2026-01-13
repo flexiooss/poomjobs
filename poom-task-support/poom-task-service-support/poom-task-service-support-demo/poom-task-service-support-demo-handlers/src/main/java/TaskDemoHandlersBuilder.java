@@ -9,8 +9,8 @@ import java.util.function.Supplier;
 public class TaskDemoHandlersBuilder extends TaskDemoApiHandlers.Builder {
 
     public TaskDemoHandlersBuilder(Supplier<TaskEntryPointAdapter> adapterSupplier, PoomjobsJobRegistryAPIClient jobs, JsonFactory jsonFactory) {
-            this.configureRootHandler(adapterSupplier, jobs, jsonFactory);
-            this.configureWithParamHandlers(adapterSupplier, jobs, jsonFactory);
+        this.configureRootHandler(adapterSupplier, jobs, jsonFactory);
+        this.configureWithParamHandlers(adapterSupplier, jobs, jsonFactory);
     }
 
     private void configureRootHandler(Supplier<TaskEntryPointAdapter> adapterSupplier, PoomjobsJobRegistryAPIClient jobs, JsonFactory jsonFactory) {
@@ -28,6 +28,9 @@ public class TaskDemoHandlersBuilder extends TaskDemoApiHandlers.Builder {
         );
         this.rootLogsPostHandler(
                 new CreateTaskLog(adapterSupplier, jsonFactory).adapted(RootLogsPostRequest.class, RootLogsPostResponse.class)
+        );
+        this.rootLogsGetHandler(
+                new BrowseTaskLogs(adapterSupplier, 100, jsonFactory).adapted(RootLogsGetRequest.class, RootLogsGetResponse.class)
         );
         this.rootResultsPutHandler(
                 new ReplaceTaskResult(adapterSupplier, jsonFactory).adapted(RootResultsPutRequest.class, RootResultsPutResponse.class)
@@ -51,6 +54,9 @@ public class TaskDemoHandlersBuilder extends TaskDemoApiHandlers.Builder {
         );
         this.taskWithParamLogsPostHandler(
                 request -> new CreateTaskLog(forParam(request.param(), adapterSupplier), jsonFactory).adapted(TaskWithParamLogsPostRequest.class, TaskWithParamLogsPostResponse.class).apply(request)
+        );
+        this.taskWithParamLogsGetHandler(
+                request -> new BrowseTaskLogs(forParam(request.param(), adapterSupplier), 100, jsonFactory).adapted(TaskWithParamLogsGetRequest.class, TaskWithParamLogsGetResponse.class).apply(request)
         );
         this.taskWithParamResultsPutHandler(
                 request -> new ReplaceTaskResult(forParam(request.param(), adapterSupplier), jsonFactory).adapted(TaskWithParamResultsPutRequest.class, TaskWithParamResultsPutResponse.class).apply(request)
