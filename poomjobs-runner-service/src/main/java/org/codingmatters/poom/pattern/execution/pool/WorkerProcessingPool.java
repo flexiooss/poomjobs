@@ -94,7 +94,7 @@ public class WorkerProcessingPool<P> implements ProcessingPool<P>, WorkerListene
     @Override
     public void start() {
         if (!this.running.getAndSet(true)) {
-            this.pool = Executors.newFixedThreadPool(this.poolSize);
+            this.pool = Executors.newFixedThreadPool(this.poolSize, runnable -> new Thread(new ThreadGroup("runner-job-processing-workers"), runnable));
             for (Worker worker : this.workers) {
                 this.pool.submit(worker);
             }

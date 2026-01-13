@@ -200,7 +200,7 @@ public class RunnerService {
     private final AtomicReference<String> errorToken = new AtomicReference<>(null);
     private final Object stopMonitor = new Object();
 
-    private final ExecutorService statusManagerExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService statusManagerExecutor = Executors.newSingleThreadExecutor(runnable -> new Thread(new ThreadGroup("runner-status-manager"), runnable));
 
     private final ApiContainerRuntimeBuilder containerRuntimeBuilder;
     private ApiContainerRuntime runtime;
