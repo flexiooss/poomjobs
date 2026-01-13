@@ -89,7 +89,7 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
         while (this.pool.status().equals(ProcessingPool.Status.ACCEPTING)) {
             ValueList<Job> jobs = this.jobManager.pendingJobs();
             if (jobs.isEmpty()) {
-                System.out.println("No pending jobs");
+                log.debug("No pending jobs");
                 return;
             }
             log.info("found " + jobs.size() + " pending job");
