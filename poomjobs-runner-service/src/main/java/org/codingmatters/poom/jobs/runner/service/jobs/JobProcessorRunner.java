@@ -1,5 +1,6 @@
 package org.codingmatters.poom.jobs.runner.service.jobs;
 
+import org.codingmatters.poom.jobs.runner.service.pool.JobRunner;
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.runner.exception.JobMonitorError;
@@ -20,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * takes a reserved Job (status = RUNNING), executes it
  */
-public class JobProcessorRunner {
+public class JobProcessorRunner implements JobRunner {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(JobProcessorRunner.class);
     private static final String JOB_START_STOP_POLICY = "JOB_START_STOP_POLICY";
 
@@ -68,6 +69,7 @@ public class JobProcessorRunner {
         }
     }
 
+    @Override
     public void runWith(Job job) throws JobProcessingException, JobUpdateFailure {
         JobProcessor processor = null;
         try (LoggingContext loggingContext = LoggingContext.start()) {
