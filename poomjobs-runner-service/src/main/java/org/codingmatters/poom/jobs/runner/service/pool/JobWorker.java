@@ -1,6 +1,7 @@
 package org.codingmatters.poom.jobs.runner.service.pool;
 
 import org.codingmatters.poom.jobs.runner.service.jobs.JobProcessorRunner;
+import org.codingmatters.poom.pattern.execution.pool.processable.exceptions.LockingFailed;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.Env;
@@ -17,14 +18,16 @@ public class JobWorker implements Runnable {
 
     private final PendingWorkers pendingWorkers;
     private final JobRunner jobRunner;
+    private final JobLocker jobLocker;
 
     private AtomicReference<Job> currentJob = new AtomicReference<>();
     private AtomicBoolean running = new AtomicBoolean(true);
     private AtomicBoolean stopped = new AtomicBoolean(false);
 
-    public JobWorker(PendingWorkers pendingWorkers, JobRunner jobRunner) {
+    public JobWorker(PendingWorkers pendingWorkers, JobRunner jobRunner, JobLocker jobLocker) {
         this.pendingWorkers = pendingWorkers;
         this.jobRunner = jobRunner;
+        this.jobLocker = jobLocker;
     }
 
     public void submit(Job job) {
@@ -65,6 +68,12 @@ public class JobWorker implements Runnable {
     }
 
     private void process(Job job) {
+        try {
+            job = this.jobLocker.lock(job);
+        } catch (LockingFailed e) {
+            log.error("job locking failed : " + job, e);
+            return;
+        }
         try {
             log.info("processing job {}", job.name());
             this.jobRunner.runWith(job);

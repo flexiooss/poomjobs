@@ -1,5 +1,6 @@
 package org.codingmatters.poom.jobs.runner.service.jobs;
 
+import org.codingmatters.poom.jobs.runner.service.pool.JobLocker;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.Env;
 import org.codingmatters.poomjobs.api.*;

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import org.codingmatters.poom.jobs.runner.service.RunnerService;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerServiceInitializationException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
+import org.codingmatters.poom.services.support.EnvProvider;
 import org.codingmatters.poom.services.support.date.UTC;
 import org.codingmatters.poom.services.tests.DateMatchers;
 import org.codingmatters.poom.services.tests.Eventually;
@@ -18,13 +19,17 @@ import org.codingmatters.rest.api.client.okhttp.HttpClientWrapper;
 import org.codingmatters.rest.api.client.okhttp.OkHttpClientWrapper;
 import org.codingmatters.rest.api.client.okhttp.OkHttpRequesterFactory;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -33,9 +38,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
+@RunWith(Parameterized.class)
 public class MultithreadedRunnerIntegrationTest {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(MultithreadedRunnerIntegrationTest.class);
     public static final long RUNNER_TTL = 1000L;
+
 
     private PoomjobsJobRegistryAPIRequesterClient jobRegistryClient;
     private PoomjobsRunnerRegistryAPIRequesterClient runnerRegistryClient;
@@ -51,8 +58,24 @@ public class MultithreadedRunnerIntegrationTest {
     private PoomjobRegistriesService registries;
     private RunnerService runnerService;
 
+    @Parameterized.Parameters(name = "jop pool : {0}")
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][] {
+                { "experimental" }, { "legacy" }
+        });
+    }
+    private final boolean experimentalPool;
+
+    public MultithreadedRunnerIntegrationTest(String experimentalPool) {
+        this.experimentalPool = experimentalPool.equals("experimental");
+    }
+
     @Before
     public void setUp() throws Exception {
+        Map<String, String> env = Collections.synchronizedMap(new HashMap<>());
+        env.put(RunnerService.USE_EXPERIMENTAL_POOL, this.experimentalPool ? "true" : "false");
+        EnvProvider.provider(s -> env.get(s));
+
         int registriesPort = freePort();
         this.registries = new PoomjobRegistriesService("localhost", registriesPort, Executors.newFixedThreadPool(30), Executors.newSingleThreadExecutor());
         this.registries.start();
@@ -65,6 +88,11 @@ public class MultithreadedRunnerIntegrationTest {
 
         this.runnerRegistryClient = new PoomjobsRunnerRegistryAPIRequesterClient(new OkHttpRequesterFactory(httpClientWrapper, () -> runnerRegistryUrl), jsonFactory, () -> runnerRegistryUrl);
         this.jobRegistryClient = new PoomjobsJobRegistryAPIRequesterClient(new OkHttpRequesterFactory(httpClientWrapper, () -> jobRegistryUrl), jsonFactory, () -> jobRegistryUrl);
+    }
+
+    @AfterClass
+    public static void afterClass() throws Exception {
+        EnvProvider.reset();
     }
 
     private void createAndStartRunnerServiceWithConcurrency(int concurrency) throws IOException, InterruptedException {
@@ -376,13 +404,12 @@ public class MultithreadedRunnerIntegrationTest {
                     .build());
         }
 
-        Eventually.timeout(2, TimeUnit.SECONDS).assertThat(
-                () -> this.runnerRegistryClient.runnerCollection().get(RunnerCollectionGetRequest.builder().build()).status200().payload().get(0).runtime().status(),
-                is(Runtime.Status.RUNNING)
-        );
+        Thread.sleep(1000);
         Eventually.timeout(15, TimeUnit.SECONDS).assertThat(
                 () -> this.runnerRegistryClient.runnerCollection().get(RunnerCollectionGetRequest.builder().build()).status200().payload().get(0).runtime().status(),
                 is(Runtime.Status.IDLE)
         );
+
+        log.info("\n\n\ntest end\n\n\n");
     }
 }

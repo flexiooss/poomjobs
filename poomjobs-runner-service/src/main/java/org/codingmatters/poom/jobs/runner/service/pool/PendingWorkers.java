@@ -16,7 +16,7 @@ public class PendingWorkers {
         this.queue = new ArrayBlockingQueue<>(capacity);
     }
 
-    public synchronized void submit(Job job) throws PoolBusyException {
+    public void submit(Job job) throws PoolBusyException {
         JobWorker worker = this.queue.poll();
         if(worker == null) {
             throw new PoolBusyException("no pending worker");
@@ -26,7 +26,7 @@ public class PendingWorkers {
         }
     }
 
-    public synchronized void idle(JobWorker worker) {
+    public void idle(JobWorker worker) {
         this.queue.offer(worker);
         this.notifyPoolState();
     }

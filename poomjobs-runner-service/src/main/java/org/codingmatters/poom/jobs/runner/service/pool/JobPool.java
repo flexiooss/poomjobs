@@ -17,17 +17,17 @@ public class JobPool {
     private final ExecutorService workerPool;
     private final List<JobWorker>  workers;
 
-    public JobPool(int capacity, JobRunner jobRunner) {
+    public JobPool(int capacity, JobRunner jobRunner, JobLocker jobLocker) {
         log.info("starting job pool...");
         this.pendingWorkers = new PendingWorkers(capacity);
         this.workerPool = Executors.newFixedThreadPool(
                 capacity,
-                runnable -> new Thread(new ThreadGroup("job-workers"), runnable)
+                runnable -> new Thread(new ThreadGroup("job-worker-pool"), runnable)
         );
         this.workers = new ArrayList<>(capacity);
 
         for (int i = 0; i < capacity; i++) {
-            JobWorker jobWorker = new JobWorker(this.pendingWorkers, jobRunner);
+            JobWorker jobWorker = new JobWorker(this.pendingWorkers, jobRunner, jobLocker);
             this.workerPool.submit(jobWorker);
             this.workers.add(jobWorker);
         }
