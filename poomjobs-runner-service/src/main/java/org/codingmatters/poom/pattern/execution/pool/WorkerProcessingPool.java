@@ -39,6 +39,14 @@ public class WorkerProcessingPool<P> implements ProcessingPool<P>, WorkerListene
         }
     }
 
+    public int poolSize() {
+        return poolSize;
+    }
+
+    public AtomicInteger workingCount() {
+        return workingCount;
+    }
+
     @Override
     public void process(P p, String reason) throws LockingFailed, PoolBusyException {
         P locked = this.manager.lock(p);
@@ -94,7 +102,7 @@ public class WorkerProcessingPool<P> implements ProcessingPool<P>, WorkerListene
     @Override
     public void start() {
         if (!this.running.getAndSet(true)) {
-            this.pool = Executors.newFixedThreadPool(this.poolSize);
+            this.pool = Executors.newFixedThreadPool(this.poolSize, runnable -> new Thread(new ThreadGroup("runner-job-processing-workers"), runnable));
             for (Worker worker : this.workers) {
                 this.pool.submit(worker);
             }

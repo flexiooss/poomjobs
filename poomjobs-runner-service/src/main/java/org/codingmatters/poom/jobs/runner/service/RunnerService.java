@@ -10,13 +10,13 @@ import org.codingmatters.poom.containers.runtime.undertow.UndertowApiContainerRu
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerServiceInitializationException;
 import org.codingmatters.poom.jobs.runner.service.execution.pool.JobProcessingPoolManager;
 import org.codingmatters.poom.jobs.runner.service.jobs.JobManager;
+import org.codingmatters.poom.jobs.runner.service.jobs.JobProcessorRunner;
+import org.codingmatters.poom.jobs.runner.service.pool.*;
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.Env;
-import org.codingmatters.poomjobs.api.PoomjobsRunnerAPIHandlers;
-import org.codingmatters.poomjobs.api.RunnerCollectionPostRequest;
-import org.codingmatters.poomjobs.api.RunnerCollectionPostResponse;
+import org.codingmatters.poomjobs.api.*;
 import org.codingmatters.poomjobs.api.types.RunnerData;
 import org.codingmatters.poomjobs.api.types.runnerdata.Competencies;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 public class RunnerService {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(RunnerService.class);
@@ -39,7 +40,12 @@ public class RunnerService {
     public static final String PROCESS_SHUTDOWN_PROPERLY_TIMEOUT_IN_SECONDS = "PROCESS_SHUTDOWN_PROPERLY_TIMEOUT_IN_SECONDS";
 
     public static final String SERVICE_RUNTIME = "SERVICE_RUNTIME";
+    public static final String USE_EXPERIMENTAL_POOL = "USE_EXPERIMENTAL_POOL";
     private final Integer timeoutSeconds;
+    private JobProcessorRunner jobRunner;
+
+    private JobPool jobPool;
+    private JobFeeder jobFeeder;
 
     static public JobSetup setup() {
         return new Builder();
@@ -200,7 +206,7 @@ public class RunnerService {
     private final AtomicReference<String> errorToken = new AtomicReference<>(null);
     private final Object stopMonitor = new Object();
 
-    private final ExecutorService statusManagerExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService statusManagerExecutor = Executors.newSingleThreadExecutor(runnable -> new Thread(new ThreadGroup("runner-status-manager"), runnable));
 
     private final ApiContainerRuntimeBuilder containerRuntimeBuilder;
     private ApiContainerRuntime runtime;
@@ -233,10 +239,10 @@ public class RunnerService {
     }
 
     public void run() throws RunnerServiceInitializationException {
-        this.run(this::createRunime);
+        this.run(this::createRuntime);
     }
 
-    private ApiContainerRuntime createRunime(String host, int port, CategorizedLogger logger) {
+    private ApiContainerRuntime createRuntime(String host, int port, CategorizedLogger logger) {
         if (Env.optional(SERVICE_RUNTIME).orElse(new Env.Var("UNDERTOW")).asString().equals("NETTY")) {
             return new NettyApiContainerRuntime(host, port, logger);
         } else {
@@ -245,6 +251,78 @@ public class RunnerService {
     }
 
     public void run(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
+        if(shouldUseExperimentalPool()) {
+            log.info("using experimental pool");
+            this.stopExperimentalFramework(runtimeInitializer);
+        } else {
+            log.info("using legacy pool");
+            this.legacyFramework(runtimeInitializer);
+        }
+
+    }
+
+    private void stopExperimentalFramework(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
+        log.info("Register Runner");
+        this.registerRunner();
+        log.info("Create job manager");
+        this.createJobManager();
+        log.info("Create runner status manager");
+        this.createRunnerStatusManager();
+
+         this.jobRunner = new JobProcessorRunner(
+                this.jobManager,
+                this.jobProcessorFactory,
+                this.contextSetup
+        );
+
+        this.jobPool = new JobPool(
+                this.concurrentJobCount,
+                this.jobRunner,
+                JobLocker.wrapped(this.jobManager)
+        );
+        this.jobPool.addJobPoolListener(new JobPoolListener() {
+            @Override
+            public void poolIsFull() {
+                runnerStatusManager.becameBusy();
+            }
+
+            @Override
+            public void poolIsAcceptingJobs() {
+                runnerStatusManager.becameIdle();
+            }
+        });
+
+        this.jobFeeder = new JobFeeder(
+                jobPool,
+                this.jobManager
+        );
+
+
+        log.info("Start job request endpoint");
+        try {
+            this.startJobRequestEndpoint(
+                    runtimeInitializer.initialize(this.jobRequestEndpointHost, this.jobRequestEndpointPort, log),
+                    new JobFeederHandler(jobPool, this.jobRequestEndpointUrl)
+            );
+        } catch (Exception e) {
+            throw new RunnerServiceInitializationException("failed initializing runtime", e);
+        }
+
+        log.info("runner started successfully...");
+        synchronized (this.stopMonitor) {
+            try {
+                this.stopMonitor.wait();
+                log.info("runner service stopped successfully ...");
+            } catch (InterruptedException e) {
+                log.error("runner service was interrupted", e);
+            }
+        }
+        if (this.errorToken.get() != null) {
+            throw new RuntimeException("error in runner service, see logs with " + this.errorToken.get());
+        }
+    }
+
+    private void legacyFramework(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
         log.info("Register Runner");
         this.registerRunner();
         log.info("Create job manager");
@@ -255,7 +333,10 @@ public class RunnerService {
         this.createJobProcessingPoolManager();
         log.info("Start job request endpoint");
         try {
-            this.startJobRequestEndpoint(runtimeInitializer.initialize(this.jobRequestEndpointHost, this.jobRequestEndpointPort, log));
+            this.startJobRequestEndpoint(
+                    runtimeInitializer.initialize(this.jobRequestEndpointHost, this.jobRequestEndpointPort, log),
+                    this.jobProcessingPoolManager::jobExecutionRequested
+            );
         } catch (Exception e) {
             throw new RunnerServiceInitializationException("failed initializing runtime", e);
         }
@@ -314,12 +395,12 @@ public class RunnerService {
     }
 
 
-    private void startJobRequestEndpoint(ApiContainerRuntime withRuntime) {
+    private void startJobRequestEndpoint(ApiContainerRuntime withRuntime, Function<RunningJobPutRequest, RunningJobPutResponse> jobPutHandler) {
         Processor processor = new PoomjobsRunnerAPIProcessor(
                 "",
                 new JsonFactory(),
                 new PoomjobsRunnerAPIHandlers.Builder()
-                        .runningJobPutHandler(this.jobProcessingPoolManager::jobExecutionRequested)
+                        .runningJobPutHandler(jobPutHandler)
                         .build()
         );
         this.containerRuntimeBuilder.withApi(new Api() {
@@ -377,21 +458,55 @@ public class RunnerService {
 
     private void onStop() {
         try {
-            log.info("Stopping runner status manager");
-            this.runnerStatusManager.stop();
+            if(shouldUseExperimentalPool()) {
+                this.stopExperimentalFramework();
 
-            log.info("Stopping runner status executor ( stop notifying status )");
-            this.statusManagerExecutor.shutdown();
-
-            long timeoutMs = TimeUnit.SECONDS.toMillis(timeoutSeconds);
-            log.info("Stopping thread pool with timeout(ms) " + timeoutMs);
-            this.jobProcessingPoolManager.stop(timeoutMs);
+            } else {
+                this.stopLegacyFramework();
+            }
         } catch (Throwable e) {
             log.error("Error stopping runner", e);
         }
         synchronized (this.stopMonitor) {
             this.stopMonitor.notify();
         }
+    }
+
+    private void stopLegacyFramework() {
+        log.info("Stopping runner status manager");
+        this.runnerStatusManager.stop();
+
+        log.info("Stopping runner status executor ( stop notifying status )");
+        this.statusManagerExecutor.shutdown();
+
+        long timeoutMs = TimeUnit.SECONDS.toMillis(timeoutSeconds);
+        log.info("Stopping thread pool with timeout(ms) " + timeoutMs);
+        this.jobProcessingPoolManager.stop(timeoutMs);
+    }
+
+    private void stopExperimentalFramework() throws InterruptedException {
+        log.info("Stopping runner status manager");
+        this.runnerStatusManager.stop();
+
+        log.info("Stopping runner status executor ( stop notifying status )");
+        this.statusManagerExecutor.shutdown();
+
+        log.info("Stopping job feeder");
+        this.jobFeeder.stop();
+        while(!jobFeeder.stopped()) {
+            Thread.sleep(100);
+        }
+
+        this.jobRunner.shutdownProperlyAllProcessors();
+
+        log.info("Stopping job pool");
+        this.jobPool.stop();
+
+        this.jobRunner.updateAllRemainingJobToFailure();
+    }
+
+    private static Boolean shouldUseExperimentalPool() {
+        return Env.optional(USE_EXPERIMENTAL_POOL).orElse(new Env.Var("false")).asBoolean();
     }
 
 

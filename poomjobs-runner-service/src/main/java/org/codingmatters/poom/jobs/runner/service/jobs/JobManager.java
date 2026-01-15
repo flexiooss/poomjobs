@@ -1,5 +1,6 @@
 package org.codingmatters.poom.jobs.runner.service.jobs;
 
+import org.codingmatters.poom.jobs.runner.service.pool.JobLocker;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.Env;
 import org.codingmatters.poomjobs.api.*;
@@ -123,7 +124,6 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
     }
 
     private JobResourcePatchResponse patchJob(Job job, boolean strictly) throws IOException {
-        log.debug("patching job");
         JobResourcePatchResponse response = this.client.jobCollection().jobResource().patch(JobResourcePatchRequest.builder()
                 .accountId(this.accountId)
                 .jobId(job.id())
@@ -134,7 +134,6 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
                         .result(job.result())
                         .build())
                 .build());
-        log.debug("job patch response " + response);
         return response;
     }
 
