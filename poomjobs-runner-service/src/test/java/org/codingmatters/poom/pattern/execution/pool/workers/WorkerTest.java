@@ -143,7 +143,7 @@ public class WorkerTest {
 
             worker.submit("to-process", "why not");
 
-            Eventually.defaults().assertThat(() -> statusChanges, contains("busy", "idle"));
+            Eventually.defaults().assertThat(() -> new LinkedList<>(statusChanges), contains("busy", "idle"));
         } finally {
             worker.stop();
         }
