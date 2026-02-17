@@ -1,15 +1,17 @@
 package org.codingmatters.poom.jobs.runner.service.pool;
 
+import org.codingmatters.poom.jobs.runner.service.StatusManager;
 import org.codingmatters.poom.pattern.execution.pool.exceptions.PoolBusyException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poomjobs.api.types.Job;
+import org.codingmatters.poomjobs.api.types.RunnerStatusData;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class JobPool {
+public class JobPool implements StatusManager {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(JobPool.class);
 
     private final PendingWorkers pendingWorkers;
@@ -61,5 +63,10 @@ public class JobPool {
         }
         this.workerPool.shutdown();
         log.info("job pool stopped.");
+    }
+
+    @Override
+    public RunnerStatusData.Status status() {
+        return RunnerStatusData.Status.IDLE;
     }
 }

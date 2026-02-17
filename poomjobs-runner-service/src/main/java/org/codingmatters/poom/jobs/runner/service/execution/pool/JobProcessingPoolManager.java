@@ -15,14 +15,14 @@ import org.codingmatters.poomjobs.api.RunningJobPutResponse;
 import org.codingmatters.poomjobs.api.ValueList;
 import org.codingmatters.poomjobs.api.types.Error;
 import org.codingmatters.poomjobs.api.types.Job;
+import org.codingmatters.poomjobs.api.types.RunnerStatusData;
 
-public class JobProcessingPoolManager implements ProcessingPoolListener {
+public class JobProcessingPoolManager implements ProcessingPoolListener, StatusManager {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(JobProcessingPoolManager.class);
 
     private final JobManager jobManager;
     private final WorkerProcessingPool<Job> pool;
     private final String jobRequestEndpointUrl;
-    private final StatusManager statusManager;
     private final JobWorkerProcessor jobWorkerProcessor;
 
     public JobProcessingPoolManager(
@@ -30,12 +30,10 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
             JobManager jobManager,
             JobProcessor.Factory processorFactory,
             JobContextSetup contextSetup,
-            String jobRequestEndpointUrl,
-            StatusManager statusManager
+            String jobRequestEndpointUrl
     ) {
         this.jobManager = jobManager;
         this.jobRequestEndpointUrl = jobRequestEndpointUrl;
-        this.statusManager = statusManager;
         this.jobWorkerProcessor = new JobWorkerProcessor(this.jobManager, processorFactory, contextSetup);
         this.pool = new WorkerProcessingPool<>(
                 poolSize,
@@ -52,14 +50,14 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
     @Override
     public void accepting() {
         this.processPendingJobs();
-        if (this.pool.status().equals(ProcessingPool.Status.ACCEPTING)) {
-            this.statusManager.becameIdle();
-        }
+//        if (this.pool.status().equals(ProcessingPool.Status.ACCEPTING)) {
+////            this.statusManager.becameIdle();
+//        }
     }
 
     @Override
     public void full() {
-        this.statusManager.becameBusy();
+//        this.statusManager.becameBusy();
     }
 
     public RunningJobPutResponse jobExecutionRequested(RunningJobPutRequest request) {
@@ -112,7 +110,7 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
 
     public void start() {
         this.pool.start();
-        this.statusManager.becameIdle();
+//        this.statusManager.becameIdle();
         this.processPendingJobs();
     }
 
@@ -120,5 +118,10 @@ public class JobProcessingPoolManager implements ProcessingPoolListener {
         this.jobWorkerProcessor.shutdownProperly();
         this.pool.stop(timeout);
         this.jobWorkerProcessor.updateAllRemainingJobToFailure();
+    }
+
+    @Override
+    public RunnerStatusData.Status status() {
+        return pool.status() == ProcessingPool.Status.ACCEPTING ? RunnerStatusData.Status.IDLE : RunnerStatusData.Status.RUNNING;
     }
 }

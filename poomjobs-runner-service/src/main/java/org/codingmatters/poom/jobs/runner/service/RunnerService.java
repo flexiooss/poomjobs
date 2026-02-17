@@ -266,8 +266,13 @@ public class RunnerService {
         this.registerRunner();
         log.info("Create job manager");
         this.createJobManager();
+        this.jobPool = new JobPool(
+                this.concurrentJobCount,
+                this.jobRunner,
+                JobLocker.wrapped(this.jobManager)
+        );
         log.info("Create runner status manager");
-        this.createRunnerStatusManager();
+        this.createRunnerStatusManager(jobPool);
 
          this.jobRunner = new JobProcessorRunner(
                 this.jobManager,
@@ -275,20 +280,15 @@ public class RunnerService {
                 this.contextSetup
         );
 
-        this.jobPool = new JobPool(
-                this.concurrentJobCount,
-                this.jobRunner,
-                JobLocker.wrapped(this.jobManager)
-        );
         this.jobPool.addJobPoolListener(new JobPoolListener() {
             @Override
             public void poolIsFull() {
-                runnerStatusManager.becameBusy();
+//                runnerStatusManager.becameBusy();
             }
 
             @Override
             public void poolIsAcceptingJobs() {
-                runnerStatusManager.becameIdle();
+//                runnerStatusManager.becameIdle();
             }
         });
 
@@ -327,10 +327,10 @@ public class RunnerService {
         this.registerRunner();
         log.info("Create job manager");
         this.createJobManager();
-        log.info("Create runner status manager");
-        this.createRunnerStatusManager();
         log.info("Create job processing pool manager");
         this.createJobProcessingPoolManager();
+        log.info("Create runner status manager");
+        this.createRunnerStatusManager(jobProcessingPoolManager);
         log.info("Start job request endpoint");
         try {
             this.startJobRequestEndpoint(
@@ -377,8 +377,8 @@ public class RunnerService {
         }
     }
 
-    private void createRunnerStatusManager() {
-        this.runnerStatusManager = new RunnerStatusManager(this.runnerRegistryClient, this.runnerId, this.ttl - (this.ttl / 10), this.ttl);
+    private void createRunnerStatusManager(StatusManager poolStatus) {
+        this.runnerStatusManager = new RunnerStatusManager(this.runnerRegistryClient, this.runnerId, this.ttl - (this.ttl / 10), this.ttl, poolStatus);
         this.runnerStatusManager.start();
         this.statusManagerExecutor.submit(this.runnerStatusManager);
     }
@@ -389,8 +389,7 @@ public class RunnerService {
                 this.jobManager,
                 this.jobProcessorFactory,
                 this.contextSetup,
-                this.jobRequestEndpointUrl,
-                this.runnerStatusManager
+                this.jobRequestEndpointUrl
         );
     }
 
