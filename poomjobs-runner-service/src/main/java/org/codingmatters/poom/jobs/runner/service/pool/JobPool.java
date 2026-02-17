@@ -17,7 +17,7 @@ public class JobPool implements StatusManager {
     private final PendingWorkers pendingWorkers;
 
     private final ExecutorService workerPool;
-    private final List<JobWorker>  workers;
+    private final List<JobWorker> workers;
 
     public JobPool(int capacity, JobRunner jobRunner, JobLocker jobLocker) {
         log.info("starting job pool...");
@@ -33,7 +33,7 @@ public class JobPool implements StatusManager {
             this.workerPool.submit(jobWorker);
             this.workers.add(jobWorker);
         }
-        while(this.pendingWorkers.waitingCount() < this.workers.size()); {
+        while(this.pendingWorkers.waitingCount() < this.workers.size()) {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {}
@@ -55,7 +55,7 @@ public class JobPool implements StatusManager {
             worker.stop();
         }
         for (JobWorker worker : this.workers) {
-            while(!worker.stopped()) {
+            while (!worker.stopped()) {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {}
@@ -67,6 +67,6 @@ public class JobPool implements StatusManager {
 
     @Override
     public RunnerStatusData.Status status() {
-        return RunnerStatusData.Status.IDLE;
+        return pendingWorkers.isFull() ? RunnerStatusData.Status.RUNNING : RunnerStatusData.Status.IDLE;
     }
 }
