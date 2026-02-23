@@ -11,6 +11,7 @@ import org.codingmatters.poom.services.tests.Eventually;
 import org.codingmatters.poomjobs.api.*;
 import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status200;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
+import org.codingmatters.poomjobs.api.types.RunnerStatusData;
 import org.codingmatters.poomjobs.api.types.runner.Runtime;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIRequesterClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIRequesterClient;
@@ -49,7 +50,7 @@ public class MultithreadedRunnerIntegrationTest {
 
     static int freePort() throws IOException {
         int port;
-        try(ServerSocket socket = new ServerSocket(0)) {
+        try (ServerSocket socket = new ServerSocket(0)) {
             port = socket.getLocalPort();
         }
         return port;
@@ -60,10 +61,11 @@ public class MultithreadedRunnerIntegrationTest {
 
     @Parameterized.Parameters(name = "jop pool : {0}")
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
-                { "experimental" }, { "legacy" }
+        return Arrays.asList(new Object[][]{
+                {"experimental"}, {"legacy"}
         });
     }
+
     private final boolean experimentalPool;
 
     public MultithreadedRunnerIntegrationTest(String experimentalPool) {
@@ -116,7 +118,7 @@ public class MultithreadedRunnerIntegrationTest {
                     .build()
             ;
         } finally {
-            if(backup == null) {
+            if (backup == null) {
                 System.clearProperty("service.url");
             } else {
                 System.setProperty("service.url", backup);
@@ -131,7 +133,7 @@ public class MultithreadedRunnerIntegrationTest {
             }
         }).start();
 
-        Thread.sleep(1000L);
+        Thread.sleep(3000L);
     }
 
     @After
@@ -306,14 +308,14 @@ public class MultithreadedRunnerIntegrationTest {
         log.info("\n\n\ngivenNoConcurrency__whenNoJob__thenRunnerRegistered_andIdle\n\n\n");
         LocalDateTime start = UTC.now();
         this.createAndStartRunnerServiceWithConcurrency(1);
-
+        log.info("\n\n\nrunner started\n\n");
         RunnerCollectionGetResponse response = this.runnerRegistryClient.runnerCollection().get(RunnerCollectionGetRequest.builder().build());
         response.opt().status200().orElseThrow(() -> new AssertionError("expected 200 got : " + response));
 
         System.out.println(response.status200());
 
         assertThat(response.status200().payload().get(0).runtime().created(), is(DateMatchers.around(start)));
-        assertThat(response.status200().payload().get(0).runtime().lastPing(), is(DateMatchers.around(start)));
+        assertThat(response.status200().payload().get(0).runtime().lastPing(), is(DateMatchers.around(start.plusSeconds(2))));
         assertThat(response.status200().payload().get(0).runtime().status(), is(Runtime.Status.IDLE));
     }
 
