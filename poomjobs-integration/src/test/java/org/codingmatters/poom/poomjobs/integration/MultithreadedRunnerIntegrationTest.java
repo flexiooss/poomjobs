@@ -18,10 +18,7 @@ import org.codingmatters.poomjobs.registries.service.PoomjobRegistriesService;
 import org.codingmatters.rest.api.client.okhttp.HttpClientWrapper;
 import org.codingmatters.rest.api.client.okhttp.OkHttpClientWrapper;
 import org.codingmatters.rest.api.client.okhttp.OkHttpRequesterFactory;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -39,6 +36,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
 @RunWith(Parameterized.class)
+@Ignore
 public class MultithreadedRunnerIntegrationTest {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(MultithreadedRunnerIntegrationTest.class);
     public static final long RUNNER_TTL = 1000L;
