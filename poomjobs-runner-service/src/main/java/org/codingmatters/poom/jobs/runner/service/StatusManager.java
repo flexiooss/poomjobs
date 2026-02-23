@@ -1,8 +1,8 @@
 package org.codingmatters.poom.jobs.runner.service;
 
+import org.codingmatters.poomjobs.api.types.RunnerStatusData;
+
 public interface StatusManager {
 
-    public void becameIdle();
-
-    public void becameBusy();
+    public RunnerStatusData.Status status();
 }
