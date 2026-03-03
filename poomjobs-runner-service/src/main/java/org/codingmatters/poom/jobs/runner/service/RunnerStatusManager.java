@@ -8,8 +8,10 @@ import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
 
 import java.io.IOException;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class RunnerStatusManager implements Runnable, StatusManager {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(RunnerStatusManager.class);
@@ -22,30 +24,18 @@ public class RunnerStatusManager implements Runnable, StatusManager {
     private final long minTimeout;
 
     private final AtomicBoolean running = new AtomicBoolean(false);
-    private final AtomicReference<RunnerStatusData> nextStatus = new AtomicReference<>(RunnerStatusData.builder().status(RunnerStatusData.Status.IDLE).build());
-    private final AtomicReference<RunnerStatusData> lastStatus = new AtomicReference<>();
+    private final StatusManager poolStatusManager;
+    private final ScheduledExecutorService executor;
 
-    public RunnerStatusManager(PoomjobsRunnerRegistryAPIClient runnerRegistryClient, String runnerId, long maxTimeout, long minTimeout) {
+    public RunnerStatusManager(PoomjobsRunnerRegistryAPIClient runnerRegistryClient, String runnerId, long maxTimeout, long minTimeout, StatusManager poolStatusManager) {
         this.runnerRegistryClient = runnerRegistryClient;
         this.runnerId = runnerId;
         this.maxTimeout = maxTimeout;
         this.minTimeout = minTimeout;
+        this.poolStatusManager = poolStatusManager;
+        this.executor = Executors.newSingleThreadScheduledExecutor();
+        this.executor.schedule(this, 0, TimeUnit.SECONDS);
     }
-
-    public void becameIdle() {
-        synchronized (this.nextStatus) {
-            this.nextStatus.set(RunnerStatusData.builder().status(RunnerStatusData.Status.IDLE).build());
-            this.nextStatus.notify();
-        }
-    }
-
-    public void becameBusy() {
-        synchronized (this.nextStatus) {
-            this.nextStatus.set(RunnerStatusData.builder().status(RunnerStatusData.Status.RUNNING).build());
-            this.nextStatus.notify();
-        }
-    }
-
 
     public void start() {
         this.running.set(true);
@@ -53,24 +43,12 @@ public class RunnerStatusManager implements Runnable, StatusManager {
 
     public void stop() {
         this.running.set(false);
-        synchronized (this.nextStatus) {
-            this.nextStatus.notify();
-        }
     }
 
     @Override
     public void run() {
-        while (this.running.get()) {
-            synchronized (this.nextStatus) {
-                try {
-                    this.nextStatus.wait(this.nextTimeout());
-                } catch (InterruptedException e) {}
-                if (this.running.get()) {
-                    RunnerStatusData statusData = this.nextStatus.get();
-                    this.patchRunnerStatus(statusData);
-                }
-            }
-        }
+        this.patchRunnerStatus(RunnerStatusData.builder().status(status()).build());
+        this.executor.schedule(this, nextTimeout(), TimeUnit.MILLISECONDS);
     }
 
     private long nextTimeout() {
@@ -88,11 +66,19 @@ public class RunnerStatusManager implements Runnable, StatusManager {
                     .payload(statusData)
                     .build());
             log.debug("status manager - status updated to {}", statusData);
-            this.lastStatus.set(statusData);
             response.opt().status200().orElseThrow(() -> new IOException("Bad response code " + response));
             log.debug("runner status patched to {}", statusData);
         } catch (IOException e) {
             log.error("[GRAVE] while patching runner status, failed reaching runner registry", e);
+        }
+    }
+
+    @Override
+    public RunnerStatusData.Status status() {
+        if (running.get()) {
+            return poolStatusManager.status();
+        } else {
+            return RunnerStatusData.Status.DISCONNECTED;
         }
     }
 }

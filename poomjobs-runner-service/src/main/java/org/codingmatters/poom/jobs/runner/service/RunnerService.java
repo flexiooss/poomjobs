@@ -18,6 +18,7 @@ import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.Env;
 import org.codingmatters.poomjobs.api.*;
 import org.codingmatters.poomjobs.api.types.RunnerData;
+import org.codingmatters.poomjobs.api.types.RunnerStatusData;
 import org.codingmatters.poomjobs.api.types.runnerdata.Competencies;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
@@ -251,14 +252,26 @@ public class RunnerService {
     }
 
     public void run(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
-        if(shouldUseExperimentalPool()) {
+        if (shouldUseExperimentalPool()) {
             log.info("using experimental pool");
             this.stopExperimentalFramework(runtimeInitializer);
         } else {
             log.info("using legacy pool");
             this.legacyFramework(runtimeInitializer);
         }
+    }
 
+    public StatusManager statusManager() {
+        if (runnerStatusManager == null) {
+            return new StatusManager() {
+                @Override
+                public RunnerStatusData.Status status() {
+                    return RunnerStatusData.Status.DISCONNECTED;
+                }
+            };
+        } else {
+            return runnerStatusManager;
+        }
     }
 
     private void stopExperimentalFramework(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
@@ -266,10 +279,8 @@ public class RunnerService {
         this.registerRunner();
         log.info("Create job manager");
         this.createJobManager();
-        log.info("Create runner status manager");
-        this.createRunnerStatusManager();
 
-         this.jobRunner = new JobProcessorRunner(
+        this.jobRunner = new JobProcessorRunner(
                 this.jobManager,
                 this.jobProcessorFactory,
                 this.contextSetup
@@ -280,15 +291,18 @@ public class RunnerService {
                 this.jobRunner,
                 JobLocker.wrapped(this.jobManager)
         );
+        log.info("Create runner status manager");
+        this.createRunnerStatusManager(jobPool);
+
         this.jobPool.addJobPoolListener(new JobPoolListener() {
             @Override
             public void poolIsFull() {
-                runnerStatusManager.becameBusy();
+//                runnerStatusManager.becameBusy();
             }
 
             @Override
             public void poolIsAcceptingJobs() {
-                runnerStatusManager.becameIdle();
+//                runnerStatusManager.becameIdle();
             }
         });
 
@@ -327,10 +341,10 @@ public class RunnerService {
         this.registerRunner();
         log.info("Create job manager");
         this.createJobManager();
-        log.info("Create runner status manager");
-        this.createRunnerStatusManager();
         log.info("Create job processing pool manager");
         this.createJobProcessingPoolManager();
+        log.info("Create runner status manager");
+        this.createRunnerStatusManager(jobProcessingPoolManager);
         log.info("Start job request endpoint");
         try {
             this.startJobRequestEndpoint(
@@ -377,8 +391,8 @@ public class RunnerService {
         }
     }
 
-    private void createRunnerStatusManager() {
-        this.runnerStatusManager = new RunnerStatusManager(this.runnerRegistryClient, this.runnerId, this.ttl - (this.ttl / 10), this.ttl);
+    private void createRunnerStatusManager(StatusManager poolStatus) {
+        this.runnerStatusManager = new RunnerStatusManager(this.runnerRegistryClient, this.runnerId, this.ttl - (this.ttl / 10), this.ttl, poolStatus);
         this.runnerStatusManager.start();
         this.statusManagerExecutor.submit(this.runnerStatusManager);
     }
@@ -389,8 +403,7 @@ public class RunnerService {
                 this.jobManager,
                 this.jobProcessorFactory,
                 this.contextSetup,
-                this.jobRequestEndpointUrl,
-                this.runnerStatusManager
+                this.jobRequestEndpointUrl
         );
     }
 
@@ -458,7 +471,7 @@ public class RunnerService {
 
     private void onStop() {
         try {
-            if(shouldUseExperimentalPool()) {
+            if (shouldUseExperimentalPool()) {
                 this.stopExperimentalFramework();
 
             } else {
@@ -493,7 +506,7 @@ public class RunnerService {
 
         log.info("Stopping job feeder");
         this.jobFeeder.stop();
-        while(!jobFeeder.stopped()) {
+        while (!jobFeeder.stopped()) {
             Thread.sleep(100);
         }
 

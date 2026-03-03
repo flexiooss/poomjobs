@@ -10,15 +10,15 @@ public class TestStatusManager implements StatusManager {
 
     private RunnerStatusData.Status status;
 
-    @Override
-    public void becameIdle() {
-        this.status = IDLE;
-    }
-
-    @Override
-    public void becameBusy() {
-        this.status = RUNNING;
-    }
+//    @Override
+//    public void becameIdle() {
+//        this.status = IDLE;
+//    }
+//
+//    @Override
+//    public void becameBusy() {
+//        this.status = RUNNING;
+//    }
 
     public RunnerStatusData.Status status() {
         return status;
