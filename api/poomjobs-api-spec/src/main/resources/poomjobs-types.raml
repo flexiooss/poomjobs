@@ -26,6 +26,11 @@ Job:
         exit:
           enum: [ SUCCESS, FAILURE, ABORTED ]
 
+    runner:
+      type: object
+      properties:
+        runner-id: string
+
     processing:
       type: object
       properties:
