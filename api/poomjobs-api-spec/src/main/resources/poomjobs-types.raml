@@ -26,10 +26,7 @@ Job:
         exit:
           enum: [ SUCCESS, FAILURE, ABORTED ]
 
-    runner:
-      type: object
-      properties:
-        runner-id: string
+    runner: JobRunnerMetaData
 
     processing:
       type: object
@@ -40,13 +37,16 @@ Job:
 
     context: object
 
+JobRunnerMetaData:
+  type: object
+  properties:
+    runner-id: string
+
 JobCreationData:
   type: object
   properties:
-
     category: string
     name: string
-
     arguments:
       type: array
       items: string
@@ -55,7 +55,7 @@ JobUpdateData:
   type: object
   properties:
     result: string
-
+    runner: JobRunnerMetaData
     status:
       type: object
       properties:

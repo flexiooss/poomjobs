@@ -1,10 +1,10 @@
 package org.codingmatters.poom.jobs.runner.service.jobs;
 
-import org.codingmatters.poom.jobs.runner.service.pool.JobLocker;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.Env;
 import org.codingmatters.poomjobs.api.*;
 import org.codingmatters.poomjobs.api.types.Job;
+import org.codingmatters.poomjobs.api.types.JobRunnerMetaData;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 import org.codingmatters.poomjobs.api.types.job.optional.OptionalStatus;
 import org.codingmatters.poomjobs.api.types.jobupdatedata.Status;
@@ -20,13 +20,13 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
 
     private final PoomjobsJobRegistryAPIClient client;
 
-    private final String accountId;
+    private final String runnerId;
     private final String jobCategory;
     private final String[] jobNames;
 
-    public JobManager(PoomjobsJobRegistryAPIClient client, String accountId, String jobCategory, String[] jobNames) {
+    public JobManager(PoomjobsJobRegistryAPIClient client, String runnerId, String jobCategory, String[] jobNames) {
         this.client = client;
-        this.accountId = accountId;
+        this.runnerId = runnerId;
         this.jobCategory = jobCategory;
         this.jobNames = jobNames;
     }
@@ -41,13 +41,17 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
     }
 
     public Job reserve(Job job) throws JobProcessorRunner.JobUpdateFailure {
-        job = job.withStatus(org.codingmatters.poomjobs.api.types.job.Status.builder()
-                .run(org.codingmatters.poomjobs.api.types.job.Status.Run.RUNNING)
-                .build()
-        );
+        job = job.toBuilder()
+                .status(org.codingmatters.poomjobs.api.types.job.Status.builder()
+                        .run(org.codingmatters.poomjobs.api.types.job.Status.Run.RUNNING)
+                        .build())
+                .runner(JobRunnerMetaData.builder()
+                        .runnerId(runnerId)
+                        .build())
+                .build();
         Job result = null;
         boolean doIt = true;
-        while(doIt) {
+        while (doIt) {
             doIt = false;
             try {
                 result = this.update(
@@ -99,7 +103,7 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
     private Job update(Job job, boolean strictly) throws JobProcessorRunner.JobUpdateFailure, JobProcessorRunner.JobUpdateInvalid {
         int tried = 0;
         JobResourcePatchResponse response = null;
-        while(tried < JOB_UPDATE_MAX_RETRIES && response == null) {
+        while (tried < JOB_UPDATE_MAX_RETRIES && response == null) {
             try {
                 response = this.patchJob(job, strictly);
             } catch (IOException e) {
@@ -110,13 +114,13 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
                 } catch (InterruptedException ie) {}
             }
         }
-        if(response == null) {
+        if (response == null) {
             throw new JobProcessorRunner.JobUpdateFailure(String.format(
                     "Failed updating job, tried %s time, will not retry.", tried
             ));
-        } else if(response.opt().status400().isPresent()) {
+        } else if (response.opt().status400().isPresent()) {
             throw new JobProcessorRunner.JobUpdateInvalid("Failed updating job, got invalid change response : " + response.status400());
-        } else if(response.opt().status200().isEmpty()) {
+        } else if (response.opt().status200().isEmpty()) {
             throw new JobProcessorRunner.JobUpdateFailure("Failed updating job, got response : " + response);
         } else {
             return response.status200().payload();
@@ -125,13 +129,13 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
 
     private JobResourcePatchResponse patchJob(Job job, boolean strictly) throws IOException {
         JobResourcePatchResponse response = this.client.jobCollection().jobResource().patch(JobResourcePatchRequest.builder()
-                .accountId(this.accountId)
                 .jobId(job.id())
                 .currentVersion(job.version())
                 .strict(strictly)
                 .payload(JobUpdateData.builder()
                         .status(this.translated(job.opt().status()))
                         .result(job.result())
+                        .runner(job.runner())
                         .build())
                 .build());
         return response;
@@ -139,10 +143,9 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
 
     private Job retrieve(String jobId) throws IOException {
         JobResourceGetResponse response = this.client.jobCollection().jobResource().get(JobResourceGetRequest.builder()
-                .accountId(this.accountId)
                 .jobId(jobId)
                 .build());
-        if(response.opt().status200().isPresent()) {
+        if (response.opt().status200().isPresent()) {
             return response.status200().payload();
         } else {
             log.error("unexpected response while retrieving job {} : {}", jobId, response);
@@ -161,11 +164,10 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
         JobCollectionGetResponse response;
         try {
             response = this.client.jobCollection().get(builder -> builder
-                .accountId(this.accountId)
-                .category(this.jobCategory)
-                .names(this.jobNames)
-                .runStatus(org.codingmatters.poomjobs.api.types.job.Status.Run.PENDING.name())
-                .range("0-19")
+                    .category(this.jobCategory)
+                    .names(this.jobNames)
+                    .runStatus(org.codingmatters.poomjobs.api.types.job.Status.Run.PENDING.name())
+                    .range("0-19")
             );
         } catch (IOException e) {
             log.error("while getting candidate jobs, couldn't reach job registry, nothing to process", e);
@@ -173,9 +175,9 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
         }
 
         ValueList<Job> candidates;
-        if(response.opt().status200().isPresent()) {
+        if (response.opt().status200().isPresent()) {
             candidates = response.status200().payload();
-        } else if(response.opt().status206().isPresent()) {
+        } else if (response.opt().status206().isPresent()) {
             candidates = response.status206().payload();
         } else {
             log.error("failed getting candidate job list, expected 200 or 206, got : {}", response);

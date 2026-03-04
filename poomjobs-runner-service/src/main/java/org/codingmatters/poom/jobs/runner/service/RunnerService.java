@@ -254,7 +254,7 @@ public class RunnerService {
     public void run(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
         if (shouldUseExperimentalPool()) {
             log.info("using experimental pool");
-            this.stopExperimentalFramework(runtimeInitializer);
+            this.startExperimentalFramework(runtimeInitializer);
         } else {
             log.info("using legacy pool");
             this.legacyFramework(runtimeInitializer);
@@ -274,7 +274,7 @@ public class RunnerService {
         }
     }
 
-    private void stopExperimentalFramework(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
+    private void startExperimentalFramework(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
         log.info("Register Runner");
         this.registerRunner();
         log.info("Create job manager");
