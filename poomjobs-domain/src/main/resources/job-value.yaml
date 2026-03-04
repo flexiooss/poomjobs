@@ -10,7 +10,9 @@ JobValue:
     run:
       $enum: PENDING, RUNNING, DONE
     exit:
-      $enum: SUCCESS, FAILURE
+      $enum: SUCCESS, FAILURE, ABORTED
+
+  runner: $JobRunnerMetaData
 
   processing:
     submitted: date-time
@@ -23,3 +25,6 @@ JobValue:
 
   context:
     $value-object: org.codingmatters.value.objects.values.ObjectValue
+
+JobRunnerMetaData:
+  runner-id: string

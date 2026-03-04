@@ -1,5 +1,6 @@
 package org.codingmatters.poomjobs.service;
 
+import org.codingmatters.poom.poomjobs.domain.values.jobs.JobRunnerMetaData;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
@@ -28,6 +29,7 @@ public class JobValueMerger {
         return this.currentValue.changed(builder -> builder
                 .result(jobData.result())
                 .status(this.fromJobDataStatus(jobData.status()))
+                .runner(this.fromJobRunnerMetaData(jobData.runner()))
         );
     }
 
@@ -53,5 +55,12 @@ public class JobValueMerger {
             result.exit(Status.Exit.valueOf(status.exit().name()));
         }
         return result.build();
+    }
+
+    private JobRunnerMetaData fromJobRunnerMetaData(org.codingmatters.poomjobs.api.types.JobRunnerMetaData runner) {
+        if(runner == null) return null;
+        return JobRunnerMetaData.builder()
+                .runnerId(runner.runnerId())
+                .build();
     }
 }

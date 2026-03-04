@@ -1,5 +1,6 @@
 package org.codingmatters.poomjobs.service;
 
+import org.codingmatters.poom.poomjobs.domain.values.jobs.JobRunnerMetaData;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Accounting;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Processing;
@@ -33,6 +34,7 @@ public class JobEntityTransformation {
                 .status(this.jobStatusFrom(value.status()))
                 .accounting(this.jobAccountingFrom(value.accounting()))
                 .processing(this.jobProcessingFrom(value.processing()))
+                .runner(this.jobRunnerMetaDataFrom(value.runner()))
                 .result(value.result())
                 .context(value.context())
                 .build();
@@ -68,6 +70,14 @@ public class JobEntityTransformation {
                 .submitted(this.entity.value().processing().submitted())
                 .started(this.entity.value().processing().started())
                 .finished(this.entity.value().processing().finished())
+                .build();
+    }
+
+    private org.codingmatters.poomjobs.api.types.JobRunnerMetaData jobRunnerMetaDataFrom(JobRunnerMetaData runner) {
+        if(runner == null) return null;
+
+        return org.codingmatters.poomjobs.api.types.JobRunnerMetaData.builder()
+                .runnerId(runner.runnerId())
                 .build();
     }
 }
