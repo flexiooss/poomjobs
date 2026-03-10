@@ -30,14 +30,16 @@ public class RunnerStatusManager implements Runnable, StatusManager {
 
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final StatusManager poolStatusManager;
+    private final Runnable stopRunner;
     private final ScheduledExecutorService executor;
 
-    public RunnerStatusManager(PoomjobsRunnerRegistryAPIClient runnerRegistryClient, String runnerId, long maxTimeout, long minTimeout, StatusManager poolStatusManager) {
+    public RunnerStatusManager(PoomjobsRunnerRegistryAPIClient runnerRegistryClient, String runnerId, long maxTimeout, long minTimeout, StatusManager poolStatusManager, Runnable stopRunner) {
         this.runnerRegistryClient = runnerRegistryClient;
         this.runnerId = runnerId;
         this.maxTimeout = maxTimeout;
         this.minTimeout = minTimeout;
         this.poolStatusManager = poolStatusManager;
+        this.stopRunner = stopRunner;
         this.executor = Executors.newSingleThreadScheduledExecutor(runnable -> new Thread(new ThreadGroup("runner-status-manager"), runnable));
         this.failCount = 0;
     }
@@ -86,6 +88,7 @@ public class RunnerStatusManager implements Runnable, StatusManager {
             if (failCount >= MAX_STATUS_FAIL_COUNT) {
                 log.error("Failed patching runner status for " + MAX_STATUS_FAIL_COUNT + " times. ");
                 running.set(false);
+                stopRunner.run();
             }
         }
     }

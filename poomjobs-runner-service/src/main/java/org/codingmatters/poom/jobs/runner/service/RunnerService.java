@@ -290,7 +290,7 @@ public class RunnerService {
                 JobLocker.wrapped(this.jobManager)
         );
         log.info("Create runner status manager");
-        this.createRunnerStatusManager(jobPool);
+        this.createRunnerStatusManager(jobPool, this::stop);
 
         this.jobPool.addJobPoolListener(new JobPoolListener() {
             @Override
@@ -342,7 +342,7 @@ public class RunnerService {
         log.info("Create job processing pool manager");
         this.createJobProcessingPoolManager();
         log.info("Create runner status manager");
-        this.createRunnerStatusManager(jobProcessingPoolManager);
+        this.createRunnerStatusManager(jobProcessingPoolManager,  this::stop);
         log.info("Start job request endpoint");
         try {
             this.startJobRequestEndpoint(
@@ -389,8 +389,14 @@ public class RunnerService {
         }
     }
 
-    private void createRunnerStatusManager(StatusManager poolStatus) {
-        this.runnerStatusManager = new RunnerStatusManager(this.runnerRegistryClient, this.runnerId, this.ttl - (this.ttl / 10), this.ttl, poolStatus);
+    private void createRunnerStatusManager(StatusManager poolStatus, Runnable stopRunner) {
+        this.runnerStatusManager = new RunnerStatusManager(
+                this.runnerRegistryClient,
+                this.runnerId,
+                this.ttl - (this.ttl / 10),
+                this.ttl,
+                poolStatus,
+                stopRunner);
         this.runnerStatusManager.start();
     }
 
