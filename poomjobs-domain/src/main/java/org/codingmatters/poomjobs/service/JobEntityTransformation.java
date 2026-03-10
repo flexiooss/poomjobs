@@ -78,6 +78,7 @@ public class JobEntityTransformation {
 
         return org.codingmatters.poomjobs.api.types.JobRunnerMetaData.builder()
                 .runnerId(runner.runnerId())
+                .idempotent(runner.idempotent())
                 .build();
     }
 }

@@ -10,6 +10,7 @@ import org.codingmatters.poom.services.support.Env;
 import org.codingmatters.poom.services.support.logging.LoggingContext;
 import org.codingmatters.poomjobs.api.ValueList;
 import org.codingmatters.poomjobs.api.types.Job;
+import org.codingmatters.poomjobs.api.types.JobRunnerMetaData;
 import org.codingmatters.poomjobs.api.types.job.Status;
 
 import java.util.ArrayList;
@@ -119,9 +120,12 @@ public class JobProcessorRunner implements JobRunner {
 
     private Job monitor(Job job, Status.Exit exit) {
         if (exit == Status.Exit.ABORTED) {
-            return job.withStatus(Status.builder()
-                    .run(Status.Run.PENDING)
-                    .build());
+            return job.toBuilder()
+                    .status(Status.builder()
+                            .run(Status.Run.PENDING)
+                            .build())
+                    .runner((JobRunnerMetaData) null)
+                    .build();
         } else {
             return job.withStatus(Status.builder()
                     .run(Status.Run.DONE)

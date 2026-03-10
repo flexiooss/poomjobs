@@ -28,3 +28,4 @@ JobValue:
 
 JobRunnerMetaData:
   runner-id: string
+  idempotent: bool

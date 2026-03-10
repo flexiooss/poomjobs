@@ -1,5 +1,6 @@
 package org.codingmatters.poomjobs.service;
 
+import org.codingmatters.poom.poomjobs.domain.values.jobs.JobRunnerMetaData;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 import org.codingmatters.poomjobs.api.types.jobupdatedata.Status;
@@ -35,6 +36,7 @@ public class JobValueMergerTest {
                         .run(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.Run.PENDING)
                         .exit(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.Exit.FAILURE)
                         .build())
+                .runner(JobRunnerMetaData.builder().runnerId("runner-1").idempotent(false).build())
                 .build();
         assertThat(
                 JobValueMerger
@@ -45,6 +47,7 @@ public class JobValueMergerTest {
                                         .run(Status.Run.DONE)
                                         .exit(Status.Exit.SUCCESS)
                                         .build())
+                                .runner(org.codingmatters.poomjobs.api.types.JobRunnerMetaData.builder().runnerId("runner-2").idempotent(true).build())
                                 .build()),
                 is(
                         value.withResult("changed result")
@@ -52,6 +55,7 @@ public class JobValueMergerTest {
                                         .run(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.Run.DONE)
                                         .exit(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.Exit.SUCCESS)
                                         .build())
+                            .withRunner(JobRunnerMetaData.builder().runnerId("runner-2").idempotent(true).build())
                 )
                 );
     }

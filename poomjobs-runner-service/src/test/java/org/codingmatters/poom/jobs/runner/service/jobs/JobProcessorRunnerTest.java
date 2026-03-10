@@ -2,8 +2,10 @@ package org.codingmatters.poom.jobs.runner.service.jobs;
 
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
+import org.codingmatters.poom.runner.exception.JobMonitorError;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poomjobs.api.types.Job;
+import org.codingmatters.poomjobs.api.types.JobRunnerMetaData;
 import org.codingmatters.poomjobs.api.types.job.Status;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,6 +38,7 @@ public class JobProcessorRunnerTest {
                 return job;
             },
             (job, monitor) -> () -> {
+                monitor.canContinue();
                 processedJob.set(job);
                 JobProcessingException exception = nextJobProcessingException.get();
                 if (exception != null) {throw exception;}
@@ -185,5 +188,21 @@ public class JobProcessorRunnerTest {
         assertThat(terminated, is(true));
         assertThat(runner.runningJobs().size(), is(0));
     }
+
+    @Test
+    public void givenJobRunning__whenJobMonitorErrorThrown_withAbortedExit__thenJobStatusIsPending_andRunnerIdIsNull() throws Exception {
+        Job job = Job.builder()
+                .status(Status.builder().run(Status.Run.RUNNING).build())
+                .runner(JobRunnerMetaData.builder().runnerId("runner-42").build())
+                .build();
+
+        this.flow.shutdownProperlyAllProcessors();
+
+        this.flow.runWith(job);
+
+        assertThat(this.updatedJob.get().status().run(), is(Status.Run.PENDING));
+        assertThat(this.updatedJob.get().runner(), is(nullValue()));
+    }
+
 
 }

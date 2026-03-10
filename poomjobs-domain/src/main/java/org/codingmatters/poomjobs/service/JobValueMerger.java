@@ -61,6 +61,7 @@ public class JobValueMerger {
         if(runner == null) return null;
         return JobRunnerMetaData.builder()
                 .runnerId(runner.runnerId())
+                .idempotent(runner.idempotent())
                 .build();
     }
 }

@@ -100,7 +100,7 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
                         start = 0;
                     }
                 } else {
-                    log.info("no runner ready for job {}", entity.id());
+                    log.info("no runner ready for job {} - {} [{}] ", entity.value().category(), entity.value().name(), entity.id());
                 }
             } while (! response.opt().status200().isPresent());
         } catch (IOException e) {

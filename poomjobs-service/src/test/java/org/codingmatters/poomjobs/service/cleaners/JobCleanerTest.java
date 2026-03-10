@@ -19,7 +19,7 @@ import static org.hamcrest.Matchers.*;
 public class JobCleanerTest {
 
     private final Repository<JobValue, PropertyQuery> jobs = InMemoryRepositoryWithPropertyQuery.validating(JobValue.class);
-    private final JobCleaner cleaner = new JobCleaner(Executors.newSingleThreadScheduledExecutor(), 500, TimeUnit.MILLISECONDS, this.jobs, 12, ChronoUnit.DAYS);
+    private final JobCleaner cleaner = new JobCleaner(this.jobs, 12, ChronoUnit.DAYS);
 
     @Test
     public void whenNoJob__thenNoChange() throws Exception {
@@ -64,15 +64,4 @@ public class JobCleanerTest {
         assertThat(this.jobs.all(0, 0).total(), is(0L));
     }
 
-    @Test
-    public void givenJobNeedsCleanup__whenScheduled__thenJobEventuallyGetsCleanup() throws Exception {
-        this.jobs.create(JobValue.builder().status(status -> status.run(Status.Run.DONE)).processing(p -> p.submitted(UTC.now().minusDays(42))).build());
-        try {
-            this.cleaner.start();
-
-            Eventually.timeout(1000).assertThat(() -> this.jobs.all(0, 0).total(), is(0L));
-        } finally {
-            this.cleaner.stop();
-        }
-    }
 }
