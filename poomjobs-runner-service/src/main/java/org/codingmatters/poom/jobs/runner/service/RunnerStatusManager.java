@@ -1,6 +1,7 @@
 package org.codingmatters.poom.jobs.runner.service;
 
 import org.codingmatters.poom.services.logging.CategorizedLogger;
+import org.codingmatters.poom.services.support.Env;
 import org.codingmatters.poomjobs.api.RunnerPatchRequest;
 import org.codingmatters.poomjobs.api.RunnerPatchResponse;
 import org.codingmatters.poomjobs.api.types.RunnerStatusData;
@@ -14,7 +15,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class RunnerStatusManager implements Runnable, StatusManager {
+
     static private final CategorizedLogger log = CategorizedLogger.getLogger(RunnerStatusManager.class);
+    public static final int MAX_STATUS_FAIL_COUNT = Env.optional("MAX_STATUS_FAIL_COUNT").orElse(Env.Var.value("3")).asInteger();
+
+    private int failCount;
 
     private final PoomjobsRunnerRegistryAPIClient runnerRegistryClient;
     private final String runnerId;
@@ -33,16 +38,22 @@ public class RunnerStatusManager implements Runnable, StatusManager {
         this.maxTimeout = maxTimeout;
         this.minTimeout = minTimeout;
         this.poolStatusManager = poolStatusManager;
-        this.executor = Executors.newSingleThreadScheduledExecutor();
-        this.executor.schedule(this, 0, TimeUnit.SECONDS);
+        this.executor = Executors.newSingleThreadScheduledExecutor(runnable -> new Thread(new ThreadGroup("runner-status-manager"), runnable));
+        this.failCount = 0;
     }
 
     public void start() {
         this.running.set(true);
+        this.executor.schedule(this, nextTimeout(), TimeUnit.MILLISECONDS);
     }
 
     public void stop() {
-        this.running.set(false);
+        try {
+            this.running.set(false);
+            this.executor.shutdownNow();
+        } finally {
+            this.patchRunnerStatus(RunnerStatusData.builder().status(RunnerStatusData.Status.DISCONNECTED).build());
+        }
     }
 
     @Override
@@ -68,8 +79,14 @@ public class RunnerStatusManager implements Runnable, StatusManager {
             log.debug("status manager - status updated to {}", statusData);
             response.opt().status200().orElseThrow(() -> new IOException("Bad response code " + response));
             log.debug("runner status patched to {}", statusData);
+            failCount = 0;
         } catch (IOException e) {
             log.error("[GRAVE] while patching runner status, failed reaching runner registry", e);
+            failCount++;
+            if (failCount >= MAX_STATUS_FAIL_COUNT) {
+                log.error("Failed patching runner status for " + MAX_STATUS_FAIL_COUNT + " times. ");
+                running.set(false);
+            }
         }
     }
 

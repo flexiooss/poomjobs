@@ -207,8 +207,6 @@ public class RunnerService {
     private final AtomicReference<String> errorToken = new AtomicReference<>(null);
     private final Object stopMonitor = new Object();
 
-    private final ExecutorService statusManagerExecutor = Executors.newSingleThreadExecutor(runnable -> new Thread(new ThreadGroup("runner-status-manager"), runnable));
-
     private final ApiContainerRuntimeBuilder containerRuntimeBuilder;
     private ApiContainerRuntime runtime;
 
@@ -394,7 +392,6 @@ public class RunnerService {
     private void createRunnerStatusManager(StatusManager poolStatus) {
         this.runnerStatusManager = new RunnerStatusManager(this.runnerRegistryClient, this.runnerId, this.ttl - (this.ttl / 10), this.ttl, poolStatus);
         this.runnerStatusManager.start();
-        this.statusManagerExecutor.submit(this.runnerStatusManager);
     }
 
     private void createJobProcessingPoolManager() {
@@ -489,9 +486,6 @@ public class RunnerService {
         log.info("Stopping runner status manager");
         this.runnerStatusManager.stop();
 
-        log.info("Stopping runner status executor ( stop notifying status )");
-        this.statusManagerExecutor.shutdown();
-
         long timeoutMs = TimeUnit.SECONDS.toMillis(timeoutSeconds);
         log.info("Stopping thread pool with timeout(ms) " + timeoutMs);
         this.jobProcessingPoolManager.stop(timeoutMs);
@@ -500,9 +494,6 @@ public class RunnerService {
     private void stopExperimentalFramework() throws InterruptedException {
         log.info("Stopping runner status manager");
         this.runnerStatusManager.stop();
-
-        log.info("Stopping runner status executor ( stop notifying status )");
-        this.statusManagerExecutor.shutdown();
 
         log.info("Stopping job feeder");
         this.jobFeeder.stop();
