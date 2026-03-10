@@ -60,8 +60,10 @@ public class RunnerStatusManager implements Runnable, StatusManager {
 
     @Override
     public void run() {
-        this.patchRunnerStatus(RunnerStatusData.builder().status(status()).build());
-        this.executor.schedule(this, nextTimeout(), TimeUnit.MILLISECONDS);
+        boolean goOn = this.patchRunnerStatus(RunnerStatusData.builder().status(status()).build());
+        if (goOn) {
+            this.executor.schedule(this, nextTimeout(), TimeUnit.MILLISECONDS);
+        }
     }
 
     private long nextTimeout() {
@@ -72,7 +74,7 @@ public class RunnerStatusManager implements Runnable, StatusManager {
         }
     }
 
-    private void patchRunnerStatus(RunnerStatusData statusData) {
+    private boolean patchRunnerStatus(RunnerStatusData statusData) {
         try {
             RunnerPatchResponse response = this.runnerRegistryClient.runnerCollection().runner().patch(RunnerPatchRequest.builder()
                     .runnerId(this.runnerId)
@@ -82,13 +84,17 @@ public class RunnerStatusManager implements Runnable, StatusManager {
             response.opt().status200().orElseThrow(() -> new IOException("Bad response code " + response));
             log.debug("runner status patched to {}", statusData);
             failCount = 0;
+            return true;
         } catch (IOException e) {
             log.error("[GRAVE] while patching runner status, failed reaching runner registry", e);
             failCount++;
             if (failCount >= MAX_STATUS_FAIL_COUNT) {
-                log.error("Failed patching runner status for " + MAX_STATUS_FAIL_COUNT + " times. ");
+                log.error("Failed patching runner status for " + MAX_STATUS_FAIL_COUNT + " times. Killing runner..");
                 running.set(false);
                 stopRunner.run();
+                return false;
+            } else {
+                return true;
             }
         }
     }
