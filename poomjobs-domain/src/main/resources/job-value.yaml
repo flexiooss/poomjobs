@@ -11,6 +11,7 @@ JobValue:
       $enum: PENDING, RUNNING, DONE
     exit:
       $enum: SUCCESS, FAILURE, ABORTED
+    retriedByJob: string
 
   runner: $JobRunnerMetaData
 

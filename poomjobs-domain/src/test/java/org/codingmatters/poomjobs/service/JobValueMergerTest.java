@@ -46,6 +46,7 @@ public class JobValueMergerTest {
                                 .status(Status.builder()
                                         .run(Status.Run.DONE)
                                         .exit(Status.Exit.SUCCESS)
+                                        .retriedByJob("new-job")
                                         .build())
                                 .runner(org.codingmatters.poomjobs.api.types.JobRunnerMetaData.builder().runnerId("runner-2").idempotent(true).build())
                                 .build()),
@@ -54,6 +55,7 @@ public class JobValueMergerTest {
                             .withStatus(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.builder()
                                         .run(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.Run.DONE)
                                         .exit(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.Exit.SUCCESS)
+                                        .retriedByJob("new-job")
                                         .build())
                             .withRunner(JobRunnerMetaData.builder().runnerId("runner-2").idempotent(true).build())
                 )

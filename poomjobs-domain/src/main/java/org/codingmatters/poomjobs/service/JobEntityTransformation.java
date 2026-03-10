@@ -51,6 +51,7 @@ public class JobEntityTransformation {
         if(status.exit() != null) {
             builder.exit(org.codingmatters.poomjobs.api.types.job.Status.Exit.valueOf(status.exit().name()));
         }
+        builder.retriedByJob(status.retriedByJob());
 
         return builder.build();
     }

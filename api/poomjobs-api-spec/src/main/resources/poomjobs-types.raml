@@ -25,6 +25,7 @@ Job:
           enum: [ PENDING, RUNNING, DONE ]
         exit:
           enum: [ SUCCESS, FAILURE, ABORTED ]
+        retriedByJob: string
 
     runner: JobRunnerMetaData
 
@@ -64,6 +65,7 @@ JobUpdateData:
           enum: [ RUNNING, PENDING, DONE ]
         exit:
           enum: [ SUCCESS, FAILURE ]
+        retriedByJob: string
 
 Runner:
   type: object

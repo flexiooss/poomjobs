@@ -54,6 +54,7 @@ public class JobValueMerger {
         if(status.exit() != null) {
             result.exit(Status.Exit.valueOf(status.exit().name()));
         }
+        result.retriedByJob(status.retriedByJob());
         return result.build();
     }
 

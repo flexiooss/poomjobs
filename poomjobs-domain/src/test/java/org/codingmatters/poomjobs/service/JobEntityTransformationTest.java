@@ -23,6 +23,7 @@ public class JobEntityTransformationTest {
                 .status(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.builder()
                         .run(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.Run.PENDING)
                         .exit(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.Exit.FAILURE)
+                        .retriedByJob("new-job")
                         .build())
                 .runner(JobRunnerMetaData.builder().runnerId("runner-1").idempotent(true).build())
                 .build();
@@ -37,6 +38,7 @@ public class JobEntityTransformationTest {
         assertThat(job.result(), is(jobValue.result()));
         assertThat(job.status().run().name(), is(jobValue.status().run().name()));
         assertThat(job.status().exit().name(), is(jobValue.status().exit().name()));
+        assertThat(job.status().retriedByJob(), is(jobValue.status().retriedByJob()));
         assertThat(job.runner().runnerId(), is(jobValue.runner().runnerId()));
         assertThat(job.runner().idempotent(), is(jobValue.runner().idempotent()));
     }
