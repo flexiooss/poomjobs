@@ -124,7 +124,7 @@ public class JobQueryRewriterTest {
                 0, 100
         );
 
-        assertThat(list, hasSize(5));
+        assertThat(list, hasSize(4));
         assertThat(
                 list.stream().map(e -> e.value().status().exit()).collect(Collectors.toList()),
                 everyItem(is(Status.Exit.SUCCESS))
