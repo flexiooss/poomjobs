@@ -37,6 +37,7 @@ public class JobEntityTransformation {
                 .runner(this.jobRunnerMetaDataFrom(value.runner()))
                 .result(value.result())
                 .context(value.context())
+                .attemptCount(value.attemptCount())
                 .build();
     }
 

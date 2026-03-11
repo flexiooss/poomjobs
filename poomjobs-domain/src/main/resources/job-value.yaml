@@ -1,6 +1,7 @@
 JobValue:
   category: string
   name: string
+  attemptCount: long
 
   arguments:
     $list: string

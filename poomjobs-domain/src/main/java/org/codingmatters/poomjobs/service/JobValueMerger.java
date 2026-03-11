@@ -41,6 +41,7 @@ public class JobValueMerger {
                         .arguments(creationData.arguments() != null ?
                                  creationData.arguments().toArray(new String[creationData.arguments().size()]) :
                                 (String[]) null)
+                        .attemptCount(creationData.attemptCount())
                 )
                 ;
     }

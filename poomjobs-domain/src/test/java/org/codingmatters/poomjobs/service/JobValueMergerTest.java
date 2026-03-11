@@ -2,10 +2,12 @@ package org.codingmatters.poomjobs.service;
 
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobRunnerMetaData;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
+import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 import org.codingmatters.poomjobs.api.types.jobupdatedata.Status;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -60,5 +62,21 @@ public class JobValueMergerTest {
                             .withRunner(JobRunnerMetaData.builder().runnerId("runner-2").idempotent(true).build())
                 )
                 );
+    }
+
+    @Test
+    public void createWithAllFields() {
+        JobValue value = JobValueMerger.create()
+                .with(JobCreationData.builder()
+                        .name("name")
+                        .category("category")
+                        .arguments("arg1", "arg2")
+                        .attemptCount(1L)
+                        .build());
+
+        assertThat(value.name(), is("name"));
+        assertThat(value.category(), is("category"));
+        assertThat(value.arguments(), contains("arg1", "arg2"));
+        assertThat(value.attemptCount(), is(1L));
     }
 }

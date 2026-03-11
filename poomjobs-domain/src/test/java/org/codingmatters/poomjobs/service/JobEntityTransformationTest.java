@@ -20,6 +20,7 @@ public class JobEntityTransformationTest {
                 .arguments("argument", "list")
                 .category("category")
                 .result("result")
+                .attemptCount(1L)
                 .status(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.builder()
                         .run(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.Run.PENDING)
                         .exit(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.Exit.FAILURE)
@@ -36,6 +37,7 @@ public class JobEntityTransformationTest {
         assertThat(job.arguments().toArray(), is(jobValue.arguments().toArray()));
         assertThat(job.category(), is(jobValue.category()));
         assertThat(job.result(), is(jobValue.result()));
+        assertThat(job.attemptCount(), is(jobValue.attemptCount()));
         assertThat(job.status().run().name(), is(jobValue.status().run().name()));
         assertThat(job.status().exit().name(), is(jobValue.status().exit().name()));
         assertThat(job.status().retriedByJob(), is(jobValue.status().retriedByJob()));
