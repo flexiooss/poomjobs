@@ -129,6 +129,7 @@ public class JobManager implements JobProcessorRunner.JobUpdater, JobProcessorRu
 
     private JobResourcePatchResponse patchJob(Job job, boolean strictly) throws IOException {
         JobResourcePatchResponse response = this.client.jobCollection().jobResource().patch(JobResourcePatchRequest.builder()
+                .accountId(job.opt().accounting().accountId().orElse(null))
                 .jobId(job.id())
                 .currentVersion(job.version())
                 .strict(strictly)
