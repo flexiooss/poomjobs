@@ -81,7 +81,8 @@ public class JobProcessorRunner implements JobRunner {
             if (!Status.Run.RUNNING.equals(job.opt().status().run().orElse(null))) {
                 throw new JobProcessingException("Job has not been reserved, will not execute. Run status should be RUNNING, was : " + job.opt().status().run().orElse(null));
             }
-            processor = this.processorFactory.createFor(job, this.shutdownRequested::get);
+            JobMonitorImpl monitor = new JobMonitorImpl(this.shutdownRequested, updatedJobConsumer, job);
+            processor = this.processorFactory.createFor(job, monitor);
             this.contextSetup.setup(job, processor);
 
             if (this.jobStartStopLogPolicy.equals(JobStartStopLogPolicy.DEBUG)) {

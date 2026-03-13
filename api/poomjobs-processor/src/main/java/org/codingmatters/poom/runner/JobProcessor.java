@@ -5,8 +5,11 @@ import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.job.Status;
 
+import java.io.IOException;
+
 @FunctionalInterface
 public interface JobProcessor {
+
     Job process() throws JobProcessingException;
 
     interface Factory {
@@ -14,6 +17,11 @@ public interface JobProcessor {
     }
 
     interface JobMonitor {
+
+        void doNotRestartThisJobAtThisPoint() throws IOException;
+
+        void canRestartThisJobFromTheBeginning() throws IOException;
+
         boolean isShutdownRequested();
 
         default void canContinue() throws JobMonitorError {
