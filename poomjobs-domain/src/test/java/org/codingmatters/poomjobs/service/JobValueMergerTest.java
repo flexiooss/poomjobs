@@ -5,6 +5,7 @@ import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 import org.codingmatters.poomjobs.api.types.jobupdatedata.Status;
+import org.codingmatters.poomjobs.api.types.jobupdatedata.status.AbortionStatus;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.contains;
@@ -49,6 +50,10 @@ public class JobValueMergerTest {
                                         .run(Status.Run.DONE)
                                         .exit(Status.Exit.SUCCESS)
                                         .retriedByJob("new-job")
+                                        .abortionStatus(AbortionStatus.builder()
+                                                .cause(AbortionStatus.Cause.MAX_RETRY_ATTEMPTED)
+                                                .recuperationAttempt(1L)
+                                                .build())
                                         .build())
                                 .runner(org.codingmatters.poomjobs.api.types.JobRunnerMetaData.builder().runnerId("runner-2").idempotent(true).build())
                                 .build()),
@@ -58,6 +63,10 @@ public class JobValueMergerTest {
                                         .run(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.Run.DONE)
                                         .exit(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.Exit.SUCCESS)
                                         .retriedByJob("new-job")
+                                        .abortionStatus(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.status.AbortionStatus.builder()
+                                                .cause(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.status.AbortionStatus.Cause.MAX_RETRY_ATTEMPTED)
+                                                .recuperationAttempt(1L)
+                                                .build())
                                         .build())
                             .withRunner(JobRunnerMetaData.builder().runnerId("runner-2").idempotent(true).build())
                 )

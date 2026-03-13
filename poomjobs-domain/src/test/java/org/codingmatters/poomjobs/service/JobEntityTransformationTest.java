@@ -2,6 +2,7 @@ package org.codingmatters.poomjobs.service;
 
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobRunnerMetaData;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.status.AbortionStatus;
 import org.codingmatters.poom.services.domain.entities.ImmutableEntity;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.junit.Test;
@@ -25,6 +26,10 @@ public class JobEntityTransformationTest {
                         .run(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.Run.PENDING)
                         .exit(org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status.Exit.FAILURE)
                         .retriedByJob("new-job")
+                        .abortionStatus(AbortionStatus.builder()
+                                .cause(AbortionStatus.Cause.MAX_RETRY_ATTEMPTED)
+                                .recuperationAttempt(1L)
+                                .build())
                         .build())
                 .runner(JobRunnerMetaData.builder().runnerId("runner-1").idempotent(true).build())
                 .build();
@@ -41,6 +46,8 @@ public class JobEntityTransformationTest {
         assertThat(job.status().run().name(), is(jobValue.status().run().name()));
         assertThat(job.status().exit().name(), is(jobValue.status().exit().name()));
         assertThat(job.status().retriedByJob(), is(jobValue.status().retriedByJob()));
+        assertThat(job.status().abortionStatus().cause().name(), is(jobValue.status().abortionStatus().cause().name()));
+        assertThat(job.status().abortionStatus().recuperationAttempt(), is(jobValue.status().abortionStatus().recuperationAttempt()));
         assertThat(job.runner().runnerId(), is(jobValue.runner().runnerId()));
         assertThat(job.runner().idempotent(), is(jobValue.runner().idempotent()));
     }

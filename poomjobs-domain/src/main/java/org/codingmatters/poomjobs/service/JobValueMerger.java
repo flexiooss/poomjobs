@@ -3,6 +3,7 @@ package org.codingmatters.poomjobs.service;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobRunnerMetaData;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.status.AbortionStatus;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 
@@ -56,7 +57,18 @@ public class JobValueMerger {
             result.exit(Status.Exit.valueOf(status.exit().name()));
         }
         result.retriedByJob(status.retriedByJob());
+        if (status.abortionStatus() != null) {
+            result.abortionStatus(this.fromAbortionStatus(status.abortionStatus()));
+        }
         return result.build();
+    }
+
+    private AbortionStatus fromAbortionStatus(org.codingmatters.poomjobs.api.types.jobupdatedata.status.AbortionStatus abortionStatus) {
+        if (abortionStatus == null) return null;
+        return AbortionStatus.builder()
+                .cause(abortionStatus.cause() != null ? AbortionStatus.Cause.valueOf(abortionStatus.cause().name()) : null)
+                .recuperationAttempt(abortionStatus.recuperationAttempt())
+                .build();
     }
 
     private JobRunnerMetaData fromJobRunnerMetaData(org.codingmatters.poomjobs.api.types.JobRunnerMetaData runner) {

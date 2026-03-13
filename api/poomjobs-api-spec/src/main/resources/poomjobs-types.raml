@@ -27,6 +27,12 @@ Job:
         exit:
           enum: [ SUCCESS, FAILURE, ABORTED ]
         retriedByJob: string
+        abortionStatus:
+          type: object
+          properties:
+            cause:
+              enum: [ MAX_RETRY_ATTEMPTED, JOB_NON_IDEMPOTENT, NO_RUNNER_ID ]
+            recuperationAttempt: integer
 
     runner: JobRunnerMetaData
 
@@ -66,8 +72,14 @@ JobUpdateData:
         run:
           enum: [ RUNNING, PENDING, DONE ]
         exit:
-          enum: [ SUCCESS, FAILURE ]
+          enum: [ SUCCESS, FAILURE, ABORTED ]
         retriedByJob: string
+        abortionStatus:
+          type: object
+          properties:
+            cause:
+              enum: [ MAX_RETRY_ATTEMPTED, JOB_NON_IDEMPOTENT, NO_RUNNER_ID ]
+            recuperationAttempt: integer
 
 Runner:
   type: object

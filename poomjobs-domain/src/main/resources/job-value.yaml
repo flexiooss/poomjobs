@@ -13,6 +13,10 @@ JobValue:
     exit:
       $enum: SUCCESS, FAILURE, ABORTED
     retriedByJob: string
+    abortionStatus:
+      cause:
+        $enum: MAX_RETRY_ATTEMPTED, JOB_NON_IDEMPOTENT, NO_RUNNER_ID
+      recuperationAttempt: long
 
   runner: $JobRunnerMetaData
 
