@@ -2,6 +2,7 @@ package org.codingmatters.poom.poomjobs.domain.jobs;
 
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.status.AbortionStatus;
 import org.codingmatters.poom.services.domain.change.Change;
 import org.codingmatters.poom.services.domain.change.ChangeBuilder;
 import org.codingmatters.poom.services.domain.change.Validation;
