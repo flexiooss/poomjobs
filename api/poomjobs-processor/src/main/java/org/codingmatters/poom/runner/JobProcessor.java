@@ -1,5 +1,6 @@
 package org.codingmatters.poom.runner;
 
+import org.codingmatters.poom.runner.exception.FailedJobTerminationException;
 import org.codingmatters.poom.runner.exception.JobMonitorError;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poomjobs.api.types.Job;
@@ -7,10 +8,11 @@ import org.codingmatters.poomjobs.api.types.job.Status;
 
 import java.io.IOException;
 
-@FunctionalInterface
 public interface JobProcessor {
 
     Job process() throws JobProcessingException;
+
+    void terminateFailedJob(Job job) throws FailedJobTerminationException;
 
     interface Factory {
         JobProcessor createFor(Job job, JobMonitor monitor);
@@ -30,4 +32,5 @@ public interface JobProcessor {
             }
         }
     }
+
 }

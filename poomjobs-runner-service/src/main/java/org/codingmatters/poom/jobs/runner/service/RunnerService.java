@@ -9,11 +9,9 @@ import org.codingmatters.poom.containers.runtime.netty.NettyApiContainerRuntime;
 import org.codingmatters.poom.containers.runtime.undertow.UndertowApiContainerRuntime;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerServiceInitializationException;
 import org.codingmatters.poom.jobs.runner.service.execution.pool.JobProcessingPoolManager;
-import org.codingmatters.poom.jobs.runner.service.jobs.termination.DefaultJobTerminator;
 import org.codingmatters.poom.jobs.runner.service.jobs.termination.FailedJobTerminationHandler;
 import org.codingmatters.poom.jobs.runner.service.jobs.JobManager;
 import org.codingmatters.poom.jobs.runner.service.jobs.JobProcessorRunner;
-import org.codingmatters.poom.jobs.runner.service.jobs.termination.JobTerminator;
 import org.codingmatters.poom.jobs.runner.service.pool.*;
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
@@ -64,9 +62,6 @@ public class RunnerService {
 
     public interface RunnerSetup {
         EndpointSetup concurrency(int concurrentJobCount);
-
-
-        void jobTerminator(JobTerminator jobTerminator);
     }
 
     public interface EndpointSetup {
@@ -105,7 +100,6 @@ public class RunnerService {
         private boolean exitOnUnrecoverableError = true;
         private ApiContainerRuntimeBuilder containerRuntimeBuilder;
         private Integer timeoutSeconds = Env.optional(PROCESS_SHUTDOWN_PROPERLY_TIMEOUT_IN_SECONDS).orElse(Env.Var.value("20")).asInteger();
-        private JobTerminator jobTerminator = new DefaultJobTerminator();
 
         @Override
         public ClientsSetup jobs(String category, String[] names, JobProcessor.Factory factory) {
@@ -169,11 +163,6 @@ public class RunnerService {
         }
 
         @Override
-        public void jobTerminator(JobTerminator jobTerminator) {
-            this.jobTerminator = jobTerminator;
-        }
-
-        @Override
         public RunnerService build() {
             return new RunnerService(
                     this.runnerRegistryClient,
@@ -187,8 +176,7 @@ public class RunnerService {
                     this.containerRuntimeBuilder != null ? this.containerRuntimeBuilder : new ApiContainerRuntimeBuilder(),
                     this.jobRequestEndpointHost,
                     this.jobRequestEndpointPort,
-                    this.timeoutSeconds,
-                    this.jobTerminator
+                    this.timeoutSeconds
             );
         }
     }
@@ -232,8 +220,7 @@ public class RunnerService {
             ApiContainerRuntimeBuilder containerRuntimeBuilder,
             String jobRequestEndpointHost,
             int jobRequestEndpointPort,
-            Integer runnerShutdownProperlyTimeoutSeconds,
-            JobTerminator failedJobTerminationHandler
+            Integer runnerShutdownProperlyTimeoutSeconds
     ) {
         this.runnerRegistryClient = runnerRegistryClient;
         this.jobRegistryClient = jobRegistryClient;
@@ -246,7 +233,7 @@ public class RunnerService {
         this.containerRuntimeBuilder = containerRuntimeBuilder;
         this.jobRequestEndpointPort = jobRequestEndpointPort;
         this.jobRequestEndpointHost = jobRequestEndpointHost;
-        this.failedJobTerminationHandler = new FailedJobTerminationHandler(failedJobTerminationHandler);
+        this.failedJobTerminationHandler = new FailedJobTerminationHandler(jobProcessorFactory);
         this.jobRequestEndpointUrl = Env.mandatory(Env.SERVICE_URL).asString();
         this.timeoutSeconds = runnerShutdownProperlyTimeoutSeconds;
     }

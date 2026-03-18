@@ -1,4 +1,4 @@
-package org.codingmatters.poom.jobs.runner.service.jobs.termination;
+package org.codingmatters.poom.runner.exception;
 
 public class FailedJobTerminationException extends Exception {
 

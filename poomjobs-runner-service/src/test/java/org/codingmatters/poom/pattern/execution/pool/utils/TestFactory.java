@@ -1,6 +1,7 @@
 package org.codingmatters.poom.pattern.execution.pool.utils;
 
 import org.codingmatters.poom.runner.JobProcessor;
+import org.codingmatters.poom.runner.exception.FailedJobTerminationException;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.job.Status;
@@ -51,6 +52,11 @@ public class TestFactory implements JobProcessor.Factory {
                     .run(Status.Run.DONE)
                     .exit(Status.Exit.SUCCESS)
                     .build());
+        }
+
+        @Override
+        public void terminateFailedJob(Job job) throws FailedJobTerminationException {
+
         }
     }
 }

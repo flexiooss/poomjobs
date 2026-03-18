@@ -2,7 +2,7 @@ package org.codingmatters.poom.jobs.runner.service.jobs;
 
 import org.codingmatters.poom.runner.JobContextSetup;
 import org.codingmatters.poom.runner.JobProcessor;
-import org.codingmatters.poom.runner.exception.JobMonitorError;
+import org.codingmatters.poom.runner.exception.FailedJobTerminationException;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.JobRunnerMetaData;
@@ -11,15 +11,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 public class JobProcessorRunnerTest {
 
@@ -37,12 +36,20 @@ public class JobProcessorRunnerTest {
                 updatedJob.set(job);
                 return job;
             },
-            (job, monitor) -> () -> {
-                monitor.canContinue();
-                processedJob.set(job);
-                JobProcessingException exception = nextJobProcessingException.get();
-                if (exception != null) {throw exception;}
-                return job.withStatus(nextJobStatus.get());
+            (job, monitor) -> new JobProcessor() {
+                @Override
+                public Job process() throws JobProcessingException {
+                    monitor.canContinue();
+                    processedJob.set(job);
+                    JobProcessingException exception = nextJobProcessingException.get();
+                    if (exception != null) {throw exception;}
+                    return job.withStatus(nextJobStatus.get());
+                }
+
+                @Override
+                public void terminateFailedJob(Job job) throws FailedJobTerminationException {
+
+                }
             },
             JobContextSetup.NOOP
     );
@@ -165,6 +172,11 @@ public class JobProcessorRunnerTest {
                         } while (!monitor.isShutdownRequested());
                         System.out.println("Job end");
                         return job.withStatus(Status.builder().exit(Status.Exit.SUCCESS).run(Status.Run.DONE).build());
+                    }
+
+                    @Override
+                    public void terminateFailedJob(Job job) throws FailedJobTerminationException {
+
                     }
                 },
                 JobContextSetup.NOOP
