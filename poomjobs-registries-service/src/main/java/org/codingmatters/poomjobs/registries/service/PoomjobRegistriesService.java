@@ -2,8 +2,6 @@ package org.codingmatters.poomjobs.registries.service;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import io.undertow.Undertow;
-import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
-import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIHandlersClient;
 import org.codingmatters.poom.poomjobs.domain.jobs.repositories.JobRepository;
 import org.codingmatters.poom.poomjobs.domain.runners.repositories.RunnerRepository;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
@@ -11,9 +9,11 @@ import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerQuery;
 import org.codingmatters.poom.poomjobs.domain.values.runners.RunnerValue;
 import org.codingmatters.poom.runner.manager.DefaultRunnerClientFactory;
 import org.codingmatters.poom.runner.manager.RunnerInvokerListener;
+import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poom.services.support.Env;
+import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIHandlersClient;
 import org.codingmatters.poomjobs.service.PoomjobsJobRegistryAPI;
 import org.codingmatters.poomjobs.service.PoomjobsRunnerRegistryAPI;
 import org.codingmatters.poomjobs.service.api.PoomjobsJobRegistryAPIProcessor;
@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 public class PoomjobRegistriesService {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(PoomjobRegistriesService.class);
@@ -37,16 +38,16 @@ public class PoomjobRegistriesService {
         String host = Env.mandatory(Env.SERVICE_HOST).asString();
         int port = Integer.parseInt(Env.mandatory(Env.SERVICE_PORT).asString());
         int clientPoolSize = Env.optional(CLIENT_POOL_SIZE).orElse(new Env.Var("5")).asInteger();
-        
+
         AtomicInteger threadIndex = new AtomicInteger(1);
         ExecutorService clientPool = Executors.newFixedThreadPool(clientPoolSize, runnable -> new Thread(runnable, "client-pool-thread-" + threadIndex.getAndIncrement()));
         ExecutorService listenerPool = Executors.newFixedThreadPool(Env.optional("JOB_LISTENER_POOL_SIZE").orElse(new Env.Var("5")).asInteger());
 
-        PoomjobRegistriesService service = new PoomjobRegistriesService(host, port, clientPool, listenerPool);
+        PoomjobRegistriesService service = new PoomjobRegistriesService(host, port, clientPool, listenerPool, account -> true);
         service.start();
 
         log.info("poomjob registries running.");
-        while(true) {
+        while (true) {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -74,7 +75,7 @@ public class PoomjobRegistriesService {
     private final Repository<RunnerValue, RunnerQuery> runnerRepository = RunnerRepository.createInMemory();
     private final PoomjobsRunnerRegistryAPI runnerRegistryAPI;
 
-    public PoomjobRegistriesService(String host, int port, ExecutorService clientPool, ExecutorService listenerPool) {
+    public PoomjobRegistriesService(String host, int port, ExecutorService clientPool, ExecutorService listenerPool, Function<String, Boolean> accountValidator) {
         this.host = host;
         this.port = port;
         this.clientPool = clientPool;
@@ -90,7 +91,8 @@ public class PoomjobRegistriesService {
                 this.jobRepository,
                 runnerInvokerListener,
                 null,
-                new JsonFactory()
+                new JsonFactory(),
+                accountValidator
         );
     }
 
@@ -127,7 +129,7 @@ public class PoomjobRegistriesService {
         try {
             this.clientPool.awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {}
-        if(! this.clientPool.isTerminated()) {
+        if (!this.clientPool.isTerminated()) {
             this.clientPool.shutdownNow();
             try {
                 this.clientPool.awaitTermination(5, TimeUnit.SECONDS);

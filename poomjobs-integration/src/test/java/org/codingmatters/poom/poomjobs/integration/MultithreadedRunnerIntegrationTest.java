@@ -11,7 +11,6 @@ import org.codingmatters.poom.services.tests.Eventually;
 import org.codingmatters.poomjobs.api.*;
 import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status200;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
-import org.codingmatters.poomjobs.api.types.RunnerStatusData;
 import org.codingmatters.poomjobs.api.types.runner.Runtime;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIRequesterClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIRequesterClient;
@@ -79,7 +78,7 @@ public class MultithreadedRunnerIntegrationTest {
         EnvProvider.provider(s -> env.get(s));
 
         int registriesPort = freePort();
-        this.registries = new PoomjobRegistriesService("localhost", registriesPort, Executors.newFixedThreadPool(30), Executors.newSingleThreadExecutor());
+        this.registries = new PoomjobRegistriesService("localhost", registriesPort, Executors.newFixedThreadPool(30), Executors.newSingleThreadExecutor(), account->true);
         this.registries.start();
 
         HttpClientWrapper httpClientWrapper = OkHttpClientWrapper.build();
