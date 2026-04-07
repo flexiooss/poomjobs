@@ -42,23 +42,17 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
         if (Status.Run.PENDING.equals(entity.value().opt().status().run().orElse(Status.Run.DONE))) {
             this.listenerPool.submit(() -> this.findRunnerAndDeleguateJob(entity));
         }
-        if (Status.Exit.ABORTED.equals(entity.value().opt().status().exit().orElse(Status.Exit.SUCCESS))) {
-            if (entity.value().opt().status().retriedByJob().isEmpty()
-                    && entity.value().opt().status().abortionStatus().cause().isPresent()) {
-                notifyRunnerJobAborted(entity);
-            }
-        }
     }
 
-    private void notifyRunnerJobAborted(Entity<JobValue> entity) {
+    public void notifyRunnerJobAborted(Entity<JobValue> entity) throws NoRunnerCandidateFoundException, AbortionImpossibleException {
         try {
             int start = 0;
-            int step = 10;
+            int step = 100;
             RunnerCollectionGetResponse response;
             do {
                 String range = String.format("%s-%s", start, start + step - 1);
                 start = start + step;
-
+                int hasError = 0;
                 response = this.runnerRegistry.runnerCollection().get(req -> req
                         .categoryCompetency(entity.value().category())
                         .nameCompetency(entity.value().name())
@@ -68,11 +62,9 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
                 ValueList<Runner> candidates = response.opt().status200().payload()
                         .orElse(response.opt().status206().payload()
                                 .orElse(new ValueList.Builder<Runner>().build()));
-                log.debug("runner candidates: {}", candidates);
                 if (!candidates.isEmpty()) {
                     boolean someDisconnected = false;
                     for (Runner candidate : candidates) {
-                        log.debug("trying candidate: {}", candidate);
                         PoomjobsRunnerAPIClient runner = this.runnerClient(candidate);
                         try {
                             AbortedJobTerminationPostResponse resp = runner.runningJob().abortedJobTermination().post(
@@ -88,12 +80,14 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
                                         entity.value().name());
                                 return;
                             } else {
-                                log.info("runner refused the job ; runner {} job {}/{} with response: {} (runner : {})",
+                                hasError++;
+                                log.error("runner refused the job abortion ; runner {} job {}/{} with response: {} (runner : {})",
                                         candidate.id(),
                                         entity.value().category(),
                                         entity.value().name(),
                                         resp,
-                                        candidate);
+                                        candidate
+                                );
                             }
                         } catch (IOException e) {
                             this.disconnectRunner(candidate, e);
@@ -103,12 +97,15 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
                     if (someDisconnected) {
                         start = 0;
                     }
+                    if (hasError > 2) {
+                        throw new AbortionImpossibleException("Abortion impossible for job " + entity.id());
+                    }
                 } else {
-                    log.info("no runner ready for job {} - {} [{}] ", entity.value().category(), entity.value().name(), entity.id());
+                    throw new NoRunnerCandidateFoundException("no runner ready for job " + entity.id());
                 }
             } while (!response.opt().status200().isPresent());
         } catch (IOException e) {
-            log.error("problem occurred while looking up runner for job " + entity.id(), e);
+            throw new NoRunnerCandidateFoundException("Unable to get runner candidates for termination of job " + entity.id(), e);
         }
     }
 
