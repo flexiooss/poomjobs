@@ -33,6 +33,12 @@ Job:
             cause:
               enum: [ MAX_RETRY_ATTEMPTED, JOB_NON_IDEMPOTENT, NO_RUNNER_ID ]
             recuperationAttempt: integer
+        terminationStatus:
+          type: object
+          properties:
+            status:
+              enum: [ TERMINATING, TERMINATED ]
+            terminationAttempt: integer
 
     runner: JobRunnerMetaData
 
@@ -80,6 +86,12 @@ JobUpdateData:
             cause:
               enum: [ MAX_RETRY_ATTEMPTED, JOB_NON_IDEMPOTENT, NO_RUNNER_ID ]
             recuperationAttempt: integer
+        terminationStatus:
+          type: object
+          properties:
+            status:
+              enum: [ TERMINATING, TERMINATED ]
+            terminationAttempt: integer
 
 Runner:
   type: object

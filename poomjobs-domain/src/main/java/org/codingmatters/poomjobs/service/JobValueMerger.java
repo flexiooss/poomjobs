@@ -4,6 +4,7 @@ import org.codingmatters.poom.poomjobs.domain.values.jobs.JobRunnerMetaData;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.status.AbortionStatus;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.status.TerminationStatus;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 
@@ -60,6 +61,9 @@ public class JobValueMerger {
         if (status.abortionStatus() != null) {
             result.abortionStatus(this.fromAbortionStatus(status.abortionStatus()));
         }
+        if (status.terminationStatus() != null) {
+            result.terminationStatus(this.fromTerminationStatus(status.terminationStatus()));
+        }
         return result.build();
     }
 
@@ -68,6 +72,14 @@ public class JobValueMerger {
         return AbortionStatus.builder()
                 .cause(abortionStatus.cause() != null ? AbortionStatus.Cause.valueOf(abortionStatus.cause().name()) : null)
                 .recuperationAttempt(abortionStatus.recuperationAttempt())
+                .build();
+    }
+
+    private TerminationStatus fromTerminationStatus(org.codingmatters.poomjobs.api.types.jobupdatedata.status.TerminationStatus terminationStatus) {
+        if (terminationStatus == null) return null;
+        return TerminationStatus.builder()
+                .status(terminationStatus.status() != null ? TerminationStatus.Status.valueOf(terminationStatus.status().name()) : null)
+                .terminationAttempt(terminationStatus.terminationAttempt())
                 .build();
     }
 

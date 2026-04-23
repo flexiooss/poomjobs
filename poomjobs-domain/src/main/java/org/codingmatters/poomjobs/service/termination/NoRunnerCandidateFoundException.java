@@ -1,4 +1,4 @@
-package org.codingmatters.poom.runner.manager;
+package org.codingmatters.poomjobs.service.termination;
 
 import java.io.IOException;
 

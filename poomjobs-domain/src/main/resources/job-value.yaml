@@ -17,6 +17,10 @@ JobValue:
       cause:
         $enum: MAX_RETRY_ATTEMPTED, JOB_NON_IDEMPOTENT, NO_RUNNER_ID
       recuperationAttempt: long
+    terminationStatus:
+      status:
+        $enum: TERMINATING, TERMINATED
+      terminationAttempt: long
 
   runner: $JobRunnerMetaData
 

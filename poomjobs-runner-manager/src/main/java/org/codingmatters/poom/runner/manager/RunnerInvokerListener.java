@@ -10,15 +10,17 @@ import org.codingmatters.poomjobs.api.types.Runner;
 import org.codingmatters.poomjobs.api.types.RunnerStatusData;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
-import org.codingmatters.poomjobs.service.JobEntityTransformation;
-import org.codingmatters.poomjobs.service.PoomjobsJobRepositoryListener;
+import org.codingmatters.poomjobs.service.*;
+import org.codingmatters.poomjobs.service.termination.AbortionImpossibleException;
+import org.codingmatters.poomjobs.service.termination.JobTerminationRunnerInvoker;
+import org.codingmatters.poomjobs.service.termination.NoRunnerCandidateFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
-public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
+public class RunnerInvokerListener implements PoomjobsJobRepositoryListener, JobTerminationRunnerInvoker {
 
     static private final Logger log = LoggerFactory.getLogger(RunnerInvokerListener.class);
 
@@ -44,6 +46,7 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
         }
     }
 
+    @Override
     public void notifyRunnerJobAborted(Entity<JobValue> entity) throws NoRunnerCandidateFoundException, AbortionImpossibleException {
         try {
             int start = 0;
