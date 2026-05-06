@@ -100,7 +100,7 @@ public class JobValueChangeValidationTest {
                         .from(BigInteger.ONE, BigInteger.ONE, jobValue)
                         .to(jobValue.withStatus(jobValue.status().withRun(Status.Run.RUNNING)))
                         .validation(),
-                is(new Validation(false, "job already RUNNING, cannont change running statuys to RUNNING again"))
+                is(new Validation(false, "job already RUNNING, cannot change running status to RUNNING again"))
         );
     }
 
