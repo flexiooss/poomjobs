@@ -24,15 +24,16 @@ public class PoomjobsJobRegistryAPI implements Api {
     private final Processor processor;
 
     public PoomjobsJobRegistryAPI(Repository<JobValue, PropertyQuery> jobRepository, JsonFactory jsonFactory) {
-        this(jobRepository, PoomjobsJobRepositoryListener.NOOP, null, jsonFactory);
+        this(jobRepository, PoomjobsJobRepositoryListener.NOOP, null, jsonFactory, account->true);
     }
 
     public PoomjobsJobRegistryAPI(
             Repository<JobValue, PropertyQuery> jobRepository,
             PoomjobsJobRepositoryListener jobRepositoryListener,
             Function<JobCollectionPostRequest, ObjectValue> contextualizer,
-            JsonFactory jsonFactory) {
-        this.handlers = new JobRegistryHandlersBuilder(jobRepository, "", contextualizer, jobRepositoryListener).build();
+            JsonFactory jsonFactory,
+            Function<String, Boolean> accountValidator) {
+        this.handlers = new JobRegistryHandlersBuilder(jobRepository, "", contextualizer, jobRepositoryListener, accountValidator).build();
         this.processor = new PoomjobsJobRegistryAPIProcessor(
                 this.path(),
                 jsonFactory,

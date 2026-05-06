@@ -6,11 +6,12 @@ import java.util.concurrent.Executors;
 
 public class LTRegistries {
     /**
-     *  mvn exec:java -Dexec.mainClass="org.codingmatters.poom.poomjobs.integration.lt.LTRegistries"
+     * mvn exec:java -Dexec.mainClass="org.codingmatters.poom.poomjobs.integration.lt.LTRegistries"
+     *
      * @param args
      */
     public static void main(String[] args) {
-        PoomjobRegistriesService service = new PoomjobRegistriesService("0.0.0.0", 9999, Executors.newFixedThreadPool(5), Executors.newFixedThreadPool(5));
+        PoomjobRegistriesService service = new PoomjobRegistriesService("0.0.0.0", 9999, Executors.newFixedThreadPool(5), Executors.newFixedThreadPool(5), account -> true);
 
         service.start();
         try {

@@ -1,14 +1,13 @@
 package org.codingmatters.poom.jobs.runner.service.jobs;
 
 import org.codingmatters.poom.handler.HandlerResource;
-import org.codingmatters.poom.jobs.runner.service.jobs.JobManager;
-import org.codingmatters.poom.jobs.runner.service.jobs.JobProcessorRunner;
 import org.codingmatters.poomjobs.api.*;
 import org.codingmatters.poomjobs.api.jobcollectiongetresponse.Status200;
 import org.codingmatters.poomjobs.api.jobresourcepatchresponse.Status400;
 import org.codingmatters.poomjobs.api.jobresourcepatchresponse.Status404;
 import org.codingmatters.poomjobs.api.jobresourcepatchresponse.Status500;
 import org.codingmatters.poomjobs.api.types.Job;
+import org.codingmatters.poomjobs.api.types.JobRunnerMetaData;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 import org.codingmatters.poomjobs.api.types.jobupdatedata.Status;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
@@ -19,10 +18,10 @@ import org.junit.rules.ExpectedException;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.Executors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.startsWith;
 
 public class JobManagerTest {
 
@@ -49,7 +48,19 @@ public class JobManagerTest {
                     .jobCollectionGetHandler(this.jobsGet)
                     .build()
     );
-    private final JobManager manager = new JobManager(this.apiClient, "account", "test-category", new String [] {"job1", "job2"});
+    private final JobManager manager = new JobManager(this.apiClient, "runnerID", "test-category", new String[]{"job1", "job2"});
+
+    @Test
+    public void testReserve() throws JobProcessorRunner.JobUpdateFailure {
+        Job job = Job.builder().build();
+        Job reserved = this.manager.reserve(job);
+        assertThat(reserved, is(Job.builder().id("patched-job").build()));
+        assertThat(jobPatch.lastRequest().payload(),
+                is(JobUpdateData.builder()
+                        .runner(JobRunnerMetaData.builder().runnerId("runnerID").build())
+                        .status(Status.builder().run(Status.Run.RUNNING).build())
+                        .build()));
+    }
 
     @Test
     public void givenUpdatingJob__whenJobPatchSucceeds__thenJobPatchCalled_andJobUpdateDataTakenFromJob() throws Exception {
@@ -63,7 +74,6 @@ public class JobManagerTest {
                 .build());
 
         assertThat(this.jobPatch.lastRequest().jobId(), is("job-id"));
-        assertThat(this.jobPatch.lastRequest().accountId(), is("account"));
         assertThat(this.jobPatch.lastRequest().currentVersion(), is("version"));
         assertThat(this.jobPatch.lastRequest().payload(), is(JobUpdateData.builder()
                 .status(Status.builder()

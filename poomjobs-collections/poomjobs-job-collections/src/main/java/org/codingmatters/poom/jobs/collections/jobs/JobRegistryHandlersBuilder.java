@@ -27,30 +27,31 @@ public class JobRegistryHandlersBuilder extends PoomjobsJobRegistryAPIHandlers.B
             Repository<JobValue, PropertyQuery> jobValueRepository,
             String url,
             Function<JobCollectionPostRequest, ObjectValue> contextualizer,
-            PoomjobsJobRepositoryListener jobRepositoryListener
+            PoomjobsJobRepositoryListener jobRepositoryListener,
+            Function<String, Boolean> accountValidator
     ) {
         Function<JobCollectionPostRequest, ObjectValue> ctxizer = contextualizer == null ? r -> null : contextualizer;
 
         this.jobCollectionGetHandler(new JobCollectionBrowse(request -> new JobRegistryPager(request.accountId(), this.parseQuery(request), jobValueRepository)));
-        this.jobCollectionPostHandler(new JobCollectionCreate(request -> new JobRegistryCRUD(jobValueRepository, url, request.accountId(), request.xExtension(), ctxizer.apply(request), null, jobRepositoryListener)));
-        this.jobResourceGetHandler(new JobCollectionRetrieve(request -> new JobRegistryCRUD(jobValueRepository, url, request.accountId(), null, null, null, jobRepositoryListener)));
-        this.jobResourcePatchHandler(new JobCollectionUpdate(request -> new JobRegistryCRUD(jobValueRepository, url, request.accountId(), null, null, this.fromVersion(request), jobRepositoryListener)));
+        this.jobCollectionPostHandler(new JobCollectionCreate(request -> new JobRegistryCRUD(jobValueRepository, url, request.accountId(), request.xExtension(), ctxizer.apply(request), null, jobRepositoryListener, accountValidator)));
+        this.jobResourceGetHandler(new JobCollectionRetrieve(request -> new JobRegistryCRUD(jobValueRepository, url, request.accountId(), null, null, null, jobRepositoryListener, accountValidator)));
+        this.jobResourcePatchHandler(new JobCollectionUpdate(request -> new JobRegistryCRUD(jobValueRepository, url, request.accountId(), null, null, this.fromVersion(request), jobRepositoryListener, accountValidator)));
     }
 
     public JobQuery parseQuery(JobCollectionGetRequest request) {
         JobQuery query = null;
-        if(request.opt().names().isPresent() || request.opt().category().isPresent() || request.opt().runStatus().isPresent() || request.opt().exitStatus().isPresent()) {
+        if (request.opt().names().isPresent() || request.opt().category().isPresent() || request.opt().runStatus().isPresent() || request.opt().exitStatus().isPresent()) {
             List<JobCriteria> criteria = new LinkedList<>();
-            if(request.opt().names().isPresent()) {
+            if (request.opt().names().isPresent()) {
                 criteria.add(JobCriteria.builder().names(request.names().toArray(new String[request.names().size()])).build());
             }
-            if(request.opt().category().isPresent()) {
+            if (request.opt().category().isPresent()) {
                 criteria.add(JobCriteria.builder().category(request.category()).build());
             }
-            if(request.opt().runStatus().isPresent()) {
+            if (request.opt().runStatus().isPresent()) {
                 criteria.add(JobCriteria.builder().runStatus(request.runStatus()).build());
             }
-            if(request.opt().exitStatus().isPresent()) {
+            if (request.opt().exitStatus().isPresent()) {
                 criteria.add(JobCriteria.builder().exitStatus(request.exitStatus()).build());
             }
             query = JobQuery.builder().criteria(criteria).build();
@@ -59,8 +60,8 @@ public class JobRegistryHandlersBuilder extends PoomjobsJobRegistryAPIHandlers.B
     }
 
     private BigInteger fromVersion(JobResourcePatchRequest request) {
-        if(request.opt().strict().isPresent() && request.strict()) {
-            if(request.opt().currentVersion().isPresent()) {
+        if (request.opt().strict().isPresent() && request.strict()) {
+            if (request.opt().currentVersion().isPresent()) {
                 return new BigInteger(request.currentVersion());
             } else {
                 return BigInteger.ONE;

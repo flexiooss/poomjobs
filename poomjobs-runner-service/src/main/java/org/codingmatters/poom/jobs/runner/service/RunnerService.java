@@ -9,6 +9,7 @@ import org.codingmatters.poom.containers.runtime.netty.NettyApiContainerRuntime;
 import org.codingmatters.poom.containers.runtime.undertow.UndertowApiContainerRuntime;
 import org.codingmatters.poom.jobs.runner.service.exception.RunnerServiceInitializationException;
 import org.codingmatters.poom.jobs.runner.service.execution.pool.JobProcessingPoolManager;
+import org.codingmatters.poom.jobs.runner.service.jobs.termination.FailedJobTerminationHandler;
 import org.codingmatters.poom.jobs.runner.service.jobs.JobManager;
 import org.codingmatters.poom.jobs.runner.service.jobs.JobProcessorRunner;
 import org.codingmatters.poom.jobs.runner.service.pool.*;
@@ -27,8 +28,6 @@ import org.codingmatters.rest.api.Api;
 import org.codingmatters.rest.api.Processor;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -196,6 +195,7 @@ public class RunnerService {
 
     private final int jobRequestEndpointPort;
     private final String jobRequestEndpointHost;
+    private final FailedJobTerminationHandler failedJobTerminationHandler;
 
     private String runnerId;
     private final String jobRequestEndpointUrl;
@@ -206,8 +206,6 @@ public class RunnerService {
 
     private final AtomicReference<String> errorToken = new AtomicReference<>(null);
     private final Object stopMonitor = new Object();
-
-    private final ExecutorService statusManagerExecutor = Executors.newSingleThreadExecutor(runnable -> new Thread(new ThreadGroup("runner-status-manager"), runnable));
 
     private final ApiContainerRuntimeBuilder containerRuntimeBuilder;
     private ApiContainerRuntime runtime;
@@ -235,6 +233,7 @@ public class RunnerService {
         this.containerRuntimeBuilder = containerRuntimeBuilder;
         this.jobRequestEndpointPort = jobRequestEndpointPort;
         this.jobRequestEndpointHost = jobRequestEndpointHost;
+        this.failedJobTerminationHandler = new FailedJobTerminationHandler(jobProcessorFactory);
         this.jobRequestEndpointUrl = Env.mandatory(Env.SERVICE_URL).asString();
         this.timeoutSeconds = runnerShutdownProperlyTimeoutSeconds;
     }
@@ -254,7 +253,7 @@ public class RunnerService {
     public void run(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
         if (shouldUseExperimentalPool()) {
             log.info("using experimental pool");
-            this.stopExperimentalFramework(runtimeInitializer);
+            this.startExperimentalFramework(runtimeInitializer);
         } else {
             log.info("using legacy pool");
             this.legacyFramework(runtimeInitializer);
@@ -274,7 +273,7 @@ public class RunnerService {
         }
     }
 
-    private void stopExperimentalFramework(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
+    private void startExperimentalFramework(RuntimeInitializer runtimeInitializer) throws RunnerServiceInitializationException {
         log.info("Register Runner");
         this.registerRunner();
         log.info("Create job manager");
@@ -292,7 +291,7 @@ public class RunnerService {
                 JobLocker.wrapped(this.jobManager)
         );
         log.info("Create runner status manager");
-        this.createRunnerStatusManager(jobPool);
+        this.createRunnerStatusManager(jobPool, this::stop);
 
         this.jobPool.addJobPoolListener(new JobPoolListener() {
             @Override
@@ -344,7 +343,7 @@ public class RunnerService {
         log.info("Create job processing pool manager");
         this.createJobProcessingPoolManager();
         log.info("Create runner status manager");
-        this.createRunnerStatusManager(jobProcessingPoolManager);
+        this.createRunnerStatusManager(jobProcessingPoolManager,  this::stop);
         log.info("Start job request endpoint");
         try {
             this.startJobRequestEndpoint(
@@ -391,10 +390,15 @@ public class RunnerService {
         }
     }
 
-    private void createRunnerStatusManager(StatusManager poolStatus) {
-        this.runnerStatusManager = new RunnerStatusManager(this.runnerRegistryClient, this.runnerId, this.ttl - (this.ttl / 10), this.ttl, poolStatus);
+    private void createRunnerStatusManager(StatusManager poolStatus, Runnable stopRunner) {
+        this.runnerStatusManager = new RunnerStatusManager(
+                this.runnerRegistryClient,
+                this.runnerId,
+                this.ttl - (this.ttl / 10),
+                this.ttl,
+                poolStatus,
+                stopRunner);
         this.runnerStatusManager.start();
-        this.statusManagerExecutor.submit(this.runnerStatusManager);
     }
 
     private void createJobProcessingPoolManager() {
@@ -414,6 +418,7 @@ public class RunnerService {
                 new JsonFactory(),
                 new PoomjobsRunnerAPIHandlers.Builder()
                         .runningJobPutHandler(jobPutHandler)
+                        .abortedJobTerminationPostHandler(this.failedJobTerminationHandler)
                         .build()
         );
         this.containerRuntimeBuilder.withApi(new Api() {
@@ -489,9 +494,6 @@ public class RunnerService {
         log.info("Stopping runner status manager");
         this.runnerStatusManager.stop();
 
-        log.info("Stopping runner status executor ( stop notifying status )");
-        this.statusManagerExecutor.shutdown();
-
         long timeoutMs = TimeUnit.SECONDS.toMillis(timeoutSeconds);
         log.info("Stopping thread pool with timeout(ms) " + timeoutMs);
         this.jobProcessingPoolManager.stop(timeoutMs);
@@ -500,9 +502,6 @@ public class RunnerService {
     private void stopExperimentalFramework() throws InterruptedException {
         log.info("Stopping runner status manager");
         this.runnerStatusManager.stop();
-
-        log.info("Stopping runner status executor ( stop notifying status )");
-        this.statusManagerExecutor.shutdown();
 
         log.info("Stopping job feeder");
         this.jobFeeder.stop();

@@ -7,12 +7,12 @@ import org.codingmatters.poom.poomjobs.domain.jobs.JobValueChange;
 import org.codingmatters.poom.poomjobs.domain.jobs.JobValueCreation;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Accounting;
+import org.codingmatters.poom.services.domain.entities.Entity;
+import org.codingmatters.poom.services.domain.entities.ImmutableEntity;
 import org.codingmatters.poom.services.domain.exceptions.RepositoryException;
 import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
-import org.codingmatters.poom.services.domain.entities.Entity;
-import org.codingmatters.poom.services.domain.entities.ImmutableEntity;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
@@ -23,6 +23,7 @@ import org.codingmatters.value.objects.values.ObjectValue;
 
 import java.math.BigInteger;
 import java.util.Optional;
+import java.util.function.Function;
 
 import static org.codingmatters.poomjobs.service.JobValueMerger.merge;
 
@@ -36,8 +37,9 @@ public class JobRegistryCRUD implements PagedCollectionAdapter.CRUD<Job, JobCrea
     private final ObjectValue context;
     private final BigInteger fromVersion;
     private final PoomjobsJobRepositoryListener listener;
+    private final Function<String, Boolean> accountValidator;
 
-    public JobRegistryCRUD(Repository<JobValue, PropertyQuery> repository, String url, String accountId, String xExtension, ObjectValue context, BigInteger fromVersion, PoomjobsJobRepositoryListener listener) {
+    public JobRegistryCRUD(Repository<JobValue, PropertyQuery> repository, String url, String accountId, String xExtension, ObjectValue context, BigInteger fromVersion, PoomjobsJobRepositoryListener listener, Function<String, Boolean> accountValidator) {
         this.repository = repository;
         this.url = url;
         this.accountId = accountId;
@@ -45,6 +47,7 @@ public class JobRegistryCRUD implements PagedCollectionAdapter.CRUD<Job, JobCrea
         this.context = context;
         this.fromVersion = fromVersion;
         this.listener = listener;
+        this.accountValidator = accountValidator;
     }
 
     @Override
@@ -60,16 +63,22 @@ public class JobRegistryCRUD implements PagedCollectionAdapter.CRUD<Job, JobCrea
 
     @Override
     public Entity<Job> createEntityFrom(JobCreationData jobCreationData) throws BadRequestException, ForbiddenException, NotFoundException, UnauthorizedException, UnexpectedException, MethodNotAllowedException {
+        if (accountId != null) {
+            Boolean accountValid = accountValidator.apply(accountId);
+            if (!accountValid) {
+                throw new BadRequestException(log, "Invalid account");
+            }
+        }
+
         JobValue jobValue = JobValueMerger.create()
                 .with(jobCreationData)
                 .withAccounting(Accounting.builder()
                         .accountId(this.accountId)
                         .extension(this.xExtension)
                         .build())
-                .withContext(this.context)
-                ;
+                .withContext(this.context);
         JobValueCreation creation = JobValueCreation.with(jobValue);
-        if(creation.validation().isValid()) {
+        if (creation.validation().isValid()) {
             Entity<JobValue> created;
             try {
                 created = this.repository.create(creation.applied());
@@ -95,7 +104,7 @@ public class JobRegistryCRUD implements PagedCollectionAdapter.CRUD<Job, JobCrea
         } catch (RepositoryException e) {
             throw this.unexpectedException("cannot retrieve job", e);
         }
-        if(entity != null) {
+        if (entity != null) {
             return Optional.of(
                     new ImmutableEntity<>(entity.id(), entity.version(), JobEntityTransformation.transform(entity).asJob())
             );
@@ -111,7 +120,7 @@ public class JobRegistryCRUD implements PagedCollectionAdapter.CRUD<Job, JobCrea
         try {
             entity = this.repository.retrieve(id);
             log.debug("job update request... retrieved {}", entity);
-            if(entity == null) {
+            if (entity == null) {
                 throw new NotFoundException(Error.builder()
                         .code(Error.Code.RESOURCE_NOT_FOUND)
                         .token(log.tokenized().info("while updating, job not found : {}", id))
@@ -122,7 +131,7 @@ public class JobRegistryCRUD implements PagedCollectionAdapter.CRUD<Job, JobCrea
         }
         JobValue newValue = merge(entity.value()).with(jobUpdateData);
         JobValueChange change = JobValueChange.from(entity.version(), this.fromVersion, entity.value()).to(newValue);
-        if(change.validation().isValid()) {
+        if (change.validation().isValid()) {
             Entity<JobValue> updated;
             try {
                 updated = this.repository.update(entity, change.applied());
@@ -148,7 +157,7 @@ public class JobRegistryCRUD implements PagedCollectionAdapter.CRUD<Job, JobCrea
         } catch (RepositoryException e) {
             throw this.unexpectedException("while deleting job, failed looking up " + id, e);
         }
-        if(entity != null) {
+        if (entity != null) {
             try {
                 this.repository.delete(entity);
             } catch (RepositoryException e) {

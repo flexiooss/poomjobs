@@ -1,7 +1,10 @@
 package org.codingmatters.poomjobs.service;
 
+import org.codingmatters.poom.poomjobs.domain.values.jobs.JobRunnerMetaData;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.status.AbortionStatus;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.status.TerminationStatus;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.api.types.JobUpdateData;
 
@@ -28,6 +31,7 @@ public class JobValueMerger {
         return this.currentValue.changed(builder -> builder
                 .result(jobData.result())
                 .status(this.fromJobDataStatus(jobData.status()))
+                .runner(this.fromJobRunnerMetaData(jobData.runner()))
         );
     }
 
@@ -39,6 +43,7 @@ public class JobValueMerger {
                         .arguments(creationData.arguments() != null ?
                                  creationData.arguments().toArray(new String[creationData.arguments().size()]) :
                                 (String[]) null)
+                        .attemptCount(creationData.attemptCount())
                 )
                 ;
     }
@@ -52,6 +57,37 @@ public class JobValueMerger {
         if(status.exit() != null) {
             result.exit(Status.Exit.valueOf(status.exit().name()));
         }
+        result.retriedByJob(status.retriedByJob());
+        if (status.abortionStatus() != null) {
+            result.abortionStatus(this.fromAbortionStatus(status.abortionStatus()));
+        }
+        if (status.terminationStatus() != null) {
+            result.terminationStatus(this.fromTerminationStatus(status.terminationStatus()));
+        }
         return result.build();
+    }
+
+    private AbortionStatus fromAbortionStatus(org.codingmatters.poomjobs.api.types.jobupdatedata.status.AbortionStatus abortionStatus) {
+        if (abortionStatus == null) return null;
+        return AbortionStatus.builder()
+                .cause(abortionStatus.cause() != null ? AbortionStatus.Cause.valueOf(abortionStatus.cause().name()) : null)
+                .recuperationAttempt(abortionStatus.recuperationAttempt())
+                .build();
+    }
+
+    private TerminationStatus fromTerminationStatus(org.codingmatters.poomjobs.api.types.jobupdatedata.status.TerminationStatus terminationStatus) {
+        if (terminationStatus == null) return null;
+        return TerminationStatus.builder()
+                .status(terminationStatus.status() != null ? TerminationStatus.Status.valueOf(terminationStatus.status().name()) : null)
+                .terminationAttempt(terminationStatus.terminationAttempt())
+                .build();
+    }
+
+    private JobRunnerMetaData fromJobRunnerMetaData(org.codingmatters.poomjobs.api.types.JobRunnerMetaData runner) {
+        if(runner == null) return null;
+        return JobRunnerMetaData.builder()
+                .runnerId(runner.runnerId())
+                .idempotent(runner.idempotent())
+                .build();
     }
 }

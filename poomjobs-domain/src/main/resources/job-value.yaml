@@ -1,6 +1,7 @@
 JobValue:
   category: string
   name: string
+  attemptCount: long
 
   arguments:
     $list: string
@@ -10,7 +11,18 @@ JobValue:
     run:
       $enum: PENDING, RUNNING, DONE
     exit:
-      $enum: SUCCESS, FAILURE
+      $enum: SUCCESS, FAILURE, ABORTED
+    retriedByJob: string
+    abortionStatus:
+      cause:
+        $enum: MAX_RETRY_ATTEMPTED, JOB_NON_IDEMPOTENT, NO_RUNNER_ID, STALE
+      recuperationAttempt: long
+    terminationStatus:
+      status:
+        $enum: TERMINATING, TERMINATED
+      terminationAttempt: long
+
+  runner: $JobRunnerMetaData
 
   processing:
     submitted: date-time
@@ -23,3 +35,7 @@ JobValue:
 
   context:
     $value-object: org.codingmatters.value.objects.values.ObjectValue
+
+JobRunnerMetaData:
+  runner-id: string
+  idempotent: bool

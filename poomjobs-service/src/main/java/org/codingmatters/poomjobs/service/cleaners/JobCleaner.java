@@ -15,28 +15,15 @@ import java.util.concurrent.TimeUnit;
 public class JobCleaner {
     static private final CategorizedLogger log = CategorizedLogger.getLogger(JobCleaner.class);
 
-    private final ScheduledExecutorService scheduler;
-    private final long every;
-    private final TimeUnit everyUnit;
     private final Repository<JobValue, PropertyQuery> jobRepository;
     private final long kept;
     private final TemporalUnit keptUnit;
     private ScheduledFuture<?> task;
 
-    public JobCleaner(ScheduledExecutorService scheduler, long every, TimeUnit everyUnit, Repository<JobValue, PropertyQuery> jobRepository, long kept, TemporalUnit keptUnit) {
-        this.scheduler = scheduler;
-        this.every = every;
-        this.everyUnit = everyUnit;
+    public JobCleaner(Repository<JobValue, PropertyQuery> jobRepository, long kept, TemporalUnit keptUnit) {
         this.jobRepository = jobRepository;
         this.kept = kept;
         this.keptUnit = keptUnit;
-    }
-
-    public void start() {
-        this.task = this.scheduler.scheduleWithFixedDelay(this::cleanup, this.every / 2, this.every, this.everyUnit);
-    }
-    public void stop() {
-        this.task.cancel(true);
     }
 
     public void cleanup() {

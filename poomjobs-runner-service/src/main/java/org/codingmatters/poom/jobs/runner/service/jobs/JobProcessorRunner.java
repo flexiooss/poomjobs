@@ -10,6 +10,7 @@ import org.codingmatters.poom.services.support.Env;
 import org.codingmatters.poom.services.support.logging.LoggingContext;
 import org.codingmatters.poomjobs.api.ValueList;
 import org.codingmatters.poomjobs.api.types.Job;
+import org.codingmatters.poomjobs.api.types.JobRunnerMetaData;
 import org.codingmatters.poomjobs.api.types.job.Status;
 
 import java.util.ArrayList;
@@ -80,7 +81,8 @@ public class JobProcessorRunner implements JobRunner {
             if (!Status.Run.RUNNING.equals(job.opt().status().run().orElse(null))) {
                 throw new JobProcessingException("Job has not been reserved, will not execute. Run status should be RUNNING, was : " + job.opt().status().run().orElse(null));
             }
-            processor = this.processorFactory.createFor(job, this.shutdownRequested::get);
+            JobMonitorImpl monitor = new JobMonitorImpl(this.shutdownRequested, updatedJobConsumer, job);
+            processor = this.processorFactory.createFor(job, monitor);
             this.contextSetup.setup(job, processor);
 
             if (this.jobStartStopLogPolicy.equals(JobStartStopLogPolicy.DEBUG)) {
@@ -119,9 +121,12 @@ public class JobProcessorRunner implements JobRunner {
 
     private Job monitor(Job job, Status.Exit exit) {
         if (exit == Status.Exit.ABORTED) {
-            return job.withStatus(Status.builder()
-                    .run(Status.Run.PENDING)
-                    .build());
+            return job.toBuilder()
+                    .status(Status.builder()
+                            .run(Status.Run.PENDING)
+                            .build())
+                    .runner((JobRunnerMetaData) null)
+                    .build();
         } else {
             return job.withStatus(Status.builder()
                     .run(Status.Run.DONE)

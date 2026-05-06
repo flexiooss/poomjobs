@@ -46,7 +46,8 @@ public class JobRegistryCRUDTest {
         public void jobUpdated(Entity<JobValue> entity, JobValue value) {
             updated.add(entity);
         }
-    });
+    }, accountId -> true
+            );
 
     @Test(expected = MethodNotAllowedException.class)
     public void whenReplacing__thenMethodNotAllowedException() throws Exception {

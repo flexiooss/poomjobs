@@ -23,3 +23,14 @@ types:
       409:
         description: runner is busy, it cannot accept running the job (RUNNER_IS_BUSY)
         body: Error
+  /failure/termination:
+    displayName: aborted job termination
+    description: This endpoint is used to notify a runner that a job as been aborted from another runner. Some callback may not be called.
+    post:
+      body: Job
+      responses:
+        204:
+          description: job termination success
+        500:
+          description: error processing job proper termination
+          body: Error

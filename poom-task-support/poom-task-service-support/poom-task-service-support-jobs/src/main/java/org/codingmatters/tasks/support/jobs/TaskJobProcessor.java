@@ -1,6 +1,7 @@
 package org.codingmatters.tasks.support.jobs;
 
 import org.codingmatters.poom.runner.JobProcessor;
+import org.codingmatters.poom.runner.exception.FailedJobTerminationException;
 import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poomjobs.api.types.Job;
@@ -71,8 +72,20 @@ public abstract class TaskJobProcessor<Param, Result> implements JobProcessor {
             }
             return this.success(notifier, resultObject);
         } catch (TaskProcessor.TaskFailure e) {
-                log.error("task failure : " + task, e);
+            log.error("task failure : " + task, e);
             return this.failure(notifier);
+        }
+    }
+
+    @Override
+    public void terminateFailedJob(Job job) throws FailedJobTerminationException {
+        try {
+            TaskApiClient taskClient = this.taskClientProvider.apply(this.job.arguments().get(1));
+            Task task = this.task(taskClient, job);
+            ExtendedTaskNotifier notifier = new ClientTaskNotifier(taskClient, task);
+            notifier.failure();
+        } catch (JobProcessingException e) {
+            throw new FailedJobTerminationException("Error terminating failed task [" + job.id() + "]", e);
         }
     }
 
@@ -81,7 +94,7 @@ public abstract class TaskJobProcessor<Param, Result> implements JobProcessor {
             TaskEntityGetResponse response = taskClient.taskCollection().taskEntity().get(TaskEntityGetRequest.builder()
                     .taskId(job.arguments().get(0))
                     .build());
-            if(response.opt().status200().isEmpty()) {
+            if (response.opt().status200().isEmpty()) {
                 throw new JobProcessingException("no task for job : " + job);
             }
             return response.status200().payload();

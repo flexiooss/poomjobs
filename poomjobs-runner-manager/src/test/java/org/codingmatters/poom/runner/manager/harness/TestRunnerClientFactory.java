@@ -64,6 +64,12 @@ public class TestRunnerClientFactory implements RunnerClientFactory {
                 }
                 return deleguate.put(request);
             }
+
+            @Override
+            public AbortedJobTermination abortedJobTermination() {
+                return null;
+            }
+
         }
     }
 }

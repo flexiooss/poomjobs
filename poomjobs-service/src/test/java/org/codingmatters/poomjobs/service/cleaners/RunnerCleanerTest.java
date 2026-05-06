@@ -10,16 +10,14 @@ import org.codingmatters.poom.services.tests.Eventually;
 import org.junit.Test;
 
 import java.time.temporal.ChronoUnit;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
 
 public class RunnerCleanerTest {
 
     private final Repository<RunnerValue, PropertyQuery> runners = InMemoryRepositoryWithPropertyQuery.validating(RunnerValue.class);
-    private final RunnerCleaner cleaner = new RunnerCleaner(Executors.newSingleThreadScheduledExecutor(), 500, TimeUnit.MILLISECONDS, this.runners, 12, ChronoUnit.DAYS);
+    private final RunnerCleaner cleaner = new RunnerCleaner(this.runners, 12, ChronoUnit.DAYS);
 
     @Test
     public void whenNoRunner__thenNoChange() throws Exception {
@@ -64,15 +62,4 @@ public class RunnerCleanerTest {
         assertThat(this.runners.all(0, 0).total(), is(0L));
     }
 
-    @Test
-    public void givenRunnerNeedsCleanup__whenScheduled__thenRunnerEventuallyGetsCleanup() throws Exception {
-        this.runners.create(RunnerValue.builder().runtime(run -> run.status(Runtime.Status.DISCONNECTED).lastPing(UTC.now().minusDays(42))).build());
-        try {
-            this.cleaner.start();
-
-            Eventually.timeout(1000).assertThat(() -> this.runners.all(0, 0).total(), is(0L));
-        } finally {
-            this.cleaner.stop();
-        }
-    }
 }

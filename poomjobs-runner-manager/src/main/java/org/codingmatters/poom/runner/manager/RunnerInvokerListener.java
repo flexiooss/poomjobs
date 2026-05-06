@@ -1,27 +1,26 @@
 package org.codingmatters.poom.runner.manager;
 
-import org.codingmatters.poomjobs.client.PoomjobsRunnerAPIClient;
-import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
 import org.codingmatters.poom.poomjobs.domain.values.runners.runnervalue.Runtime;
 import org.codingmatters.poom.services.domain.entities.Entity;
-import org.codingmatters.poomjobs.api.RunnerCollectionGetResponse;
-import org.codingmatters.poomjobs.api.RunnerPatchResponse;
-import org.codingmatters.poomjobs.api.RunningJobPutResponse;
-import org.codingmatters.poomjobs.api.ValueList;
+import org.codingmatters.poomjobs.api.*;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.Runner;
 import org.codingmatters.poomjobs.api.types.RunnerStatusData;
-import org.codingmatters.poomjobs.service.JobEntityTransformation;
-import org.codingmatters.poomjobs.service.PoomjobsJobRepositoryListener;
+import org.codingmatters.poomjobs.client.PoomjobsRunnerAPIClient;
+import org.codingmatters.poomjobs.client.PoomjobsRunnerRegistryAPIClient;
+import org.codingmatters.poomjobs.service.*;
+import org.codingmatters.poomjobs.service.termination.AbortionImpossibleException;
+import org.codingmatters.poomjobs.service.termination.JobTerminationRunnerInvoker;
+import org.codingmatters.poomjobs.service.termination.NoRunnerCandidateFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
-public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
+public class RunnerInvokerListener implements PoomjobsJobRepositoryListener, JobTerminationRunnerInvoker {
 
     static private final Logger log = LoggerFactory.getLogger(RunnerInvokerListener.class);
 
@@ -42,8 +41,74 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
 
     @Override
     public void jobUpdated(Entity<JobValue> entity, JobValue value) {
-        if(Status.Run.PENDING.equals(entity.value().opt().status().run().orElse(Status.Run.DONE))) {
+        if (Status.Run.PENDING.equals(entity.value().opt().status().run().orElse(Status.Run.DONE))) {
             this.listenerPool.submit(() -> this.findRunnerAndDeleguateJob(entity));
+        }
+    }
+
+    @Override
+    public void notifyRunnerJobAborted(Entity<JobValue> entity) throws NoRunnerCandidateFoundException, AbortionImpossibleException {
+        try {
+            int start = 0;
+            int step = 100;
+            RunnerCollectionGetResponse response;
+            do {
+                String range = String.format("%s-%s", start, start + step - 1);
+                start = start + step;
+                int hasError = 0;
+                response = this.runnerRegistry.runnerCollection().get(req -> req
+                        .categoryCompetency(entity.value().category())
+                        .nameCompetency(entity.value().name())
+                        .runtimeStatus(Runtime.Status.IDLE.name())
+                        .range(range)
+                );
+                ValueList<Runner> candidates = response.opt().status200().payload()
+                        .orElse(response.opt().status206().payload()
+                                .orElse(new ValueList.Builder<Runner>().build()));
+                if (!candidates.isEmpty()) {
+                    boolean someDisconnected = false;
+                    for (Runner candidate : candidates) {
+                        PoomjobsRunnerAPIClient runner = this.runnerClient(candidate);
+                        try {
+                            AbortedJobTerminationPostResponse resp = runner.runningJob().abortedJobTermination().post(
+                                    AbortedJobTerminationPostRequest.builder()
+                                            .jobId(entity.id())
+                                            .payload(JobEntityTransformation.transform(entity).asJob())
+                                            .build()
+                            );
+                            if (resp.opt().status204().isPresent()) {
+                                log.info("Abortion successful for job [{}] {}/{}",
+                                        entity.id(),
+                                        entity.value().category(),
+                                        entity.value().name());
+                                return;
+                            } else {
+                                hasError++;
+                                log.error("runner refused the job abortion ; runner {} job {}/{} with response: {} (runner : {})",
+                                        candidate.id(),
+                                        entity.value().category(),
+                                        entity.value().name(),
+                                        resp,
+                                        candidate
+                                );
+                            }
+                        } catch (IOException e) {
+                            this.disconnectRunner(candidate, e);
+                            someDisconnected = true;
+                        }
+                    }
+                    if (someDisconnected) {
+                        start = 0;
+                    }
+                    if (hasError > 2) {
+                        throw new AbortionImpossibleException("Abortion impossible for job " + entity.id());
+                    }
+                } else {
+                    throw new NoRunnerCandidateFoundException("no runner ready for job " + entity.id());
+                }
+            } while (!response.opt().status200().isPresent());
+        } catch (IOException e) {
+            throw new NoRunnerCandidateFoundException("Unable to get runner candidates for termination of job " + entity.id(), e);
         }
     }
 
@@ -64,10 +129,9 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
                 );
                 ValueList<Runner> candidates = response.opt().status200().payload()
                         .orElse(response.opt().status206().payload()
-                                .orElse(new ValueList.Builder<Runner>().build()))
-                        ;
+                                .orElse(new ValueList.Builder<Runner>().build()));
                 log.debug("runner candidates: {}", candidates);
-                if(! candidates.isEmpty()) {
+                if (!candidates.isEmpty()) {
                     boolean someDisconnected = false;
                     for (Runner candidate : candidates) {
                         log.debug("trying candidate: {}", candidate);
@@ -91,18 +155,18 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
                                         resp,
                                         candidate);
                             }
-                        } catch(IOException e) {
+                        } catch (IOException e) {
                             this.disconnectRunner(candidate, e);
                             someDisconnected = true;
                         }
                     }
-                    if(someDisconnected) {
+                    if (someDisconnected) {
                         start = 0;
                     }
                 } else {
-                    log.info("no runner ready for job {}", entity.id());
+                    log.info("no runner ready for job {} - {} [{}] ", entity.value().category(), entity.value().name(), entity.id());
                 }
-            } while (! response.opt().status200().isPresent());
+            } while (!response.opt().status200().isPresent());
         } catch (IOException e) {
             log.error("problem occurred while looking up runner for job " + entity.id(), e);
         }
@@ -119,7 +183,7 @@ public class RunnerInvokerListener implements PoomjobsJobRepositoryListener {
                     .runnerId(candidate.id())
                     .payload(status -> status.status(RunnerStatusData.Status.DISCONNECTED))
             );
-            if(! response.opt().status200().isPresent()) {
+            if (!response.opt().status200().isPresent()) {
                 log.error("runner {} update refused with response : {}", candidate.id(), response);
             }
         } catch (IOException e1) {

@@ -6,6 +6,7 @@ Job:
 
     category: string
     name: string
+    attemptCount: integer
 
     arguments:
       type: array
@@ -25,11 +26,21 @@ Job:
           enum: [ PENDING, RUNNING, DONE ]
         exit:
           enum: [ SUCCESS, FAILURE, ABORTED ]
+        retriedByJob: string
+        abortionStatus:
+          type: object
+          properties:
+            cause:
+              enum: [ MAX_RETRY_ATTEMPTED, JOB_NON_IDEMPOTENT, NO_RUNNER_ID, STALE ]
+            recuperationAttempt: integer
+        terminationStatus:
+          type: object
+          properties:
+            status:
+              enum: [ TERMINATING, TERMINATED ]
+            terminationAttempt: integer
 
-    runner:
-      type: object
-      properties:
-        runner-id: string
+    runner: JobRunnerMetaData
 
     processing:
       type: object
@@ -40,13 +51,18 @@ Job:
 
     context: object
 
+JobRunnerMetaData:
+  type: object
+  properties:
+    runner-id: string
+    idempotent: boolean
+
 JobCreationData:
   type: object
   properties:
-
     category: string
     name: string
-
+    attemptCount: integer
     arguments:
       type: array
       items: string
@@ -55,14 +71,27 @@ JobUpdateData:
   type: object
   properties:
     result: string
-
+    runner: JobRunnerMetaData
     status:
       type: object
       properties:
         run:
           enum: [ RUNNING, PENDING, DONE ]
         exit:
-          enum: [ SUCCESS, FAILURE ]
+          enum: [ SUCCESS, FAILURE, ABORTED ]
+        retriedByJob: string
+        abortionStatus:
+          type: object
+          properties:
+            cause:
+              enum: [ MAX_RETRY_ATTEMPTED, JOB_NON_IDEMPOTENT, NO_RUNNER_ID, STALE ]
+            recuperationAttempt: integer
+        terminationStatus:
+          type: object
+          properties:
+            status:
+              enum: [ TERMINATING, TERMINATED ]
+            terminationAttempt: integer
 
 Runner:
   type: object
@@ -105,6 +134,10 @@ RunnerStatusData:
   properties:
     status:
       enum: [ IDLE, RUNNING, DISCONNECTED ]
+
+JobFailureRecuperation:
+  type: object
+  properties:
 
 
 Message: !include https://raw.githubusercontent.com/flexiooss/poom-api-specs/1.36.0/apis/core/types/message.raml

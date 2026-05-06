@@ -8,6 +8,7 @@ import org.codingmatters.poomjobs.api.types.RunnerStatusData;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 

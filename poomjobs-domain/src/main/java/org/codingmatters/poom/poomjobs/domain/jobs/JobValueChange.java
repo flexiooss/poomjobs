@@ -2,6 +2,7 @@ package org.codingmatters.poom.poomjobs.domain.jobs;
 
 import org.codingmatters.poom.poomjobs.domain.values.jobs.JobValue;
 import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.Status;
+import org.codingmatters.poom.poomjobs.domain.values.jobs.jobvalue.status.AbortionStatus;
 import org.codingmatters.poom.services.domain.change.Change;
 import org.codingmatters.poom.services.domain.change.ChangeBuilder;
 import org.codingmatters.poom.services.domain.change.Validation;
@@ -29,8 +30,8 @@ public class JobValueChange extends Change<JobValue> {
 
     @Override
     public Validation validation() {
-        if(this.fromVersion != null) {
-            if(this.currentVersion.compareTo(this.fromVersion) != 0) {
+        if (this.fromVersion != null) {
+            if (this.currentVersion.compareTo(this.fromVersion) != 0) {
                 return new Validation(
                         false,
                         String.format("version differs, cannot validate change (current is %s, changing from %s)", this.currentVersion, this.fromVersion)
@@ -42,13 +43,13 @@ public class JobValueChange extends Change<JobValue> {
 
     @Override
     protected Validation validate() {
-        if(this.currentValue().status().run().equals(Status.Run.DONE)) {
+        if (this.currentValue().status().run().equals(Status.Run.DONE)) {
             return new Validation(
                     false,
                     String.format("cannot change a job when run status is DONE")
             );
         }
-        if(this.currentValue().status().run().equals(Status.Run.RUNNING)
+        if (this.currentValue().status().run().equals(Status.Run.RUNNING)
                 && this.newValue().status().run().equals(Status.Run.DONE)
                 && this.newValue().status().exit() == null) {
             return new Validation(
@@ -56,11 +57,16 @@ public class JobValueChange extends Change<JobValue> {
                     String.format("when job run status changes to DONE, an exit status must be setted")
             );
         }
-        if(this.currentValue().status().run().equals(Status.Run.RUNNING)
+        if (this.currentValue().status().run().equals(Status.Run.RUNNING)
                 && this.newValue().status().run().equals(Status.Run.RUNNING)) {
+            if (currentValue().opt().runner().runnerId().orElse("").equals(newValue().opt().runner().runnerId().orElse("other"))) {
+                if (currentValue().runner().idempotent() != newValue().runner().idempotent()) {
+                    return new Validation(true, "Change idempotence");
+                }
+            }
             return new Validation(
                     false,
-                    String.format("job already RUNNING, cannont change running statuys to RUNNING again")
+                    String.format("job already RUNNING, cannot change running status to RUNNING again")
             );
         }
         return new Validation(true, "");
@@ -70,10 +76,10 @@ public class JobValueChange extends Change<JobValue> {
     public JobValue applied() {
         JobValue result = this.newValue();
 
-        if(this.runStatusChanges(Status.Run.PENDING, Status.Run.RUNNING)) {
+        if (this.runStatusChanges(Status.Run.PENDING, Status.Run.RUNNING)) {
             result = result.withProcessing(result.processing().withStarted(UTC.now()));
         }
-        if(this.runStatusChanges(Status.Run.RUNNING, Status.Run.DONE)) {
+        if (this.runStatusChanges(Status.Run.RUNNING, Status.Run.DONE)) {
             result = result.withProcessing(result.processing().withFinished(UTC.now()));
         }
 
@@ -81,8 +87,8 @@ public class JobValueChange extends Change<JobValue> {
     }
 
     private boolean runStatusChanges(Status.Run from, Status.Run to) {
-        if(this.currentValue().status() != null && from == this.currentValue().status().run()) {
-            if(this.newValue().status() != null && to == this.newValue().status().run()) {
+        if (this.currentValue().status() != null && from == this.currentValue().status().run()) {
+            if (this.newValue().status() != null && to == this.newValue().status().run()) {
                 return true;
             }
         }

@@ -1,6 +1,8 @@
 package org.codingmatters.poom.poomjobs.integration;
 
 import org.codingmatters.poom.runner.JobProcessor;
+import org.codingmatters.poom.runner.exception.FailedJobTerminationException;
+import org.codingmatters.poom.runner.exception.JobProcessingException;
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.poomjobs.api.types.Job;
 import org.codingmatters.poomjobs.api.types.job.Status;
@@ -10,19 +12,28 @@ public class TestJobFactory implements JobProcessor.Factory {
 
     @Override
     public JobProcessor createFor(Job job, JobProcessor.JobMonitor monitor) {
-        return () -> {
-            log.info("PROCESSING TEST JOB {} : ", job.arguments(), job);
-            try {
-                if (job.name().equals("short")) {
-                    Thread.sleep(500L);
-                } else {
-                    Thread.sleep(5000L);
+        return new JobProcessor() {
+
+            @Override
+            public Job process() throws JobProcessingException {
+                log.info("PROCESSING TEST JOB {} : ", job.arguments(), job);
+                try {
+                    if (job.name().equals("short")) {
+                        Thread.sleep(500L);
+                    } else {
+                        Thread.sleep(5000L);
+                    }
+                } catch (InterruptedException e) {
                 }
-            } catch (InterruptedException e) {
+
+                log.info("DONE PROCESSING TEST JOB {}", job);
+                return job.withStatus(Status.builder().run(Status.Run.DONE).exit(Status.Exit.SUCCESS).build());
             }
 
-            log.info("DONE PROCESSING TEST JOB {}", job);
-            return job.withStatus(Status.builder().run(Status.Run.DONE).exit(Status.Exit.SUCCESS).build());
+            @Override
+            public void terminateFailedJob(Job job) throws FailedJobTerminationException {
+
+            }
         };
     }
 }

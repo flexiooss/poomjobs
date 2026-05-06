@@ -13,30 +13,18 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class RunnerCleaner {
+
     static private final CategorizedLogger log = CategorizedLogger.getLogger(RunnerCleaner.class);
 
-    private final ScheduledExecutorService scheduler;
-    private final long every;
-    private final TimeUnit everyUnit;
     private final Repository<RunnerValue, PropertyQuery> runnerRepository;
     private final long kept;
     private final TemporalUnit keptUnit;
     private ScheduledFuture<?> task;
 
-    public RunnerCleaner(ScheduledExecutorService scheduler, long every, TimeUnit everyUnit, Repository<RunnerValue, PropertyQuery> runnerRepository, long kept, TemporalUnit keptUnit) {
-        this.scheduler = scheduler;
-        this.every = every;
-        this.everyUnit = everyUnit;
+    public RunnerCleaner(Repository<RunnerValue, PropertyQuery> runnerRepository, long kept, TemporalUnit keptUnit) {
         this.runnerRepository = runnerRepository;
         this.kept = kept;
         this.keptUnit = keptUnit;
-    }
-
-    public void start() {
-        this.task = this.scheduler.scheduleWithFixedDelay(this::cleanup, this.every / 2, this.every, this.everyUnit);
-    }
-    public void stop() {
-        this.task.cancel(true);
     }
 
     public void cleanup() {
