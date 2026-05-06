@@ -15,7 +15,7 @@ JobValue:
     retriedByJob: string
     abortionStatus:
       cause:
-        $enum: MAX_RETRY_ATTEMPTED, JOB_NON_IDEMPOTENT, NO_RUNNER_ID
+        $enum: MAX_RETRY_ATTEMPTED, JOB_NON_IDEMPOTENT, NO_RUNNER_ID, STALE
       recuperationAttempt: long
     terminationStatus:
       status:
