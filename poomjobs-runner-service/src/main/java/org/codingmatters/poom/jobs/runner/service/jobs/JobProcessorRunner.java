@@ -92,6 +92,11 @@ public class JobProcessorRunner implements JobRunner {
             }
             Job updated;
             try {
+                if (processor.isIdempotent()) {
+                    monitor.canRestartThisJobFromTheBeginning();
+                } else {
+                    monitor.doNotRestartThisJobAtThisPoint();
+                }
                 updated = processor.process();
                 updated = this.withFinalStatus(updated);
             } catch (JobMonitorError e) {

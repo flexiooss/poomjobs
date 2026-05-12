@@ -14,15 +14,27 @@ public interface JobProcessor {
 
     void terminateFailedJob(Job job) throws FailedJobTerminationException;
 
+    /**
+     * Permet de définir l'idempotence au démarrage du job
+     * @return idempotence par défaut
+     */
+    default boolean isIdempotent() {
+        return true;
+    }
+
     interface Factory {
         JobProcessor createFor(Job job, JobMonitor monitor);
     }
 
     interface JobMonitor {
 
-        void doNotRestartThisJobAtThisPoint() throws IOException;
+        default void doNotRestartThisJobAtThisPoint() throws IOException {}
 
-        void canRestartThisJobFromTheBeginning() throws IOException;
+        ;
+
+        default void canRestartThisJobFromTheBeginning() throws IOException {}
+
+        ;
 
         boolean isShutdownRequested();
 
@@ -31,6 +43,8 @@ public interface JobProcessor {
                 throw new JobMonitorError(Status.Exit.ABORTED);
             }
         }
+
+
     }
 
 }
