@@ -4,6 +4,7 @@ import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.tasks.api.*;
 import org.codingmatters.tasks.api.types.Task;
 import org.codingmatters.tasks.api.types.TaskLogCreation;
+import org.codingmatters.tasks.context.TaskLogLine;
 import org.codingmatters.tasks.api.types.TaskStatusChange;
 import org.codingmatters.tasks.client.TaskApiClient;
 import org.codingmatters.tasks.support.jobs.ExtendedTaskNotifier;
@@ -75,6 +76,30 @@ public class ClientTaskNotifier implements ExtendedTaskNotifier {
     public void error(String log, Object... args) {
         ClientTaskNotifier.log.error(log, args);
         this.log(TaskLogCreation.builder().level(TaskLogCreation.Level.ERROR).log(log, args).build());
+    }
+
+    @Override
+    public void info(TaskLogLine line) {
+        ClientTaskNotifier.log.info(line.text());
+        this.log(this.creation(TaskLogCreation.Level.INFO, line));
+    }
+
+    @Override
+    public void warn(TaskLogLine line) {
+        ClientTaskNotifier.log.warn(line.text());
+        this.log(this.creation(TaskLogCreation.Level.WARN, line));
+    }
+
+    @Override
+    public void error(TaskLogLine line) {
+        ClientTaskNotifier.log.error("{}", line.text());
+        this.log(this.creation(TaskLogCreation.Level.ERROR, line));
+    }
+
+    private TaskLogCreation creation(TaskLogCreation.Level level, TaskLogLine line) {
+        return TaskLogCreation.builder().level(level).log(line.label())
+                .description(line.hasDescription() ? line.description() : null)
+                .build();
     }
 
     private void statusChange(TaskStatusChange.Run run, TaskStatusChange.Exit exit) {

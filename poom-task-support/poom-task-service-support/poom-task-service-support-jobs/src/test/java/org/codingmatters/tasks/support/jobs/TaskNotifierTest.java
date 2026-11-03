@@ -1,6 +1,7 @@
 package org.codingmatters.tasks.support.jobs;
 
 import org.codingmatters.tasks.api.types.TaskStatusChange;
+import org.codingmatters.tasks.context.TaskLogLine;
 import org.codingmatters.value.objects.values.ObjectValue;
 import org.junit.Test;
 
@@ -49,5 +50,25 @@ public class TaskNotifierTest {
         assertThat(this.info, contains("hello world (support token : 12)"));
         assertThat(this.warn, contains("not so good (support token : 12)"));
         assertThat(this.error, contains("goodby world (support token : 12)"));
+    }
+
+    @Test
+    public void linesWithoutDescriptionSupport_areLoggedAsASingleText() throws Exception {
+        this.notifier.info(TaskLogLine.of("label", "detail"));
+        this.notifier.warn(TaskLogLine.of("100 %", null));
+        this.notifier.error(TaskLogLine.of("label", " "));
+
+        assertThat(this.info, contains("label — detail"));
+        assertThat(this.warn, contains("100 %"));
+        assertThat(this.error, contains("label"));
+    }
+
+    @Test
+    public void linesWithToken_carryTheTokenInTheDescription() throws Exception {
+        this.notifier.withToken("12").info(TaskLogLine.of("label", "detail"));
+        this.notifier.withToken("12").error(TaskLogLine.of("label", null));
+
+        assertThat(this.info, contains("label — detail (support token : 12)"));
+        assertThat(this.error, contains("label — (support token : 12)"));
     }
 }

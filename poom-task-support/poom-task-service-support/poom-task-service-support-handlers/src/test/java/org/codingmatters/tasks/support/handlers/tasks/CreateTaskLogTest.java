@@ -95,6 +95,21 @@ public class CreateTaskLogTest {
     }
 
     @Test
+    public void givenHasTaskLogRepository__whenLogHasADescription__thenTheDescriptionIsStored() throws Exception {
+        this.taskRepository.createWithId("task", Task.builder().id("task").build());
+
+        TaskLogsPostResponse response = this.createTaskLog.apply(TaskLogsPostRequest.builder()
+                .taskId("task")
+                .payload(TaskLogCreation.builder().log("label").description("detail").level(TaskLogCreation.Level.INFO).build())
+                .build());
+
+        response.opt().status201().orElseThrow(() -> new AssertionError("expected 201, got " + response));
+        TaskLog log = this.taskLogRepository.get().all(0L, 0L).valueList().get(0);
+        assertThat(log.log(), is("label"));
+        assertThat(log.description(), is("detail"));
+    }
+
+    @Test
     public void givenHasTaskLogRepository__whenTask__then201_andLogCreated() throws Exception {
         this.taskRepository.createWithId("task", Task.builder().id("task").build());
 

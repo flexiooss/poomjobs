@@ -74,6 +74,7 @@ public class CreateTaskLog extends AbstractTaskHandler implements Function<TaskL
                 .at(UTC.now())
                 .level(TaskLog.Level.valueOf(request.payload().level().name()))
                 .log(request.payload().log())
+                .description(request.payload().description())
                 .build();
 
         Optional<Repository<TaskLog, PropertyQuery>> logs = adapter.taskLogs();
