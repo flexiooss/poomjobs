@@ -23,6 +23,7 @@ import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -101,6 +102,21 @@ public class UpdateTaskStatusTest {
         Task task = this.repository.retrieve("task").value();
         assertThat(task.status(), is(Status.builder().run(Status.Run.RUNNING).exit(null).build()));
         assertThat(task.startedAt(), is(around(UTC.now())));
+    }
+
+    @Test
+    public void givenTaskExist__whenTaskWasRunning_andChangeToRunning__thenStartedAtKept() throws Exception {
+        LocalDateTime startedAt = UTC.now().minusHours(1);
+        this.repository.createWithId("task", Task.builder().status(Status.builder().run(Status.Run.RUNNING).build()).startedAt(startedAt).build());
+
+        TaskStatusChangesPostResponse response = this.retrieveTask.apply(TaskStatusChangesPostRequest.builder()
+                .taskId("task").payload(TaskStatusChange.builder().run(TaskStatusChange.Run.RUNNING).build())
+                .build());
+
+        response.opt().status201().orElseThrow(() -> new AssertionError("expected 201, got : " + response));
+        Task task = this.repository.retrieve("task").value();
+        assertThat(task.status(), is(Status.builder().run(Status.Run.RUNNING).build()));
+        assertThat(task.startedAt(), is(startedAt));
     }
 
     @Test

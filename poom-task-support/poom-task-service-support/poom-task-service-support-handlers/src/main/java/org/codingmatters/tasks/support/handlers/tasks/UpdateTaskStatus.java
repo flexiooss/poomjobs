@@ -71,7 +71,7 @@ public class UpdateTaskStatus extends AbstractTaskHandler implements Function<Ta
             try {
                 if (request.payload().run().equals(TaskStatusChange.Run.RUNNING)) {
                     taskEntity = repository.update(taskEntity, taskEntity.value()
-                            .withStartedAt(UTC.now())
+                            .withStartedAt(taskEntity.value().opt().startedAt().orElseGet(UTC::now))
                             .withStatus(Status.builder().run(Status.Run.RUNNING).build())
                     );
                 } else if (request.payload().run().equals(TaskStatusChange.Run.DONE)) {

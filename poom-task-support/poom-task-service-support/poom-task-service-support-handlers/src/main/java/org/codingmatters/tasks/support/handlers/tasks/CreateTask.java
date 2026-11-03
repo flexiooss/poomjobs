@@ -91,14 +91,7 @@ public class CreateTask extends AbstractTaskHandler implements Function<TaskColl
                 log.info("created job {} for task {}", response.status201().xEntityId(), taskEntity.id());
             } else {
                 log.error("job creation failed for task for task {} - response from job registry : {}", taskEntity.id(), response);
-                try {
-                    adapter.tasks().update(taskEntity, taskEntity.value()
-                            .withChangedStatus(status -> status.run(Status.Run.DONE).exit(Status.Exit.FAILURE))
-                            .withFinishedAt(UTC.now())
-                    );
-                } catch (RepositoryException e) {
-                    log.error("while job creation faile for task, failed accessing task storage", e);
-                }
+                this.markFailed(adapter, taskEntity);
                 return TaskCollectionPostResponse.builder().status500(st -> st.payload(error -> error
                     .code(Error.Code.UNEXPECTED_ERROR)
                     .token(log.tokenized().error("while submitting job for task, job refused : {} - {}", request, response))
@@ -106,6 +99,7 @@ public class CreateTask extends AbstractTaskHandler implements Function<TaskColl
                 ).build();
             }
         } catch (IOException e) {
+            this.markFailed(adapter, taskEntity);
             return TaskCollectionPostResponse.builder().status500(st -> st.payload(error -> error
                     .code(Error.Code.UNEXPECTED_ERROR)
                     .token(log.tokenized().error("while submitting job for task, failed accessing job registry : " + request, e))
@@ -128,5 +122,16 @@ public class CreateTask extends AbstractTaskHandler implements Function<TaskColl
         return TaskCollectionPostResponse.builder()
                 .status201(Status201.builder().xEntityId(taskEntity.id()).payload(taskEntity.value()).build())
                 .build();
+    }
+
+    private void markFailed(TaskEntryPointAdapter adapter, Entity<Task> taskEntity) {
+        try {
+            adapter.tasks().update(taskEntity, taskEntity.value()
+                    .withChangedStatus(status -> status.run(Status.Run.DONE).exit(Status.Exit.FAILURE))
+                    .withFinishedAt(UTC.now())
+            );
+        } catch (RepositoryException e) {
+            log.error("while job creation failed for task, failed accessing task storage", e);
+        }
     }
 }

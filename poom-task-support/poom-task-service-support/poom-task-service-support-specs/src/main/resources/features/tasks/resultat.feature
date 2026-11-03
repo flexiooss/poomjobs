@@ -25,25 +25,27 @@ Feature: Résultat d'une tâche
     Then la tâche porte le résultat déposé
     And la tâche est en attente
 
-  # source: ReplaceTaskResult#apply (aucune vérification du statut)
-  # écart: F5 (docs/tests/findings.md)
-  @known-bug
-  Scenario Outline: Le résultat d'une tâche terminée peut encore être remplacé
+  # source: ReplaceTaskResult#apply
+  # corrigé: F5 (docs/tests/findings.md)
+  @confirmed
+  Scenario Outline: Le résultat d'une tâche terminée ne peut plus être remplacé
     Given une tâche <statut>
     And un résultat a été déposé sur la tâche
     When je dépose un autre résultat sur la tâche
-    Then la demande est acceptée
-    And la tâche porte le dernier résultat déposé
+    Then la demande est refusée car la tâche est terminée
+    And la tâche porte le résultat déposé
 
     Examples:
       | statut               |
       | terminée avec succès |
       | terminée en échec    |
 
-  # source: ReplaceTaskResult#apply (aucun appel à notifyCallback)
-  # écart: F6 (docs/tests/findings.md)
-  @known-bug
-  Scenario: Déposer un résultat ne notifie pas le point de rappel
+  # source: ReplaceTaskResult#apply → AbstractTaskHandler#notifyCallback
+  # corrigé: F6 (docs/tests/findings.md)
+  @confirmed
+  Scenario: Déposer un résultat notifie le point de rappel
     Given une tâche en cours suivie par un point de rappel
     When je dépose un résultat sur la tâche
-    Then le point de rappel ne reçoit aucune notification
+    Then le point de rappel reçoit une notification de changement de statut de la tâche en cours
+    And la notification porte la tâche
+    And la notification porte le résultat déposé

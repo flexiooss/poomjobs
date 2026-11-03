@@ -110,6 +110,18 @@ public class TaskSteps {
         this.tasks.given(name, status, false);
     }
 
+    /** Une tâche de ce statut, désignée par ce nom, existe, suivie par le point de rappel du scénario. */
+    @Given("la tâche {string} {statutTache} suivie par un point de rappel")
+    public void existingNamedFollowedTask(String name, Status status) {
+        this.tasks.given(name, status, true);
+    }
+
+    /** Une tâche en cours existe, démarrée à ce moment ; elle devient la tâche du scénario. */
+    @Given("une tâche en cours démarrée le {moment}")
+    public void existingTaskStartedAt(LocalDateTime startedAt) {
+        this.tasks.givenStarted(Tasks.CURRENT, startedAt);
+    }
+
     /** Une tâche de ce statut, désignée par ce nom, a été créée à ce moment. */
     @Given("la tâche {string} {statutTache} créée le {moment}")
     public void existingNamedTaskCreatedAt(String name, Status status, LocalDateTime createdAt) {
@@ -134,10 +146,10 @@ public class TaskSteps {
         assertThat(this.tasks.log(this.context.task(name), level, text).accepted(), is(true));
     }
 
-    /** Un premier résultat a déjà été déposé sur la tâche du scénario. */
+    /** La tâche du scénario porte déjà un premier résultat. */
     @Given("un résultat a été déposé sur la tâche")
     public void resultDeposited() {
-        assertThat(this.tasks.depositResult(this.context.currentTask(), Tasks.FIRST_RESULT).accepted(), is(true));
+        this.tasks.givenResult(this.context.currentTask(), Tasks.FIRST_RESULT);
     }
 
     /** Le registre de jobs refuse toute soumission de job. */
@@ -347,13 +359,14 @@ public class TaskSteps {
     /** La tâche du scénario a été créée, démarrée ou terminée à l'instant présent, en heure UTC. */
     @Then("la tâche a été {momentTache} à l'instant \\(heure UTC)")
     public void taskMomentIsNow(String moment) {
-        Task task = this.tasks.stored(this.context.currentTask());
-        LocalDateTime at = switch (moment) {
-            case "créée" -> task.createdAt();
-            case "démarrée" -> task.startedAt();
-            default -> task.finishedAt();
-        };
+        LocalDateTime at = this.momentOfCurrentTask(moment);
         assertThat(moment + " le " + at, Moments.isJustBefore(at, LocalDateTime.now(ZoneOffset.UTC)), is(true));
+    }
+
+    /** La tâche du scénario a été créée, démarrée ou terminée à ce moment. */
+    @Then("la tâche a été {momentTache} le {moment}")
+    public void taskMomentIs(String moment, LocalDateTime expected) {
+        assertThat(moment + " le", this.momentOfCurrentTask(moment), is(expected));
     }
 
     /** La dernière action a renvoyé la tâche du scénario, avec son statut enregistré. */
@@ -404,6 +417,12 @@ public class TaskSteps {
         assertThat(this.lastNotification().log().taskId(), is(this.context.currentTask()));
     }
 
+    /** La tâche portée par la notification reçue a pour résultat le premier résultat déposé. */
+    @Then("la notification porte le résultat déposé")
+    public void notificationCarriesResult() {
+        assertThat(this.lastNotification().task().results(), is(Tasks.FIRST_RESULT));
+    }
+
     /** Le point de rappel n'a reçu aucune notification. */
     @Then("le point de rappel ne reçoit aucune notification")
     public void noCallback() {
@@ -426,12 +445,6 @@ public class TaskSteps {
     @Then("je reçois les journaux :")
     public void receivedLogs(List<String> logs) {
         assertThat(this.tasks.lastLogs(), contains(logs.toArray()));
-    }
-
-    /** La dernière lecture de journaux n'en a renvoyé aucun. */
-    @Then("je ne reçois aucun journal")
-    public void receivedNoLog() {
-        assertThat(this.tasks.lastLogs(), is(empty()));
     }
 
     /** La tâche du scénario porte le premier résultat déposé. */
@@ -468,6 +481,15 @@ public class TaskSteps {
      * Identifiant, statut et demande de la tâche du scénario ; les dates ne sont pas comparées, un dépôt pouvant
      * les tronquer (Mongo : milliseconde).
      */
+    private LocalDateTime momentOfCurrentTask(String moment) {
+        Task task = this.tasks.stored(this.context.currentTask());
+        return switch (moment) {
+            case "créée" -> task.createdAt();
+            case "démarrée" -> task.startedAt();
+            default -> task.finishedAt();
+        };
+    }
+
     private void assertIsTheCurrentTask(Task task) {
         Task stored = this.tasks.stored(this.context.currentTask());
         assertThat(task.id(), is(stored.id()));

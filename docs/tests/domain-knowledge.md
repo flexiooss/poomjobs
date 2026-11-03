@@ -38,20 +38,22 @@
 | déposer un résultat | `ReplaceTaskResult` (`TaskResultsPutRequest`, remplace `results`) |
 | tâches d'un statut / des plus récentes aux plus anciennes | filtre `status.run == '<RUN>'` / tri `createdAt desc` |
 | liste « incomplète » / page refusée | réponse `206` / `416` ; « au plus N tâches par page » = `maxPageSize` du handler, qui est aussi la page par défaut |
-| tâche introuvable / tâche terminée (refus) | réponse `404` / `400` |
+| tâche introuvable / tâche terminée (refus) | réponse `404` / `400` — `400` aussi pour un journal ou un résultat sur une tâche `DONE` (`AbstractTaskHandler#isDone`) ; `404` aussi pour les journaux d'une tâche inexistante |
+| job non soumis (refus ou registre injoignable) | tâche passée `DONE` / `FAILURE` avec `finishedAt`, réponse `500`, aucune notification |
+| notification d'un dépôt de résultat | `TaskNotification.Type.STATUS_CHANGE` portant la tâche (avec `results`), statut inchangé |
 
 ## Intentions expliquées
 Revue des règles des tâches du 2026-11-03 (nel) :
 - **Refus du registre sans notification** : la demande de tâche échoue de façon synchrone, l'appelant le sait déjà ;
   le point de rappel n'est notifié ni de la création ni de l'échec — voulu.
-- **Registre injoignable** : la tâche doit être terminée en échec comme pour un refus (comportement actuel = bug F1).
+- **Registre injoignable** : la tâche doit être terminée en échec comme pour un refus (corrigé, F1).
 - **Terminer une tâche en attente** est permis (exécutant qui échoue avant de démarrer, annulation) ; elle n'a alors
   pas de date de démarrage — voulu.
-- **Relance d'une tâche en cours** : acceptée, mais la date de démarrage est la première (bug F2).
-- **Une tâche terminée est figée** : ni avancement, ni journaux (bug F3), ni remplacement du résultat (bug F5).
+- **Relance d'une tâche en cours** : acceptée, mais la date de démarrage est la première (corrigé, F2).
+- **Une tâche terminée est figée** : ni avancement, ni journaux (corrigé, F3), ni remplacement du résultat (corrigé, F5).
 - **Le résultat est indépendant de l'avancement** : on peut le déposer sur une tâche en attente ou en cours, ça ne la
   termine pas — voulu.
-- **Toute action sur une tâche inexistante est refusée**, consultation des journaux comprise (bug F4).
+- **Toute action sur une tâche inexistante est refusée**, consultation des journaux comprise (corrigé, F4).
 - **Point d'entrée sans dépôt de journaux** : les journaux ne servent qu'à notifier le suiveur ; l'ajout reste accepté
   sans être conservé — voulu.
-- **Dépôt d'un résultat** : doit notifier le suiveur par un changement de statut portant le résultat (bug F6).
+- **Dépôt d'un résultat** : doit notifier le suiveur par un changement de statut portant le résultat (corrigé, F6).

@@ -16,7 +16,7 @@
 ## Ressources
 | Ressource | Statut | Scénarios | Dernière boucle |
 | --- | --- | --- | --- |
-| tasks (handlers génériques) | reviewed | 38 scénarios / 49 exemples (@confirmed 32, @known-bug 6) — écarts F1–F6 | 2026-11-03 review |
+| tasks (handlers génériques) | reviewed | 37 scénarios / 51 exemples (@confirmed 37) — écarts F1–F6 corrigés | 2026-11-03 evolve |
 
 ## Mis de côté
 - (aucun — boucle extract tasks du 2026-11-03)
@@ -48,6 +48,15 @@
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2026-11-03 | extract | tasks (adaptateur en mémoire) | 47/47 exemples (37/37 scénarios) | 0 | 0 / 57 steps distinctes (57 créées, la plupart reprises de flexio-demo et généralisées) | — | 0 |
 | 2026-11-03 | review | tasks | 47/47 (aucun attendu modifié) | 0 | — | ~15 min (5 thèmes, 9 questions) | 0 |
+| 2026-11-03 | evolve | tasks (F1–F6) | rouge attendu 8/8, puis 51/51 | 0 | 4 nouvelles / 60 steps | — | 0 |
 
 ## Évolutions
-- (aucune)
+- 2026-11-03 — correction des écarts F1–F6 de la revue (nel) : 8 scénarios touchés (4 `@known-bug` inversés, 2 fusionnés
+  en Outline avec la règle de refus du registre, 1 Outline étendu à l'injoignabilité — déjà vert, il verrouille
+  « sans notification »), tous `@confirmed` avec `# corrigé: Fn`. Diff validé avant code ; rouge constaté : 8 exemples
+  sur 51. Steps : 4 créées (`une tâche en cours démarrée le {moment}`, `la tâche {string} {statutTache} suivie par un
+  point de rappel`, `la tâche a été {momentTache} le {moment}`, `la notification porte le résultat déposé`),
+  1 supprimée (`je ne reçois aucun journal`) ; « un résultat a été déposé sur la tâche » passe par le dépôt (le
+  handler refuse désormais une tâche terminée). Code : `CreateTask`, `UpdateTaskStatus`, `CreateTaskLog`,
+  `BrowseTaskLogs`, `ReplaceTaskResult`, `AbstractTaskHandler#isDone` ; 7 tests unitaires ajoutés (dont
+  `BrowseTaskLogsTest`).

@@ -89,12 +89,36 @@ public class Tasks {
 
     /** Insère une tâche de ce statut créée à ce moment. */
     public String given(String name, Status status, LocalDateTime createdAt, boolean followed) {
-        Task task = Task.builder()
+        return this.insert(name, Task.builder()
                 .status(status)
                 .createdAt(createdAt)
                 .params(SAMPLE_PARAMS)
                 .callbackUrl(followed ? this.callbackUrl() : null)
-                .build();
+                .build());
+    }
+
+    /** Insère une tâche en cours, démarrée à ce moment. */
+    public String givenStarted(String name, LocalDateTime startedAt) {
+        return this.insert(name, Task.builder()
+                .status(Status.builder().run(Status.Run.RUNNING).build())
+                .createdAt(FIXTURE_CREATION)
+                .startedAt(startedAt)
+                .params(SAMPLE_PARAMS)
+                .build());
+    }
+
+    /** Pose ce résultat sur la tâche, directement dans le dépôt (quel que soit son statut). */
+    public void givenResult(String task, ObjectValue result) {
+        try {
+            Repository<Task, PropertyQuery> repository = this.base().tasks();
+            Entity<Task> entity = repository.retrieve(task);
+            repository.update(entity, entity.value().withResults(result));
+        } catch (RepositoryException e) {
+            throw new IllegalStateException("dépôt du résultat impossible", e);
+        }
+    }
+
+    private String insert(String name, Task task) {
         try {
             Repository<Task, PropertyQuery> repository = this.base().tasks();
             Entity<Task> created = repository.create(task);

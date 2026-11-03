@@ -31,6 +31,10 @@ public abstract class AbstractTaskHandler {
         return this.adapterProvider.get();
     }
 
+    protected boolean isDone(Task task) {
+        return Status.Run.DONE.equals(task.opt().status().run().orElse(null));
+    }
+
     protected void notifyCallback(Task task, TaskNotification notification, Requester requester) {
         if(task.opt().status().run().isPresent()) {
             requester.header("status", task.status().run().name());

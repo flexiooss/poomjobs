@@ -32,13 +32,14 @@ Feature: Avancement d'une tâche
     Then la tâche est terminée avec succès
 
   # source: UpdateTaskStatus#apply
-  # écart: F2 (docs/tests/findings.md)
-  @known-bug
-  Scenario: Repasser en cours une tâche déjà en cours redate son démarrage
-    Given une tâche en cours
+  # corrigé: F2 (docs/tests/findings.md)
+  @confirmed
+  Scenario: Repasser en cours une tâche déjà en cours garde sa date de démarrage
+    Given une tâche en cours démarrée le 2026-01-05 à 10:00
     When je passe la tâche en cours
-    Then la tâche est en cours
-    And la tâche a été démarrée à l'instant (heure UTC)
+    Then la demande est acceptée
+    And la tâche est en cours
+    And la tâche a été démarrée le 2026-01-05 à 10:00
 
   # source: UpdateTaskStatus#apply (statut DONE → 400)
   @confirmed

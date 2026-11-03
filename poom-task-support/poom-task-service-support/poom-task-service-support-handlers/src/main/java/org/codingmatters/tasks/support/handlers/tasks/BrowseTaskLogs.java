@@ -41,6 +41,22 @@ public class BrowseTaskLogs extends AbstractTaskHandler implements Function<Task
     @Override
     public TaskLogsGetResponse apply(TaskLogsGetRequest request) {
         if (this.adapter().taskLogs().isPresent()) {
+            try {
+                if (this.adapter().tasks().retrieve(request.taskId()) == null) {
+                    return TaskLogsGetResponse.builder().status404(st -> st.payload(Error.builder()
+                            .code(Error.Code.RESOURCE_NOT_FOUND)
+                            .token(log.tokenized().info("while browsing task logs, task not found : {}", request))
+                            .description("task not found")
+                            .build())
+                    ).build();
+                }
+            } catch (RepositoryException e) {
+                return TaskLogsGetResponse.builder().status500(st -> st.payload(Error.builder()
+                        .code(Error.Code.UNEXPECTED_ERROR)
+                        .token(log.tokenized().error("while browsing task logs, failed accessing task repository", e))
+                        .build())
+                ).build();
+            }
             Repository<TaskLog, PropertyQuery> repository = this.adapter().taskLogs().get();
             Rfc7233Pager.Page<TaskLog> page;
             try {

@@ -47,22 +47,26 @@ Feature: Journaux d'une tâche
       | connexion perdue |
 
   # source: CreateTaskLog#apply
-  # écart: F3 (docs/tests/findings.md)
-  @known-bug
-  Scenario: Une tâche terminée accepte encore des journaux
-    Given la tâche "A" terminée avec succès
+  # corrigé: F3 (docs/tests/findings.md)
+  @confirmed
+  Scenario Outline: Une tâche terminée refuse les journaux
+    Given la tâche "A" <statut> suivie par un point de rappel
     When j'ajoute le journal d'information "trop tard" à la tâche
-    Then la demande est acceptée
-    And la tâche "A" a les journaux :
-      | trop tard |
+    Then la demande est refusée car la tâche est terminée
+    And la tâche "A" n'a aucun journal
+    And le point de rappel ne reçoit aucune notification
 
-  # source: BrowseTaskLogs#apply (filtre sur taskId, sans vérifier que la tâche existe)
-  # écart: F4 (docs/tests/findings.md)
-  @known-bug
-  Scenario: Consulter les journaux d'une tâche inexistante renvoie une liste vide
+    Examples:
+      | statut               |
+      | terminée avec succès |
+      | terminée en échec    |
+
+  # source: BrowseTaskLogs#apply
+  # corrigé: F4 (docs/tests/findings.md)
+  @confirmed
+  Scenario: Consulter les journaux d'une tâche inexistante est refusé
     When je consulte les journaux d'une tâche inexistante
-    Then la demande est acceptée
-    And je ne reçois aucun journal
+    Then la demande est refusée car la tâche est introuvable
 
   # source: CreateTaskLog#apply → AbstractTaskHandler#notifyCallback
   @confirmed

@@ -31,23 +31,20 @@ Feature: Demande d'une tâche
     When je demande une tâche
     Then un job est soumis pour la tâche
 
-  # source: CreateTask#apply (réponse du registre autre que 201)
+  # source: CreateTask#apply (réponse du registre autre que 201, IOException du client du registre)
+  # corrigé: F1 (docs/tests/findings.md)
   @confirmed
-  Scenario: Une tâche refusée par le registre de jobs est terminée en échec
-    Given le registre de jobs refuse les jobs
+  Scenario Outline: Une tâche dont le job n'a pas pu être soumis est terminée en échec
+    Given le registre de jobs <panne>
     When je demande une tâche
     Then la demande échoue sur une erreur inattendue
     And la tâche est terminée en échec
     And la tâche a été terminée à l'instant (heure UTC)
 
-  # source: CreateTask#apply (IOException du client du registre)
-  # écart: F1 (docs/tests/findings.md)
-  @known-bug
-  Scenario: Une tâche dont le registre de jobs est injoignable reste en attente
-    Given le registre de jobs est injoignable
-    When je demande une tâche
-    Then la demande échoue sur une erreur inattendue
-    And la tâche est en attente
+    Examples:
+      | panne           |
+      | refuse les jobs |
+      | est injoignable |
 
   # source: CreateTask#apply → AbstractTaskHandler#notifyCallback
   @confirmed
@@ -58,10 +55,15 @@ Feature: Demande d'une tâche
 
   # source: CreateTask#apply (retour en erreur avant la notification)
   @confirmed
-  Scenario: Une tâche refusée par le registre de jobs n'est pas notifiée
-    Given le registre de jobs refuse les jobs
+  Scenario Outline: Une tâche dont le job n'a pas pu être soumis n'est pas notifiée
+    Given le registre de jobs <panne>
     When je demande une tâche suivie par un point de rappel
     Then le point de rappel ne reçoit aucune notification
+
+    Examples:
+      | panne           |
+      | refuse les jobs |
+      | est injoignable |
 
   # source: AbstractTaskHandler#notifyCallback (réponse autre que 204 seulement journalisée)
   @confirmed
