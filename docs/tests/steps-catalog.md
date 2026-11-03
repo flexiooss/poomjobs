@@ -16,8 +16,8 @@
 | `le point de rappel répond en erreur` | Le point de rappel des tâches répond par une erreur à toute notification. | 1 | `TaskSteps#callbackFails` |
 | `le registre de jobs est injoignable` | Le registre de jobs ne répond pas (erreur d'entrée/sortie à l'appel). | 1 | `TaskSteps#jobRegistryUnreachable` |
 | `le registre de jobs refuse les jobs` | Le registre de jobs refuse toute soumission de job. | 2 | `TaskSteps#jobRegistryRefuses` |
-| `un résultat a été déposé sur la tâche` | Un premier résultat a déjà été déposé sur la tâche du scénario. | 1 | `TaskSteps#resultDeposited` |
-| `une tâche {statutTache}` | Une tâche de ce statut existe ; elle devient la tâche du scénario. | 13 | `TaskSteps#existingTask` |
+| `un résultat a été déposé sur la tâche` | Un premier résultat a déjà été déposé sur la tâche du scénario. | 3 | `TaskSteps#resultDeposited` |
+| `une tâche {statutTache}` | Une tâche de ce statut existe ; elle devient la tâche du scénario. | 15 | `TaskSteps#existingTask` |
 | `une tâche {statutTache} suivie par un point de rappel` | Une tâche de ce statut existe, suivie par le point de rappel du scénario. | 5 | `TaskSteps#existingFollowedTask` |
 | `{int} tâches en attente` | Ce nombre de tâches en attente existe. | 4 | `TaskSteps#manyTasks` |
 
@@ -32,7 +32,7 @@
 | `je consulte les journaux {niveauJournal} de la tâche {string}` | Le demandeur consulte les journaux de ce niveau de la tâche de ce nom. | 1 | `TaskSteps#readLogsAtLevel` |
 | `je demande une tâche` | Le demandeur demande une tâche, avec la demande type, sans point de rappel. | 6 | `TaskSteps#createTask` |
 | `je demande une tâche suivie par un point de rappel` | Le demandeur demande une tâche en donnant un point de rappel à notifier. | 3 | `TaskSteps#createFollowedTask` |
-| `je dépose un autre résultat sur la tâche` | L'exécutant dépose sur la tâche du scénario un résultat différent du précédent. | 1 | `TaskSteps#depositOtherResult` |
+| `je dépose un autre résultat sur la tâche` | L'exécutant dépose sur la tâche du scénario un résultat différent du précédent. | 3 | `TaskSteps#depositOtherResult` |
 | `je dépose un résultat sur la tâche` | L'exécutant dépose un résultat sur la tâche du scénario. | 3 | `TaskSteps#depositResult` |
 | `je liste les tâches` | Le demandeur liste les tâches, sans filtre, tri ni page. | 2 | `TaskSteps#listTasks` |
 | `je liste les tâches de la page {string}` | Le demandeur liste les tâches en demandant cette page, écrite telle quelle. | 2 | `TaskSteps#listPage` |
@@ -54,7 +54,7 @@
 | `je reçois {int} tâches` | La dernière page reçue contient ce nombre de tâches. | 2 | `TaskSteps#receivedTaskCount` |
 | `je reçois, dans cet ordre, les tâches {noms}` | La dernière page reçue contient exactement les tâches de ces noms, dans cet ordre. | 1 | `TaskSteps#receivedTasksInOrder` |
 | `la consultation des journaux n'est pas permise` | La consultation des journaux est refusée : le point d'entrée ne les parcourt pas. | 1 | `TaskSteps#logBrowsingNotAllowed` |
-| `la demande est acceptée` | La dernière action est acceptée. | 8 | `TaskSteps#accepted` |
+| `la demande est acceptée` | La dernière action est acceptée. | 10 | `TaskSteps#accepted` |
 | `la demande est refusée car la tâche est introuvable` | La dernière action est refusée parce que la tâche visée n'existe pas. | 5 | `TaskSteps#refusedTaskNotFound` |
 | `la demande est refusée car la tâche est terminée` | La dernière action est refusée parce que la tâche visée est déjà terminée. | 3 | `TaskSteps#refusedTaskDone` |
 | `la demande échoue sur une erreur inattendue` | La dernière action échoue sur une erreur inattendue. | 2 | `TaskSteps#failedUnexpectedly` |
@@ -65,7 +65,7 @@
 | `la tâche a été {momentTache} à l'instant \(heure UTC)` | La tâche du scénario a été créée, démarrée ou terminée à l'instant présent, en heure UTC. | 7 | `TaskSteps#taskMomentIsNow` |
 | `la tâche conserve sa demande` | La tâche du scénario a pour paramètres ceux de la demande envoyée. | 1 | `TaskSteps#taskKeepsRequest` |
 | `la tâche est {statutTache}` | La tâche du scénario est enregistrée avec ce statut. | 14 | `TaskSteps#taskHasStatus` |
-| `la tâche porte le dernier résultat déposé` | La tâche du scénario porte le dernier résultat déposé, et lui seul. | 1 | `TaskSteps#taskCarriesLastResult` |
+| `la tâche porte le dernier résultat déposé` | La tâche du scénario porte le dernier résultat déposé, et lui seul. | 3 | `TaskSteps#taskCarriesLastResult` |
 | `la tâche porte le résultat déposé` | La tâche du scénario porte le premier résultat déposé. | 2 | `TaskSteps#taskCarriesResult` |
 | `la tâche porte son identifiant` | La tâche du scénario porte, comme identifiant, celui sous lequel elle est enregistrée. | 1 | `TaskSteps#taskCarriesItsId` |
 | `la tâche {string} a les journaux :` | La tâche de ce nom a exactement ces journaux conservés, dans cet ordre. | 2 | `TaskSteps#taskHasLogs` |

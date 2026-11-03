@@ -18,13 +18,27 @@ Feature: Résultat d'une tâche
     Then la tâche porte le dernier résultat déposé
 
   # source: ReplaceTaskResult#apply
-  # écart: F5 (docs/tests/findings.md)
-  @surprising
+  @confirmed
   Scenario: Déposer un résultat ne termine pas la tâche
     Given une tâche en attente
     When je dépose un résultat sur la tâche
     Then la tâche porte le résultat déposé
     And la tâche est en attente
+
+  # source: ReplaceTaskResult#apply (aucune vérification du statut)
+  # écart: F5 (docs/tests/findings.md)
+  @known-bug
+  Scenario Outline: Le résultat d'une tâche terminée peut encore être remplacé
+    Given une tâche <statut>
+    And un résultat a été déposé sur la tâche
+    When je dépose un autre résultat sur la tâche
+    Then la demande est acceptée
+    And la tâche porte le dernier résultat déposé
+
+    Examples:
+      | statut               |
+      | terminée avec succès |
+      | terminée en échec    |
 
   # source: ReplaceTaskResult#apply (aucun appel à notifyCallback)
   # écart: F6 (docs/tests/findings.md)

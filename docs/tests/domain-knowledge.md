@@ -48,7 +48,9 @@ Revue des règles des tâches du 2026-11-03 (nel) :
 - **Terminer une tâche en attente** est permis (exécutant qui échoue avant de démarrer, annulation) ; elle n'a alors
   pas de date de démarrage — voulu.
 - **Relance d'une tâche en cours** : acceptée, mais la date de démarrage est la première (bug F2).
-- **Une tâche terminée est figée** : ni avancement ni journaux (journaux : bug F3) ; pour le résultat, non tranché (F5).
+- **Une tâche terminée est figée** : ni avancement, ni journaux (bug F3), ni remplacement du résultat (bug F5).
+- **Le résultat est indépendant de l'avancement** : on peut le déposer sur une tâche en attente ou en cours, ça ne la
+  termine pas — voulu.
 - **Toute action sur une tâche inexistante est refusée**, consultation des journaux comprise (bug F4).
 - **Point d'entrée sans dépôt de journaux** : les journaux ne servent qu'à notifier le suiveur ; l'ajout reste accepté
   sans être conservé — voulu.

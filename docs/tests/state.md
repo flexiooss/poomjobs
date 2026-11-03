@@ -16,15 +16,16 @@
 ## Ressources
 | Ressource | Statut | Scénarios | Dernière boucle |
 | --- | --- | --- | --- |
-| tasks (handlers génériques) | reviewed | 37 scénarios / 47 exemples (@confirmed 31, @known-bug 5, @surprising 1) — écarts F1–F6 | 2026-11-03 review |
+| tasks (handlers génériques) | reviewed | 38 scénarios / 49 exemples (@confirmed 32, @known-bug 6) — écarts F1–F6 | 2026-11-03 review |
 
 ## Mis de côté
 - (aucun — boucle extract tasks du 2026-11-03)
 
 ## Remarques
-- Revue tasks (2026-11-03, nel) : 31 règles confirmées, 5 bugs connus (F1–F4, F6) gardés verts sur le comportement
-  actuel, 1 surprenante non tranchée (F5, résultat d'une tâche terminée). Aucun attendu modifié, aucune réécriture
-  de formulation demandée. Les corrections de F1–F4 et F6 se font en `evolve` (scénario inversé, rouge avant code) ;
+- Revue tasks (2026-11-03, nel) : 32 règles confirmées, 6 bugs connus (F1–F6) gardés verts sur le comportement
+  actuel. F5 tranché après coup : le dépôt sur une tâche en attente est voulu (scénario confirmé), le remplacement du
+  résultat d'une tâche terminée est un bug → scénario ajouté, `@known-bug`, sans nouvelle step. Aucun attendu
+  modifié. Les corrections de F1–F6 se font en `evolve` (scénario inversé, rouge avant code) ;
   F6 sans évolution de l'API. À l'étape 2, l'adaptateur Flexio hérite de ces tags tels quels.
 - Extract tasks (2026-11-03) : migration des scénarios « framework » extraits dans flexio-demo (tâches de calcul de plus
   court chemin et de message de chat, 2026-11-03), généralisés à un point d'entrée quelconque, et complétés : liste
