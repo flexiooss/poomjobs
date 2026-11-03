@@ -7,17 +7,18 @@ public interface TaskLogger {
 
     /**
      * A line with a label and a description. Loggers that do not store descriptions log the line
-     * as a single text ({@link TaskLogLine#text()}).
+     * as a single text ({@link TaskLogLine#text()}), passed as the log with no args : its % are
+     * escaped for the loggers that format it, the others keep it readable.
      */
     default void info(TaskLogLine line) {
-        this.info("%s", line.text());
+        this.info(TaskLogLine.asFormat(line.text()));
     }
 
     default void warn(TaskLogLine line) {
-        this.warn("%s", line.text());
+        this.warn(TaskLogLine.asFormat(line.text()));
     }
 
     default void error(TaskLogLine line) {
-        this.error("%s", line.text());
+        this.error(TaskLogLine.asFormat(line.text()));
     }
 }
