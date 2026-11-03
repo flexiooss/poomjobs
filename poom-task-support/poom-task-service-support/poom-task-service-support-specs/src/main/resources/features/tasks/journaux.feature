@@ -3,7 +3,7 @@ Feature: Journaux d'une tâche
   suivre son déroulement.
 
   # source: CreateTaskLog#apply
-  @as-is @new-step
+  @confirmed
   Scenario: Ajouter un journal à une tâche
     Given la tâche "A" en cours
     When j'ajoute le journal d'information "calcul démarré" à la tâche
@@ -12,7 +12,7 @@ Feature: Journaux d'une tâche
       | calcul démarré |
 
   # source: BrowseTaskLogs#apply (filtre taskId == …)
-  @as-is @new-step
+  @confirmed
   Scenario: Les journaux d'une tâche ne montrent que les siens
     Given la tâche "A" en cours
     And la tâche "B" en cours
@@ -23,7 +23,7 @@ Feature: Journaux d'une tâche
       | journal de A |
 
   # source: BrowseTaskLogs#apply (sans tri demandé : ordre du dépôt)
-  @as-is @new-step
+  @confirmed
   Scenario: Les journaux d'une tâche se lisent dans l'ordre où ils ont été ajoutés
     Given la tâche "A" en cours
     And le journal "premier" a été ajouté à la tâche "A"
@@ -36,7 +36,7 @@ Feature: Journaux d'une tâche
       | troisième |
 
   # source: BrowseTaskLogs#query (filtre de la requête combiné au filtre taskId)
-  @as-is @new-step
+  @confirmed
   Scenario: Les journaux d'une tâche se restreignent à un niveau
     Given la tâche "A" en cours
     And le journal d'information "étape 1" a été ajouté à la tâche "A"
@@ -47,8 +47,8 @@ Feature: Journaux d'une tâche
       | connexion perdue |
 
   # source: CreateTaskLog#apply
-  # question: une tâche terminée accepte encore des journaux, alors que son avancement est figé — voulu ?
-  @as-is @new-step
+  # écart: F3 (docs/tests/findings.md)
+  @known-bug
   Scenario: Une tâche terminée accepte encore des journaux
     Given la tâche "A" terminée avec succès
     When j'ajoute le journal d'information "trop tard" à la tâche
@@ -57,15 +57,15 @@ Feature: Journaux d'une tâche
       | trop tard |
 
   # source: BrowseTaskLogs#apply (filtre sur taskId, sans vérifier que la tâche existe)
-  # question: consulter les journaux d'une tâche inexistante renvoie une liste vide au lieu d'un refus — voulu ?
-  @as-is @new-step
+  # écart: F4 (docs/tests/findings.md)
+  @known-bug
   Scenario: Consulter les journaux d'une tâche inexistante renvoie une liste vide
     When je consulte les journaux d'une tâche inexistante
     Then la demande est acceptée
     And je ne reçois aucun journal
 
   # source: CreateTaskLog#apply → AbstractTaskHandler#notifyCallback
-  @as-is @new-step
+  @confirmed
   Scenario: Le point de rappel est notifié d'un nouveau journal
     Given une tâche en cours suivie par un point de rappel
     When j'ajoute le journal d'avertissement "à mi-chemin" à la tâche
@@ -73,8 +73,7 @@ Feature: Journaux d'une tâche
     And la notification porte le journal "à mi-chemin"
 
   # source: CreateTaskLog#apply (taskLogs() vide : journal non conservé, 201 quand même)
-  # question: sans dépôt de journaux, l'ajout d'un journal est accepté mais le journal est perdu — voulu ?
-  @as-is @new-step
+  @confirmed
   Scenario: Sans conservation des journaux, un journal ajouté est accepté mais pas conservé
     Given le point d'entrée ne conserve pas les journaux
     And la tâche "A" en cours
@@ -83,7 +82,7 @@ Feature: Journaux d'une tâche
     And la tâche "A" n'a aucun journal
 
   # source: CreateTaskLog#apply → AbstractTaskHandler#notifyCallback (notification même sans dépôt)
-  @as-is @new-step
+  @confirmed
   Scenario: Sans conservation des journaux, le point de rappel est quand même notifié d'un nouveau journal
     Given le point d'entrée ne conserve pas les journaux
     And une tâche en cours suivie par un point de rappel
@@ -91,7 +90,7 @@ Feature: Journaux d'une tâche
     Then le point de rappel reçoit une notification de nouveau journal de la tâche en cours
 
   # source: BrowseTaskLogs#apply (taskLogs() vide → 405 COLLECTION_BROWSING_NOT_ALLOWED)
-  @as-is @new-step
+  @confirmed
   Scenario: Sans conservation des journaux, leur consultation n'est pas permise
     Given le point d'entrée ne conserve pas les journaux
     And la tâche "A" en cours

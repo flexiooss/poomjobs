@@ -2,7 +2,7 @@ Feature: Avancement d'une tâche
   L'exécutant d'une tâche signale son avancement : en cours, puis terminée avec succès ou en échec.
 
   # source: UpdateTaskStatus#apply
-  @as-is @new-step
+  @confirmed
   Scenario: Passer une tâche en cours note son démarrage
     Given une tâche en attente
     When je passe la tâche en cours
@@ -11,7 +11,7 @@ Feature: Avancement d'une tâche
     And la tâche a été démarrée à l'instant (heure UTC)
 
   # source: UpdateTaskStatus#apply (issue absente → SUCCESS)
-  @as-is @new-step
+  @confirmed
   Scenario Outline: Terminer une tâche note sa fin et son issue
     Given une tâche en cours
     When je termine la tâche <issue>
@@ -25,16 +25,15 @@ Feature: Avancement d'une tâche
       | en échec                  | terminée en échec    |
 
   # source: UpdateTaskStatus#apply
-  # question: une tâche en attente peut être terminée sans être passée en cours (pas de date de démarrage) — voulu ?
-  @as-is @new-step
+  @confirmed
   Scenario: Une tâche en attente peut être terminée directement
     Given une tâche en attente
     When je termine la tâche sans préciser son issue
     Then la tâche est terminée avec succès
 
   # source: UpdateTaskStatus#apply
-  # question: repasser en cours une tâche déjà en cours est accepté et redate son démarrage — voulu ?
-  @as-is @new-step
+  # écart: F2 (docs/tests/findings.md)
+  @known-bug
   Scenario: Repasser en cours une tâche déjà en cours redate son démarrage
     Given une tâche en cours
     When je passe la tâche en cours
@@ -42,7 +41,7 @@ Feature: Avancement d'une tâche
     And la tâche a été démarrée à l'instant (heure UTC)
 
   # source: UpdateTaskStatus#apply (statut DONE → 400)
-  @as-is @new-step
+  @confirmed
   Scenario Outline: L'avancement d'une tâche terminée ne change plus
     Given une tâche <statut>
     When je <action>
@@ -56,7 +55,7 @@ Feature: Avancement d'une tâche
       | terminée en échec    | termine la tâche avec succès |
 
   # source: UpdateTaskStatus#apply → AbstractTaskHandler#notifyCallback
-  @as-is @new-step
+  @confirmed
   Scenario Outline: Le point de rappel est notifié de l'avancement de la tâche
     Given une tâche en cours suivie par un point de rappel
     When je termine la tâche <issue>

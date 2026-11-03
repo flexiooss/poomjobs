@@ -2,7 +2,7 @@ Feature: Résultat d'une tâche
   L'exécutant dépose le résultat de la tâche, que le demandeur lit sur la tâche.
 
   # source: ReplaceTaskResult#apply
-  @as-is @new-step
+  @confirmed
   Scenario: Déposer le résultat d'une tâche
     Given une tâche en cours
     When je dépose un résultat sur la tâche
@@ -10,7 +10,7 @@ Feature: Résultat d'une tâche
     And la tâche porte le résultat déposé
 
   # source: ReplaceTaskResult#apply (withResults : remplacement complet)
-  @as-is @new-step
+  @confirmed
   Scenario: Déposer un nouveau résultat remplace le précédent
     Given une tâche en cours
     And un résultat a été déposé sur la tâche
@@ -18,8 +18,8 @@ Feature: Résultat d'une tâche
     Then la tâche porte le dernier résultat déposé
 
   # source: ReplaceTaskResult#apply
-  # question: un résultat peut être déposé sur une tâche encore en attente, et ne la termine pas — voulu ?
-  @as-is @new-step
+  # écart: F5 (docs/tests/findings.md)
+  @surprising
   Scenario: Déposer un résultat ne termine pas la tâche
     Given une tâche en attente
     When je dépose un résultat sur la tâche
@@ -27,8 +27,8 @@ Feature: Résultat d'une tâche
     And la tâche est en attente
 
   # source: ReplaceTaskResult#apply (aucun appel à notifyCallback)
-  # question: déposer un résultat ne notifie pas le point de rappel — voulu ?
-  @as-is @new-step
+  # écart: F6 (docs/tests/findings.md)
+  @known-bug
   Scenario: Déposer un résultat ne notifie pas le point de rappel
     Given une tâche en cours suivie par un point de rappel
     When je dépose un résultat sur la tâche

@@ -41,4 +41,15 @@
 | tâche introuvable / tâche terminée (refus) | réponse `404` / `400` |
 
 ## Intentions expliquées
-- (à recueillir en revue)
+Revue des règles des tâches du 2026-11-03 (nel) :
+- **Refus du registre sans notification** : la demande de tâche échoue de façon synchrone, l'appelant le sait déjà ;
+  le point de rappel n'est notifié ni de la création ni de l'échec — voulu.
+- **Registre injoignable** : la tâche doit être terminée en échec comme pour un refus (comportement actuel = bug F1).
+- **Terminer une tâche en attente** est permis (exécutant qui échoue avant de démarrer, annulation) ; elle n'a alors
+  pas de date de démarrage — voulu.
+- **Relance d'une tâche en cours** : acceptée, mais la date de démarrage est la première (bug F2).
+- **Une tâche terminée est figée** : ni avancement ni journaux (journaux : bug F3) ; pour le résultat, non tranché (F5).
+- **Toute action sur une tâche inexistante est refusée**, consultation des journaux comprise (bug F4).
+- **Point d'entrée sans dépôt de journaux** : les journaux ne servent qu'à notifier le suiveur ; l'ajout reste accepté
+  sans être conservé — voulu.
+- **Dépôt d'un résultat** : doit notifier le suiveur par un changement de statut portant le résultat (bug F6).
