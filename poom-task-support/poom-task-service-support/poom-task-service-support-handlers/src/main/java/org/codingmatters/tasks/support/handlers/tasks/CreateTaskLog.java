@@ -10,6 +10,7 @@ import org.codingmatters.poom.services.domain.entities.Entity;
 import org.codingmatters.tasks.api.TaskLogsPostRequest;
 import org.codingmatters.tasks.api.TaskLogsPostResponse;
 import org.codingmatters.tasks.api.tasklogspostresponse.Status201;
+import org.codingmatters.tasks.api.tasklogspostresponse.Status400;
 import org.codingmatters.tasks.api.tasklogspostresponse.Status404;
 import org.codingmatters.tasks.api.tasklogspostresponse.Status500;
 import org.codingmatters.tasks.api.types.Error;
@@ -60,12 +61,20 @@ public class CreateTaskLog extends AbstractTaskHandler implements Function<TaskL
                             .description("task not found")
                     .build()).build()).build();
         }
+        if(this.isDone(taskEntity.value())) {
+            return TaskLogsPostResponse.builder().status400(Status400.builder().payload(Error.builder()
+                            .code(Error.Code.BAD_REQUEST)
+                            .token(log.tokenized().info("cannot add log to task when status is DONE : {}", taskEntity))
+                            .description("task is done")
+                    .build()).build()).build();
+        }
 
         TaskLog taskLog = TaskLog.builder()
                 .taskId(taskEntity.id())
                 .at(UTC.now())
                 .level(TaskLog.Level.valueOf(request.payload().level().name()))
                 .log(request.payload().log())
+                .description(request.payload().description())
                 .build();
 
         Optional<Repository<TaskLog, PropertyQuery>> logs = adapter.taskLogs();

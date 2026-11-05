@@ -9,10 +9,12 @@ import org.codingmatters.poom.services.domain.entities.Entity;
 import org.codingmatters.tasks.api.TaskResultsPutRequest;
 import org.codingmatters.tasks.api.TaskResultsPutResponse;
 import org.codingmatters.tasks.api.taskresultsputresponse.Status200;
+import org.codingmatters.tasks.api.taskresultsputresponse.Status400;
 import org.codingmatters.tasks.api.taskresultsputresponse.Status404;
 import org.codingmatters.tasks.api.taskresultsputresponse.Status500;
 import org.codingmatters.tasks.api.types.Error;
 import org.codingmatters.tasks.api.types.Task;
+import org.codingmatters.tasks.api.types.TaskNotification;
 import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.codingmatters.tasks.support.handlers.AbstractTaskHandler;
 import org.codingmatters.tasks.support.handlers.tasks.adapter.ReflectHandlerAdapter;
@@ -39,7 +41,8 @@ public class ReplaceTaskResult extends AbstractTaskHandler implements Function<T
 
     @Override
     public TaskResultsPutResponse apply(TaskResultsPutRequest request) {
-        Repository<Task, PropertyQuery> repository = this.adapter().tasks();
+        TaskEntryPointAdapter adapter = this.adapter();
+        Repository<Task, PropertyQuery> repository = adapter.tasks();
 
         Entity<Task> taskEntity;
         try {
@@ -58,6 +61,13 @@ public class ReplaceTaskResult extends AbstractTaskHandler implements Function<T
                             .description("task not found")
                     .build()).build()).build();
         }
+        if(this.isDone(taskEntity.value())) {
+            return TaskResultsPutResponse.builder().status400(Status400.builder().payload(Error.builder()
+                            .code(Error.Code.BAD_REQUEST)
+                            .token(log.tokenized().info("cannot replace task result when status is DONE : {}", taskEntity))
+                            .description("task is done")
+                    .build()).build()).build();
+        }
 
         try {
             taskEntity = repository.update(taskEntity, taskEntity.value().withResults(request.payload()));
@@ -66,6 +76,18 @@ public class ReplaceTaskResult extends AbstractTaskHandler implements Function<T
                     .code(Error.Code.RESOURCE_NOT_FOUND)
                     .token(log.tokenized().error("while replacing task result, failed reaching task repository", e))
                     .build()).build()).build();
+        }
+
+        if(taskEntity.value().opt().callbackUrl().isPresent()) {
+            TaskNotification notification = TaskNotification.builder()
+                    .type(TaskNotification.Type.STATUS_CHANGE).task(taskEntity.value())
+                    .build();
+
+            this.notifyCallback(
+                    taskEntity.value(),
+                    notification,
+                    adapter.callbackRequester(taskEntity.value().callbackUrl())
+            );
         }
 
         return TaskResultsPutResponse.builder().status200(Status200.builder().xEntityId(taskEntity.id()).payload(taskEntity.value().results()).build()).build();

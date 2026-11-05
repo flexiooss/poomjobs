@@ -2,6 +2,7 @@ package org.codingmatters.tasks.support.jobs;
 
 import org.codingmatters.poom.services.logging.CategorizedLogger;
 import org.codingmatters.tasks.api.types.TaskLogCreation;
+import org.codingmatters.tasks.context.TaskLogLine;
 import org.codingmatters.tasks.api.types.TaskStatusChange;
 import org.codingmatters.tasks.api.types.task.Status;
 import org.codingmatters.value.objects.values.ObjectValue;
@@ -37,6 +38,28 @@ public class TestTaskNotifier implements TaskNotifier {
         TaskLogCreation taskLog = TaskLogCreation.builder().level(TaskLogCreation.Level.ERROR).log(s, args).build();
         logs.add(taskLog);
         log.error("{}", taskLog);
+    }
+
+    @Override
+    public void info(TaskLogLine line) {
+        this.line(TaskLogCreation.Level.INFO, line);
+    }
+
+    @Override
+    public void warn(TaskLogLine line) {
+        this.line(TaskLogCreation.Level.WARN, line);
+    }
+
+    @Override
+    public void error(TaskLogLine line) {
+        this.line(TaskLogCreation.Level.ERROR, line);
+    }
+
+    private void line(TaskLogCreation.Level level, TaskLogLine line) {
+        TaskLogCreation taskLog = TaskLogCreation.builder().level(level).log(line.label())
+                .description(line.hasDescription() ? line.description() : null).build();
+        logs.add(taskLog);
+        log.info("{}", taskLog);
     }
 
     @Override

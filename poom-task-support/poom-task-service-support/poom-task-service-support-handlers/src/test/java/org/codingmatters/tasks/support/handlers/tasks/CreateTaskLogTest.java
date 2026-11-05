@@ -95,6 +95,21 @@ public class CreateTaskLogTest {
     }
 
     @Test
+    public void givenHasTaskLogRepository__whenLogHasADescription__thenTheDescriptionIsStored() throws Exception {
+        this.taskRepository.createWithId("task", Task.builder().id("task").build());
+
+        TaskLogsPostResponse response = this.createTaskLog.apply(TaskLogsPostRequest.builder()
+                .taskId("task")
+                .payload(TaskLogCreation.builder().log("label").description("detail").level(TaskLogCreation.Level.INFO).build())
+                .build());
+
+        response.opt().status201().orElseThrow(() -> new AssertionError("expected 201, got " + response));
+        TaskLog log = this.taskLogRepository.get().all(0L, 0L).valueList().get(0);
+        assertThat(log.log(), is("label"));
+        assertThat(log.description(), is("detail"));
+    }
+
+    @Test
     public void givenHasTaskLogRepository__whenTask__then201_andLogCreated() throws Exception {
         this.taskRepository.createWithId("task", Task.builder().id("task").build());
 
@@ -181,6 +196,20 @@ public class CreateTaskLogTest {
                 .log(response.status201().payload())
                 .build()));
     }
+    @Test
+    public void givenHasTaskLogRepository__whenTaskIsDone__then400_andNoLogCreated_andNotNotified() throws Exception {
+        this.taskRepository.createWithId("task", Task.builder().id("task").callbackUrl("http://call.me/back").status(Status.builder().run(Status.Run.DONE).exit(Status.Exit.SUCCESS).build()).build());
+
+        TaskLogsPostResponse response = this.createTaskLog.apply(TaskLogsPostRequest.builder()
+                .taskId("task")
+                .payload(TaskLogCreation.builder().log("log").level(TaskLogCreation.Level.INFO).build())
+                .build());
+
+        response.opt().status400().orElseThrow(() -> new AssertionError("expected 400, got " + response));
+        assertThat(this.taskLogRepository.get().all(0L, 0L).total(), is(0L));
+        assertThat(this.callbackRequesterFactory.lastCall().isPresent(), is(false));
+    }
+
     private TaskNotification readTaskNotification(byte[] json) throws IOException {
         try(JsonParser parser = new JsonFactory().createParser(json)) {
             return new TaskNotificationReader().read(parser);

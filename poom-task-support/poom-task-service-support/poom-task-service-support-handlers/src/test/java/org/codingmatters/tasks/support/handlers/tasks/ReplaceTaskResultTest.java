@@ -1,6 +1,7 @@
 package org.codingmatters.tasks.support.handlers.tasks;
 
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import org.codingmatters.poom.services.domain.property.query.PropertyQuery;
 import org.codingmatters.poom.services.domain.repositories.Repository;
 import org.codingmatters.poom.services.domain.repositories.inmemory.InMemoryRepositoryWithPropertyQuery;
@@ -11,6 +12,9 @@ import org.codingmatters.tasks.api.TaskResultsPutRequest;
 import org.codingmatters.tasks.api.TaskResultsPutResponse;
 import org.codingmatters.tasks.api.types.Task;
 import org.codingmatters.tasks.api.types.TaskLog;
+import org.codingmatters.tasks.api.types.TaskNotification;
+import org.codingmatters.tasks.api.types.json.TaskNotificationReader;
+import org.codingmatters.tasks.api.types.task.Status;
 import org.codingmatters.tasks.support.api.TaskEntryPointAdapter;
 import org.codingmatters.value.objects.values.ObjectValue;
 import org.junit.Test;
@@ -71,5 +75,34 @@ public class ReplaceTaskResultTest {
                 .id("task")
                 .results(ObjectValue.builder().property("the", v -> v.stringValue("result")).build())
                 .build()));
+    }
+
+    @Test
+    public void whenTaskIsDone__then400_andResultKept() throws Exception {
+        ObjectValue previous = ObjectValue.builder().property("the", v -> v.stringValue("previous")).build();
+        this.repository.createWithId("task", Task.builder().id("task").status(Status.builder().run(Status.Run.DONE).exit(Status.Exit.SUCCESS).build()).results(previous).build());
+
+        TaskResultsPutResponse response = this.replaceTaskResult.apply(TaskResultsPutRequest.builder().taskId("task").payload(ObjectValue.builder().property("the", v -> v.stringValue("result")).build()).build());
+
+        response.opt().status400().orElseThrow(() -> new AssertionError("expected 400, got " + response));
+        assertThat(this.repository.retrieve("task").value().results(), is(previous));
+    }
+
+    @Test
+    public void whenResultReplaced__thenStatusChangeNotified() throws Exception {
+        this.callbackRequesterFactory.nextResponse(TestRequesterFactory.Method.POST, 204);
+        this.repository.createWithId("task", Task.builder().id("task").callbackUrl("http://call.me/back").status(Status.builder().run(Status.Run.RUNNING).build()).build());
+
+        this.replaceTaskResult.apply(TaskResultsPutRequest.builder().taskId("task").payload(ObjectValue.builder().property("the", v -> v.stringValue("result")).build()).build());
+
+        TestRequesterFactory.Call call = this.callbackRequesterFactory.lastCall().orElseThrow(() -> new AssertionError("expected a callback"));
+        assertThat(call.headers().get("status")[0], is("RUNNING"));
+        assertThat(call.headers().get("result"), is(nullValue()));
+        try(JsonParser parser = new JsonFactory().createParser(call.requestBody())) {
+            assertThat(new TaskNotificationReader().read(parser), is(TaskNotification.builder()
+                    .type(TaskNotification.Type.STATUS_CHANGE)
+                    .task(this.repository.retrieve("task").value())
+                    .build()));
+        }
     }
 }

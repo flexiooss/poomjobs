@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.codingmatters.tasks</groupId>
+        <artifactId>poom-task-service-support</artifactId>
+        <version>1.332.0</version>
+    </parent>
+
+    <artifactId>poom-task-service-support-specs</artifactId>
+    <description>
+        Règles métier des points d'entrée de tâches (handlers génériques) en scénarios Gherkin réutilisables :
+        à déclarer en scope test, avec une implémentation de TaskEntryPointsUnderTest et un runner (voir README.md).
+    </description>
+
+    <properties>
+        <cucumber.version>7.20.1</cucumber.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- versions convergentes des modules Cucumber (règle DependencyConvergence de l'enforcer) -->
+            <dependency>
+                <groupId>io.cucumber</groupId>
+                <artifactId>cucumber-bom</artifactId>
+                <version>${cucumber.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.codingmatters.tasks</groupId>
+            <artifactId>poom-task-service-support-handlers</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codingmatters.tasks</groupId>
+            <artifactId>poom-task-service-support-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codingmatters.tasks</groupId>
+            <artifactId>poom-task-api-types</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codingmatters.poom</groupId>
+            <artifactId>poomjobs-clients</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codingmatters.poom</groupId>
+            <artifactId>poomjobs-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codingmatters.poom</groupId>
+            <artifactId>poom-services-domain</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codingmatters.rest</groupId>
+            <artifactId>cdm-rest-client-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.codingmatters.rest</groupId>
+            <artifactId>cdm-rest-client-okhttp</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.undertow</groupId>
+            <artifactId>undertow-core</artifactId>
+        </dependency>
+
+        <!-- moteur Cucumber et suite JUnit Platform : apportés aux consommateurs, qui n'écrivent qu'un runner -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-picocontainer</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-junit-platform-engine</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

@@ -13,6 +13,7 @@ import org.codingmatters.poomjobs.api.PoomjobsJobRegistryAPIHandlers;
 import org.codingmatters.poomjobs.api.types.JobCreationData;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIClient;
 import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIHandlersClient;
+import org.codingmatters.poomjobs.client.PoomjobsJobRegistryAPIRequesterClient;
 import org.codingmatters.rest.api.client.Requester;
 import org.codingmatters.rest.api.client.test.TestRequesterFactory;
 import org.codingmatters.tasks.api.TaskCollectionPostRequest;
@@ -56,7 +57,7 @@ public class CreateTaskTest {
 
     private AtomicReference<TaskEntryPointAdapter.JobSpec> nextJobSpec = new AtomicReference<>(new TaskEntryPointAdapter.JobSpec("test", "job", "taskUrl"));
 
-    private final CreateTask createTask = new CreateTask(() -> new TaskEntryPointAdapter() {
+    private final TaskEntryPointAdapter adapter = new TaskEntryPointAdapter() {
         @Override
         public Repository<Task, PropertyQuery> tasks() {
             return repository;
@@ -82,7 +83,9 @@ public class CreateTaskTest {
             lastCallback.set(callbackUrl);
             return callbackRequesterFactory.create();
         }
-    }, this.jobsClient, new JsonFactory());
+    };
+
+    private final CreateTask createTask = new CreateTask(() -> this.adapter, this.jobsClient, new JsonFactory());
 
     @Test
     public void whenCreatingTaskWithParams__thenTaskCreatedFromRequest() throws Exception {
@@ -184,6 +187,25 @@ public class CreateTaskTest {
     }
 
 
+
+    @Test
+    public void givenJobRegistryUnreachable__whenCreatingTask__thenError500_andTaskDoneFailure_andNotNotified() throws Exception {
+        CreateTask createTask = new CreateTask(() -> this.adapter, new PoomjobsJobRegistryAPIRequesterClient(
+                new TestRequesterFactory(() -> "http://jobs"), new JsonFactory(), "http://jobs"), new JsonFactory());
+
+        TaskCollectionPostResponse response = createTask.apply(TaskCollectionPostRequest.builder()
+                        .callbackUrl("http://call.me/back")
+                        .payload(ObjectValue.builder().property("submitted", v -> v.stringValue("value")).build())
+                .build());
+
+        assertThat(response.status500(), is(notNullValue()));
+
+        Task task = this.repository.all(0L, 0L).valueList().get(0);
+        assertThat(task.status().run(), is(Status.Run.DONE));
+        assertThat(task.status().exit(), is(Status.Exit.FAILURE));
+        assertThat(task.finishedAt(), is(around(UTC.now())));
+        assertThat(this.callbackRequesterFactory.lastCall().isPresent(), is(false));
+    }
 
     private TaskNotification readTaskNotification(byte[] json) throws IOException {
         try(JsonParser parser = new JsonFactory().createParser(json)) {

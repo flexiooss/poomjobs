@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.codingmatters.tasks</groupId>
         <artifactId>poom-task-service-support-demo</artifactId>
-        <version>1.331.0</version>
+        <version>1.332.0</version>
     </parent>
 
     <artifactId>poom-task-service-support-demo-handlers</artifactId>
@@ -30,6 +30,24 @@
         <dependency>
             <groupId>org.codingmatters.rest</groupId>
             <artifactId>cdm-rest-client-tests-support</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- règles des tâches (Gherkin) éprouvées sur les points d'entrée en mémoire : RunTaskSpecsTest -->
+        <dependency>
+            <groupId>org.codingmatters.tasks</groupId>
+            <artifactId>poom-task-service-support-specs</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codingmatters.rest</groupId>
+            <artifactId>cdm-rest-client-okhttp</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- la suite JUnit Platform fait passer surefire sur la plateforme : les tests JUnit 4 existants passent par vintage -->
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
