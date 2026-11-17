@@ -319,6 +319,12 @@ public class TaskSteps {
         assertThat("refusée (statut " + this.context.lastOutcome().status() + ")", this.context.lastOutcome().badRequest(), is(true));
     }
 
+    /** La dernière action est refusée parce qu'elle termine la tâche sans dire si elle a réussi ou échoué. */
+    @Then("la demande est refusée car l'issue de la tâche n'est pas précisée")
+    public void refusedExitMissing() {
+        assertThat("refusée (statut " + this.context.lastOutcome().status() + ")", this.context.lastOutcome().badRequest(), is(true));
+    }
+
     /** La consultation des journaux est refusée : le point d'entrée ne les parcourt pas. */
     @Then("la consultation des journaux n'est pas permise")
     public void logBrowsingNotAllowed() {

@@ -16,7 +16,7 @@
 ## Ressources
 | Ressource | Statut | Scénarios | Dernière boucle |
 | --- | --- | --- | --- |
-| tasks (handlers génériques) | reviewed | 37 scénarios / 51 exemples (@confirmed 37) — écarts F1–F6 corrigés | 2026-11-03 evolve |
+| tasks (handlers génériques) | reviewed | 38 scénarios / 51 exemples (@confirmed 38) — écarts F1–F7 corrigés | 2026-11-17 evolve |
 
 ## Mis de côté
 - (aucun — boucle extract tasks du 2026-11-03)
@@ -49,8 +49,13 @@
 | 2026-11-03 | extract | tasks (adaptateur en mémoire) | 47/47 exemples (37/37 scénarios) | 0 | 0 / 57 steps distinctes (57 créées, la plupart reprises de flexio-demo et généralisées) | — | 0 |
 | 2026-11-03 | review | tasks | 47/47 (aucun attendu modifié) | 0 | — | ~15 min (5 thèmes, 9 questions) | 0 |
 | 2026-11-03 | evolve | tasks (F1–F6) | rouge attendu 8/8, puis 51/51 | 0 | 4 nouvelles / 60 steps | — | 0 |
+| 2026-11-17 | evolve | tasks — F7 (fin sans issue) | rouge attendu 1/1, 50 autres verts | 0 | — | décision prise en revue flexio-demo | 0 |
 
 ## Évolutions
+- 2026-11-17 — F7 « terminer une tâche sans préciser son issue est refusé » : 1 exemple retiré de l'Outline « terminer une
+  tâche note sa fin et son issue » (attendu changé par décision), « une tâche en attente peut être terminée directement »
+  reformulé avec succès (attendu inchangé), 1 scénario ajouté, 1 step créée ; correctif `UpdateTaskStatus` + 1 test
+  unitaire ; rouge 1/1 avant, suite (51) et build complet verts après.
 - 2026-11-03 — correction des écarts F1–F6 de la revue (nel) : 8 scénarios touchés (4 `@known-bug` inversés, 2 fusionnés
   en Outline avec la règle de refus du registre, 1 Outline étendu à l'injoignabilité — déjà vert, il verrouille
   « sans notification »), tous `@confirmed` avec `# corrigé: Fn`. Diff validé avant code ; rouge constaté : 8 exemples

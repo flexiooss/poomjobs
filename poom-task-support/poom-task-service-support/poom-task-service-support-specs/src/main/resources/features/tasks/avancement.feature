@@ -10,7 +10,7 @@ Feature: Avancement d'une tâche
     And la tâche est en cours
     And la tâche a été démarrée à l'instant (heure UTC)
 
-  # source: UpdateTaskStatus#apply (issue absente → SUCCESS)
+  # source: UpdateTaskStatus#apply
   @confirmed
   Scenario Outline: Terminer une tâche note sa fin et son issue
     Given une tâche en cours
@@ -20,7 +20,6 @@ Feature: Avancement d'une tâche
 
     Examples:
       | issue                     | statut               |
-      | sans préciser son issue   | terminée avec succès |
       | avec succès               | terminée avec succès |
       | en échec                  | terminée en échec    |
 
@@ -28,8 +27,17 @@ Feature: Avancement d'une tâche
   @confirmed
   Scenario: Une tâche en attente peut être terminée directement
     Given une tâche en attente
-    When je termine la tâche sans préciser son issue
+    When je termine la tâche avec succès
     Then la tâche est terminée avec succès
+
+  # source: UpdateTaskStatus#apply (issue absente → 400)
+  # corrigé: F7 (docs/tests/findings.md)
+  @confirmed
+  Scenario: Terminer une tâche sans préciser son issue est refusé
+    Given une tâche en cours
+    When je termine la tâche sans préciser son issue
+    Then la demande est refusée car l'issue de la tâche n'est pas précisée
+    And la tâche est en cours
 
   # source: UpdateTaskStatus#apply
   # corrigé: F2 (docs/tests/findings.md)

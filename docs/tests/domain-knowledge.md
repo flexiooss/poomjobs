@@ -47,6 +47,8 @@ Revue des règles des tâches du 2026-11-03 (nel) :
 - **Refus du registre sans notification** : la demande de tâche échoue de façon synchrone, l'appelant le sait déjà ;
   le point de rappel n'est notifié ni de la création ni de l'échec — voulu.
 - **Registre injoignable** : la tâche doit être terminée en échec comme pour un refus (corrigé, F1).
+- **Une fin de tâche précise son issue** (succès ou échec) : terminer sans issue est refusé (F7, décision du 2026-11-17,
+  qui remplace « sans issue = succès » confirmé le 2026-11-03).
 - **Terminer une tâche en attente** est permis (exécutant qui échoue avant de démarrer, annulation) ; elle n'a alors
   pas de date de démarrage — voulu.
 - **Relance d'une tâche en cours** : acceptée, mais la date de démarrage est la première (corrigé, F2).

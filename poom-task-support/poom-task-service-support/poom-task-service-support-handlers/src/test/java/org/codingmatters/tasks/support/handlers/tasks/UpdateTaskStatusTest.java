@@ -120,6 +120,18 @@ public class UpdateTaskStatusTest {
     }
 
     @Test
+    public void givenTaskExist__whenChangeToDoneWithoutExit__thenBadRequest_andTaskUnchanged() throws Exception {
+        this.repository.createWithId("task", Task.builder().status(Status.builder().run(Status.Run.RUNNING).build()).build());
+
+        TaskStatusChangesPostResponse response = this.retrieveTask.apply(TaskStatusChangesPostRequest.builder()
+                .taskId("task").payload(TaskStatusChange.builder().run(TaskStatusChange.Run.DONE).build())
+                .build());
+
+        response.opt().status400().orElseThrow(() -> new AssertionError("expected 400, got : " + response));
+        assertThat(this.repository.retrieve("task").value(), is(Task.builder().status(Status.builder().run(Status.Run.RUNNING).build()).build()));
+    }
+
+    @Test
     public void givenTaskExist__whenTaskWasDone__thenBadRequest() throws Exception {
         this.repository.createWithId("task", Task.builder().status(Status.builder().run(Status.Run.DONE).build()).build());
 
