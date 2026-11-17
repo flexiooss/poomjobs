@@ -67,6 +67,11 @@ public class UpdateTaskStatus extends AbstractTaskHandler implements Function<Ta
                             .code(Error.Code.BAD_REQUEST)
                             .token(log.tokenized().info("cannot change task status when status is DONE : {}", taskEntity))
                     .build()).build()).build();
+        } else if(request.payload().run().equals(TaskStatusChange.Run.DONE) && request.payload().opt().exit().isEmpty()) {
+            return TaskStatusChangesPostResponse.builder().status400(Status400.builder().payload(Error.builder()
+                            .code(Error.Code.BAD_REQUEST)
+                            .token(log.tokenized().info("cannot finish a task without its exit : {}", request))
+                    .build()).build()).build();
         } else {
             try {
                 if (request.payload().run().equals(TaskStatusChange.Run.RUNNING)) {
@@ -77,9 +82,7 @@ public class UpdateTaskStatus extends AbstractTaskHandler implements Function<Ta
                 } else if (request.payload().run().equals(TaskStatusChange.Run.DONE)) {
                     taskEntity = repository.update(taskEntity, taskEntity.value()
                             .withFinishedAt(UTC.now())
-                            .withStatus(Status.builder().run(Status.Run.DONE).exit(
-                                    request.opt().payload().exit().isPresent() ? Status.Exit.valueOf(request.payload().exit().name()) : Status.Exit.SUCCESS
-                            ).build())
+                            .withStatus(Status.builder().run(Status.Run.DONE).exit(Status.Exit.valueOf(request.payload().exit().name())).build())
                     );
                 }
                 log.info("task status updated {}", taskEntity);

@@ -56,6 +56,7 @@
 | `je reçois, dans cet ordre, les tâches {noms}` | La dernière page reçue contient exactement les tâches de ces noms, dans cet ordre. | 1 | `TaskSteps#receivedTasksInOrder` |
 | `la consultation des journaux n'est pas permise` | La consultation des journaux est refusée : le point d'entrée ne les parcourt pas. | 1 | `TaskSteps#logBrowsingNotAllowed` |
 | `la demande est acceptée` | La dernière action est acceptée. | 7 | `TaskSteps#accepted` |
+| `la demande est refusée car l'issue de la tâche n'est pas précisée` | La dernière action est refusée parce qu'elle termine la tâche sans dire si elle a réussi ou échoué. | 1 | `TaskSteps#refusedExitMissing` |
 | `la demande est refusée car la tâche est introuvable` | La dernière action est refusée parce que la tâche visée n'existe pas. | 6 | `TaskSteps#refusedTaskNotFound` |
 | `la demande est refusée car la tâche est terminée` | La dernière action est refusée parce que la tâche visée est déjà terminée. | 7 | `TaskSteps#refusedTaskDone` |
 | `la demande échoue sur une erreur inattendue` | La dernière action échoue sur une erreur inattendue. | 2 | `TaskSteps#failedUnexpectedly` |
@@ -65,7 +66,7 @@
 | `la notification porte le résultat déposé` | La tâche portée par la notification reçue a pour résultat le premier résultat déposé. | 1 | `TaskSteps#notificationCarriesResult` |
 | `la page demandée est refusée` | La page demandée n'est pas une plage valide. | 2 | `TaskSteps#pageRefused` |
 | `la tâche a été {momentTache} le {moment}` | La tâche du scénario a été créée, démarrée ou terminée à ce moment. | 1 | `TaskSteps#taskMomentIs` |
-| `la tâche a été {momentTache} à l'instant \(heure UTC)` | La tâche du scénario a été créée, démarrée ou terminée à l'instant présent, en heure UTC. | 7 | `TaskSteps#taskMomentIsNow` |
+| `la tâche a été {momentTache} à l'instant \(heure UTC)` | La tâche du scénario a été créée, démarrée ou terminée à l'instant présent, en heure UTC. | 6 | `TaskSteps#taskMomentIsNow` |
 | `la tâche conserve sa demande` | La tâche du scénario a pour paramètres ceux de la demande envoyée. | 1 | `TaskSteps#taskKeepsRequest` |
 | `la tâche est {statutTache}` | La tâche du scénario est enregistrée avec ce statut. | 14 | `TaskSteps#taskHasStatus` |
 | `la tâche porte le dernier résultat déposé` | La tâche du scénario porte le dernier résultat déposé, et lui seul. | 1 | `TaskSteps#taskCarriesLastResult` |
