@@ -9,7 +9,7 @@
   | Adaptateur éprouvé | Module | Commande |
   | --- | --- | --- |
   | en mémoire (`InMemoryTaskEntryPoints`) | `poom-task-service-support-demo-handlers` | `mvn test -pl poom-task-support/poom-task-service-support/poom-task-service-support-demo/poom-task-service-support-demo-handlers` |
-  | Flexio, Mongo (`FlexioTasksAdapterDefaultProvider`) | `flexio-services-commons/flexio-task-service-support` | à venir (étape 2) |
+  | Flexio, Mongo (`FlexioTasksAdapterDefaultProvider`) | `flexio-services-commons/flexio-task-service-support` (repo flexio-services) | `mvn test -pl flexio-services-commons/flexio-task-service-support` (dans flexio-services ; version du module de règles reçue de `flexio-parent`, propriété `flexio-poomjobs.version`) |
 - Catalogue : `python3 -I <flexio-gherkin-rules>/scripts/steps_catalog.py poom-task-support/poom-task-service-support/poom-task-service-support-specs`
 - Arbitre des questions de revue : nel (mainteneur du framework jobs / tâches).
 
@@ -26,7 +26,7 @@
   actuel. F5 tranché après coup : le dépôt sur une tâche en attente est voulu (scénario confirmé), le remplacement du
   résultat d'une tâche terminée est un bug → scénario ajouté, `@known-bug`, sans nouvelle step. Aucun attendu
   modifié. Les corrections de F1–F6 se font en `evolve` (scénario inversé, rouge avant code) ;
-  F6 sans évolution de l'API. À l'étape 2, l'adaptateur Flexio hérite de ces tags tels quels.
+  F6 sans évolution de l'API. L'adaptateur Flexio hérite de ces tags tels quels.
 - Extract tasks (2026-11-03) : migration des scénarios « framework » extraits dans flexio-demo (tâches de calcul de plus
   court chemin et de message de chat, 2026-11-03), généralisés à un point d'entrée quelconque, et complétés : liste
   (`BrowseTasks` : filtre, tri, pages), journaux (`BrowseTaskLogs` : ordre, niveau, tâche inexistante, absence de dépôt),
@@ -39,6 +39,12 @@
   production (`CreateTask` : arguments additionnels et compte du job ignorés) → 2 scénarios en échec. Fichiers restaurés.
 - Comparaison des tâches renvoyées ou notifiées : identifiant, statut et demande seulement (un dépôt Mongo tronque les
   dates à la milliseconde).
+
+- Adaptateur Flexio branché (2026-11-19) : la suite tourne sur `FlexioTasksAdapterDefaultProvider` avec une MongoDB
+  réelle dans flexio-services (`flexio-task-service-support`, feature fusionnée dans `develop`, 1.691.0) — 51/51
+  exemples verts avec poomjobs 1.334.0 (F7 compris), plus 6 scénarios propres à l'adaptateur (base par compte,
+  séparation des points d'entrée, job, point de rappel) documentés dans le `docs/tests/` de flexio-services ;
+  1 question de revue ouverte côté adaptateur (`dbForAccount` ignorée), suivie là-bas.
 
 ## Propositions en attente (consolidate)
 - (aucune)
